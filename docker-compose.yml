@@ -1,0 +1,38 @@
+services:
+  web:
+    build: .
+    # Vorerst direkt über VPS-IP:3001 erreichbar
+    # Sobald Domain verfügbar: Port-Binding entfernen und Traefik-Labels einkommentieren
+    ports:
+      - "0.0.0.0:3001:3000"
+    restart: unless-stopped
+
+    # --- Traefik-Labels (einkommentieren sobald Domain verfügbar) ---
+    # labels:
+    #   - "traefik.enable=true"
+    #   # Hauptrouter: nur non-www
+    #   - "traefik.http.routers.pflegematch.rule=Host(`pflegematch.at`)"
+    #   - "traefik.http.routers.pflegematch.entrypoints=websecure"
+    #   - "traefik.http.routers.pflegematch.tls.certresolver=letsencrypt"
+    #   - "traefik.http.services.pflegematch.loadbalancer.server.url=http://localhost:3000"
+    #   # www → non-www Redirect
+    #   - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.regex=^https://www\\.pflegematch\\.at(.*)"
+    #   - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.replacement=https://pflegematch.at$${1}"
+    #   - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.permanent=true"
+    #   - "traefik.http.routers.pflegematch-www.rule=Host(`www.pflegematch.at`)"
+    #   - "traefik.http.routers.pflegematch-www.entrypoints=websecure"
+    #   - "traefik.http.routers.pflegematch-www.tls.certresolver=letsencrypt"
+    #   - "traefik.http.routers.pflegematch-www.middlewares=pflegematch-www-redirect"
+    #   - "traefik.http.routers.pflegematch-www.service=pflegematch"
+
+  # robots:
+  #   image: nginx:alpine
+  #   volumes:
+  #     - ./robots.txt:/usr/share/nginx/html/robots.txt:ro
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.pflegematch-robots.rule=(Host(`pflegematch.at`) || Host(`www.pflegematch.at`)) && Path(`/robots.txt`)"
+  #     - "traefik.http.routers.pflegematch-robots.priority=1000"
+  #     - "traefik.http.routers.pflegematch-robots.entrypoints=websecure"
+  #     - "traefik.http.routers.pflegematch-robots.tls.certresolver=letsencrypt"
+  #   restart: unless-stopped
