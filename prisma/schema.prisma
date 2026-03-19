@@ -123,13 +123,14 @@ model User {
 
   lastAssignedAt  DateTime? // Round-Robin: wann zuletzt eine Anfrage zugewiesen wurde
 
-  memberships      TenantMembership[]
-  sessions         Session[]
-  accounts         Account[]
-  caregiverProfile CaregiverProfile?
-  clientProfile    ClientProfile?
-  reviewsWritten   Review[]       @relation("ReviewsWritten")
-  assignedRequests MatchRequest[] @relation("AssignedRequests")
+  memberships       TenantMembership[]
+  sessions          Session[]
+  accounts          Account[]
+  caregiverProfile  CaregiverProfile?
+  clientProfile     ClientProfile?
+  reviewsWritten    Review[]       @relation("ReviewsWritten")
+  assignedRequests  MatchRequest[] @relation("AssignedRequests")
+  processedRequests MatchRequest[] @relation("ProcessedRequests")
 
   @@index([email])
 }
@@ -311,11 +312,13 @@ model MatchRequest {
   isProcessed     Boolean           @default(false)
   createdAt       DateTime          @default(now())
 
-  assignedToUserId String? // Round-Robin: zugewiesener Vermittler-Admin
+  assignedToUserId   String? // Round-Robin: zugewiesener Vermittler-Admin
+  processedByUserId  String? // wer die Anfrage abgeschlossen hat
 
   tenant        Tenant         @relation(fields: [tenantId], references: [id])
   clientProfile ClientProfile? @relation(fields: [clientProfileId], references: [id])
-  assignedTo    User?          @relation("AssignedRequests", fields: [assignedToUserId], references: [id])
+  assignedTo    User?          @relation("AssignedRequests",   fields: [assignedToUserId],  references: [id])
+  processedBy   User?          @relation("ProcessedRequests",  fields: [processedByUserId], references: [id])
 
   @@index([tenantId])
   @@index([assignedToUserId])

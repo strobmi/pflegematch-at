@@ -12,7 +12,10 @@ export default async function VermittlerAnfragenPage() {
   const [requests, pfleger] = await Promise.all([
     prisma.matchRequest.findMany({
       where: { tenantId: session.tenantId },
-      include: { assignedTo: { select: { name: true } } },
+      include: {
+        assignedTo:  { select: { name: true } },
+        processedBy: { select: { name: true } },
+      },
       orderBy: { createdAt: "desc" },
     }),
     prisma.caregiverProfile.findMany({

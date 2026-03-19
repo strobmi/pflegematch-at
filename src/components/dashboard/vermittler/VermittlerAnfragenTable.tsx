@@ -17,7 +17,8 @@ interface Anfrage {
   notes: string | null;
   isProcessed: boolean;
   createdAt: Date;
-  assignedTo: { name: string | null } | null;
+  assignedTo:  { name: string | null } | null;
+  processedBy: { name: string | null } | null;
 }
 
 interface Pfleger {
@@ -110,13 +111,9 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
           {format(new Date(req.createdAt), "dd.MM.yy HH:mm", { locale: de })}
         </td>
         <td className="px-4 py-3 hidden lg:table-cell">
-          {showBadge ? (
-            req.isProcessed
-              ? <span className="text-xs px-2 py-0.5 rounded-full bg-[#EAD9C8] text-[#2D2D2D]/50 font-medium">Erledigt</span>
-              : <span className="text-xs px-2 py-0.5 rounded-full bg-[#F0F7F0] text-[#5A7A5A] font-medium">Offen</span>
-          ) : (
-            <span className="text-xs text-[#7B9E7B]">{req.assignedTo?.name ?? ""}</span>
-          )}
+          {req.isProcessed && req.processedBy?.name
+            ? <span className="text-xs text-[#2D2D2D]/50">{req.processedBy.name}</span>
+            : null}
         </td>
         <td className="px-4 py-3 text-right">
           {expanded
@@ -322,7 +319,7 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
             <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">Ort</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden md:table-cell">Eingegangen</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">
-              {tab === "alle" ? "Status" : "Zuständig"}
+              Bearbeiter
             </th>
             <th className="px-4 py-3 w-8" />
           </tr>

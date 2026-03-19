@@ -77,7 +77,7 @@ export async function markAnfrageProcessed(requestId: string) {
 
   await prisma.matchRequest.update({
     where: { id: requestId },
-    data: { isProcessed: true },
+    data: { isProcessed: true, processedByUserId: session.id },
   });
 
   revalidatePath("/vermittler/anfragen");
@@ -155,7 +155,7 @@ export async function createMatchFromAnfrage(
     // 7. Mark the MatchRequest as processed and link the client profile
     await prisma.matchRequest.update({
       where: { id: requestId },
-      data:  { isProcessed: true, clientProfileId: clientProfile.id },
+      data:  { isProcessed: true, clientProfileId: clientProfile.id, processedByUserId: session.id },
     });
 
     revalidatePath("/vermittler/anfragen");
