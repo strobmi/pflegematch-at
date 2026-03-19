@@ -15,7 +15,7 @@ export default async function VermittlerOverviewPage() {
       prisma.caregiverProfile.count({ where: { tenantId, isActive: true } }),
       prisma.clientProfile.count({ where: { tenantId, isActive: true } }),
       prisma.match.count({ where: { tenantId, status: { in: ["ACTIVE", "ACCEPTED"] } } }),
-      prisma.matchRequest.count({ where: { tenantId, isProcessed: false } }),
+      prisma.matchRequest.count({ where: { tenantId, isProcessed: false } }), // only assigned requests
       prisma.match.findMany({
         where: { tenantId },
         include: {

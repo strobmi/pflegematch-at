@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireTenantSession } from "@/lib/tenant";
-import { Plus, Link2 } from "lucide-react";
+import { Plus, Link2, ArrowRight } from "lucide-react";
 import MatchTable from "@/components/dashboard/matches/MatchTable";
 
 export const metadata = { title: "Matches · pflegematch" };
+
+const FUNNEL_STAGES = [
+  { status: "PROPOSED",  label: "Vorgeschlagen", color: "#C06B4A", bg: "#F5EDE3", textColor: "#C06B4A" },
+  { status: "PENDING",   label: "Ausstehend",    color: "#D97706", bg: "#FEF3C7", textColor: "#D97706" },
+  { status: "ACCEPTED",  label: "Akzeptiert",    color: "#5A7A5A", bg: "#F0F7F0", textColor: "#5A7A5A" },
+  { status: "ACTIVE",    label: "Aktiv",          color: "#7B9E7B", bg: "#DCFCE7", textColor: "#166534" },
+] as const;
 
 export default async function MatchesPage() {
   const session = await requireTenantSession();
@@ -18,9 +25,19 @@ export default async function MatchesPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  // ── KPI calculations ──────────────────────────────────────
+  const activeCount    = matches.filter((m) => m.status === "ACTIVE").length;
+  const completedCount = matches.filter((m) => m.status === "COMPLETED").length;
+  const scoredMatches  = matches.filter((m) => m.score != null);
+  const avgScore = scoredMatches.length > 0
+    ? Math.round(scoredMatches.reduce((s, m) => s + m.score!, 0) / scoredMatches.length)
+    : null;
+
+  const countByStatus = (status: string) => matches.filter((m) => m.status === status).length;
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#2D2D2D]">Matches</h1>
           <p className="text-sm text-[#2D2D2D]/50 mt-0.5">{matches.length} Einträge</p>
@@ -40,7 +57,58 @@ export default async function MatchesPage() {
           <p className="font-medium">Noch keine Matches erstellt</p>
         </div>
       ) : (
-        <MatchTable data={matches} />
+        <>
+          {/* ── KPI Cards ──────────────────────────────────────── */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { label: "Gesamt",        value: matches.length, suffix: "",  accent: "#2D2D2D", bg: "bg-white" },
+              { label: "Aktiv",         value: activeCount,    suffix: "",  accent: "#7B9E7B", bg: "bg-[#F0F7F0]" },
+              { label: "Abgeschlossen", value: completedCount, suffix: "",  accent: "#9CA3AF", bg: "bg-white" },
+              { label: "Ø Score",       value: avgScore,       suffix: "%", accent: "#C06B4A", bg: "bg-[#FDF5F0]" },
+            ].map(({ label, value, suffix, accent, bg }) => (
+              <div key={label} className={`${bg} rounded-2xl border border-[#EAD9C8] px-5 py-4`}>
+                <p className="text-xs font-medium text-[#2D2D2D]/50 mb-1">{label}</p>
+                <p className="text-3xl font-bold" style={{ color: accent }}>
+                  {value != null ? `${value}${suffix}` : "–"}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Pipeline Funnel ────────────────────────────────── */}
+          <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5">
+            <p className="text-xs font-semibold text-[#2D2D2D]/40 uppercase tracking-wider mb-4">
+              Pipeline
+            </p>
+            <div className="flex items-stretch gap-2">
+              {FUNNEL_STAGES.map((stage, i) => {
+                const count = countByStatus(stage.status);
+                const isLast = i === FUNNEL_STAGES.length - 1;
+                return (
+                  <div key={stage.status} className="flex items-center gap-2 flex-1 min-w-0">
+                    <div
+                      className="flex-1 rounded-xl px-4 py-3 text-center"
+                      style={{ backgroundColor: stage.bg }}
+                    >
+                      <p className="text-2xl font-bold" style={{ color: stage.color }}>
+                        {count}
+                      </p>
+                      <p className="text-xs font-medium mt-0.5" style={{ color: stage.textColor }}>
+                        {stage.label}
+                      </p>
+                    </div>
+                    {!isLast && (
+                      <ArrowRight className="w-4 h-4 text-[#2D2D2D]/20 shrink-0" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Table ──────────────────────────────────────────── */}
+          <MatchTable data={matches} />
+        </>
       )}
     </div>
   );

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Heart } from "lucide-react";
+import { useFragebogen } from "@/components/FragebogenContext";
 
 const navLinks = [
   { label: "So funktioniert's", href: "#how-it-works" },
@@ -14,6 +15,7 @@ const navLinks = [
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { openModal } = useFragebogen();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -66,12 +68,12 @@ export default function Header() {
             >
               Anmelden
             </a>
-            <a
-              href="#get-started"
-              className="bg-[#C06B4A] hover:bg-[#A05438] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-[#C06B4A]/25"
+            <button
+              onClick={openModal}
+              className="bg-[#C06B4A] hover:bg-[#A05438] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-[#C06B4A]/25 cursor-pointer"
             >
               Jetzt starten
-            </a>
+            </button>
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -112,12 +114,12 @@ export default function Header() {
                 >
                   Anmelden
                 </a>
-                <a
-                  href="#get-started"
-                  className="block w-full text-center bg-[#C06B4A] text-white px-5 py-3 rounded-full font-semibold"
+                <button
+                  onClick={() => { openModal(); setMobileOpen(false); }}
+                  className="block w-full text-center bg-[#C06B4A] text-white px-5 py-3 rounded-full font-semibold cursor-pointer"
                 >
                   Jetzt starten
-                </a>
+                </button>
               </div>
             </div>
           </motion.div>

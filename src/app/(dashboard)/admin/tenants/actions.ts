@@ -67,12 +67,13 @@ export async function createVermittler(data: VermittlerFormData) {
 }
 
 const TenantEditSchema = z.object({
-  tenantName:    z.string().min(2, "Min. 2 Zeichen"),
-  tenantSlug:    z.string().min(2, "Min. 2 Zeichen").regex(/^[a-z0-9-]+$/, "Nur Kleinbuchstaben, Zahlen und Bindestriche"),
-  tenantEmail:   z.string().email("Ungültige E-Mail"),
-  tenantPhone:   z.string().optional(),
-  tenantAddress: z.string().optional(),
-  status:        z.enum(["ACTIVE", "PENDING", "SUSPENDED"]),
+  tenantName:       z.string().min(2, "Min. 2 Zeichen"),
+  tenantSlug:       z.string().min(2, "Min. 2 Zeichen").regex(/^[a-z0-9-]+$/, "Nur Kleinbuchstaben, Zahlen und Bindestriche"),
+  tenantEmail:      z.string().email("Ungültige E-Mail"),
+  tenantPhone:      z.string().optional(),
+  tenantAddress:    z.string().optional(),
+  status:           z.enum(["ACTIVE", "PENDING", "SUSPENDED"]),
+  provisionPercent: z.coerce.number().min(0).max(100).optional().nullable(),
 });
 
 export type TenantEditFormData = z.infer<typeof TenantEditSchema>;
@@ -91,12 +92,13 @@ export async function updateTenant(tenantId: string, data: TenantEditFormData) {
   await prisma.tenant.update({
     where: { id: tenantId },
     data: {
-      name:    parsed.tenantName,
-      slug:    parsed.tenantSlug,
-      email:   parsed.tenantEmail,
-      phone:   parsed.tenantPhone,
-      address: parsed.tenantAddress,
-      status:  parsed.status,
+      name:             parsed.tenantName,
+      slug:             parsed.tenantSlug,
+      email:            parsed.tenantEmail,
+      phone:            parsed.tenantPhone,
+      address:          parsed.tenantAddress,
+      status:           parsed.status,
+      provisionPercent: parsed.provisionPercent ?? null,
     },
   });
 

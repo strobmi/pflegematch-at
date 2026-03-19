@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Star, Shield, Clock, ChevronDown } from "lucide-react";
+import { useFragebogen } from "@/components/FragebogenContext";
 
 const stats = [
   { value: "2.400+", label: "Vermittlungen in AT" },
@@ -10,6 +11,8 @@ const stats = [
 ];
 
 export default function Hero() {
+  const { openModal } = useFragebogen();
+
   return (
     <section className="relative flex items-center pt-20 overflow-hidden bg-[#FAF6F1]">
       {/* Background shapes */}
@@ -93,13 +96,13 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="flex flex-col sm:flex-row gap-3"
             >
-              <a
-                href="#get-started"
-                className="inline-flex items-center justify-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] text-white px-8 py-4 rounded-full text-base font-bold transition-all duration-200 hover:shadow-xl hover:shadow-[#C06B4A]/30 hover:-translate-y-0.5"
+              <button
+                onClick={openModal}
+                className="inline-flex items-center justify-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] text-white px-8 py-4 rounded-full text-base font-bold transition-all duration-200 hover:shadow-xl hover:shadow-[#C06B4A]/30 hover:-translate-y-0.5 cursor-pointer"
               >
                 Jetzt Pflegekraft finden
                 <span className="text-lg">→</span>
-              </a>
+              </button>
               <a
                 href="#how-it-works"
                 className="inline-flex items-center justify-center gap-2 bg-white hover:bg-[#F5EDE3] text-[#2D2D2D] px-8 py-4 rounded-full text-base font-semibold border border-[#EAD9C8] transition-all duration-200 hover:shadow-md"

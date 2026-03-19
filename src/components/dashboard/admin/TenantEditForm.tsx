@@ -8,12 +8,13 @@ import { useRouter } from "next/navigation";
 import { Loader2, Trash2 } from "lucide-react";
 
 const schema = z.object({
-  tenantName:    z.string().min(2, "Min. 2 Zeichen"),
-  tenantSlug:    z.string().min(2, "Min. 2 Zeichen").regex(/^[a-z0-9-]+$/, "Nur Kleinbuchstaben, Zahlen und Bindestriche"),
-  tenantEmail:   z.string().email("Ungültige E-Mail"),
-  tenantPhone:   z.string().optional(),
-  tenantAddress: z.string().optional(),
-  status:        z.enum(["ACTIVE", "PENDING", "SUSPENDED"]),
+  tenantName:       z.string().min(2, "Min. 2 Zeichen"),
+  tenantSlug:       z.string().min(2, "Min. 2 Zeichen").regex(/^[a-z0-9-]+$/, "Nur Kleinbuchstaben, Zahlen und Bindestriche"),
+  tenantEmail:      z.string().email("Ungültige E-Mail"),
+  tenantPhone:      z.string().optional(),
+  tenantAddress:    z.string().optional(),
+  status:           z.enum(["ACTIVE", "PENDING", "SUSPENDED"]),
+  provisionPercent: z.coerce.number().min(0).max(100).optional().nullable(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -106,13 +107,32 @@ export default function TenantEditForm({ tenantId, defaultValues, onSubmit, onDe
           <input {...register("tenantAddress")} className={inputClass} />
         </div>
 
-        <div>
-          <label className={labelClass}>Status</label>
-          <select {...register("status")} className={inputClass + " cursor-pointer"}>
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s.value} value={s.value} className="bg-[#2D2D2D]">{s.label}</option>
-            ))}
-          </select>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>Status</label>
+            <select {...register("status")} className={inputClass + " cursor-pointer"}>
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s.value} value={s.value} className="bg-[#2D2D2D]">{s.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Provision der Plattform (%)</label>
+            <div className="relative">
+              <input
+                {...register("provisionPercent")}
+                type="number"
+                min="0"
+                max="100"
+                step="0.5"
+                placeholder="z.B. 15"
+                className={inputClass + " pr-8"}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">%</span>
+            </div>
+            {errors.provisionPercent && <p className={errorClass}>{errors.provisionPercent.message}</p>}
+            <p className="text-[11px] text-white/30 mt-1">Leer lassen = noch nicht konfiguriert</p>
+          </div>
         </div>
       </div>
 

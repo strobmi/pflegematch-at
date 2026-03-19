@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/tenant";
 import { redirect } from "next/navigation";
-import { Building2, Users, Link2 } from "lucide-react";
+import { Building2, Users, Link2, Inbox } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = { title: "Admin · pflegematch" };
@@ -10,10 +10,13 @@ export default async function AdminPage() {
   const session = await requireSession();
   if (session.role !== "SUPERADMIN") redirect("/login");
 
-  const [tenantCount, userCount, matchCount] = await Promise.all([
-    prisma.tenant.count(),
+  const [tenantCount, userCount, matchCount, offeneAnfragen] = await Promise.all([
+    prisma.tenant.count({ where: { isPlatform: false } }),
     prisma.user.count(),
     prisma.match.count(),
+    prisma.matchRequest.count({
+      where: { tenant: { isPlatform: true }, isProcessed: false },
+    }),
   ]);
 
   const recentTenants = await prisma.tenant.findMany({
@@ -22,9 +25,10 @@ export default async function AdminPage() {
   });
 
   const stats = [
-    { label: "Vermittler",  value: tenantCount, icon: Building2, href: "/admin/tenants" },
-    { label: "Alle User",   value: userCount,   icon: Users,     href: "/admin/users" },
-    { label: "Alle Matches",value: matchCount,  icon: Link2,     href: "#" },
+    { label: "Vermittler",      value: tenantCount,    icon: Building2, href: "/admin/tenants" },
+    { label: "Alle User",       value: userCount,      icon: Users,     href: "/admin/users" },
+    { label: "Alle Matches",    value: matchCount,      icon: Link2,     href: "#" },
+    { label: "Offene Anfragen", value: offeneAnfragen, icon: Inbox,     href: "/admin/anfragen", highlight: offeneAnfragen > 0 },
   ];
 
   return (
@@ -34,14 +38,18 @@ export default async function AdminPage() {
         <p className="text-sm text-white/50 mt-0.5">Plattformübersicht</p>
       </div>
 
-      <div className="grid sm:grid-cols-3 gap-4">
-        {stats.map(({ label, value, icon: Icon, href }) => (
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map(({ label, value, icon: Icon, href, highlight }) => (
           <Link
             key={label}
             href={href}
-            className="bg-white/10 hover:bg-white/15 border border-white/10 rounded-2xl p-5 flex items-center gap-4 transition-colors"
+            className={`border rounded-2xl p-5 flex items-center gap-4 transition-colors ${
+              highlight
+                ? "bg-[#C06B4A]/20 border-[#C06B4A]/40 hover:bg-[#C06B4A]/30"
+                : "bg-white/10 border-white/10 hover:bg-white/15"
+            }`}
           >
-            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${highlight ? "bg-[#C06B4A]/30" : "bg-white/10"}`}>
               <Icon className="w-6 h-6 text-white" />
             </div>
             <div>

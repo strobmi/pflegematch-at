@@ -47,6 +47,29 @@ enum AvailabilityType {
   LIVE_IN
 }
 
+enum CaregiverType {
+  EMPLOYED   // bei Vermittler angestellt/registriert
+  FREELANCE  // direkt auf Plattform (vorbereitet, noch nicht aktiv)
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  ON_ASSIGNMENT
+  VACATION
+  BLOCKED
+}
+
+enum ProvisionStatus {
+  PENDING
+  INVOICED
+  PAID
+}
+
+enum ReviewTarget {
+  CAREGIVER
+  VERMITTLER
+}
+
 // ─────────────────────────────────────────────
 // TENANT (Vermittler-Firma)
 // ─────────────────────────────────────────────
@@ -63,11 +86,15 @@ model Tenant {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  memberships       TenantMembership[]
-  caregiverProfiles CaregiverProfile[]
-  clientProfiles    ClientProfile[]
-  matches           Match[]
-  matchRequests     MatchRequest[]
+  isPlatform        Boolean   @default(false)   // true = pflegematch.at selbst (genau 1x)
+  provisionPercent  Decimal?  @db.Decimal(5, 2) // z.B. 15.00 = 15%, Superadmin konfigurierbar
+
+  memberships           TenantMembership[]
+  caregiverProfiles     CaregiverProfile[]
+  clientProfiles        ClientProfile[]
+  matches               Match[]
+  matchRequests         MatchRequest[]
+  caregiverAvailabilities CaregiverAvailability[]
 
   @@index([slug])
 }
@@ -87,11 +114,15 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  lastAssignedAt  DateTime? // Round-Robin: wann zuletzt eine Anfrage zugewiesen wurde
+
   memberships      TenantMembership[]
   sessions         Session[]
   accounts         Account[]
   caregiverProfile CaregiverProfile?
   clientProfile    ClientProfile?
+  reviewsWritten   Review[]       @relation("ReviewsWritten")
+  assignedRequests MatchRequest[] @relation("AssignedRequests")
 
   @@index([email])
 }
@@ -159,20 +190,23 @@ model TenantMembership {
 // ─────────────────────────────────────────────
 
 model CaregiverProfile {
-  id             String             @id @default(cuid())
-  userId         String             @unique
-  tenantId       String
-  bio            String?            @db.Text
-  qualifications String[]
-  skills         String[]
-  languages      String[]
-  pflegestufe    PflegestufeLevel[]
-  availability   AvailabilityType   @default(PART_TIME)
-  locationCity   String?
-  locationState  String?
-  travelRadius   Int?
-  hourlyRate     Decimal?           @db.Decimal(8, 2)
-  isActive       Boolean            @default(true)
+  id                String           @id @default(cuid())
+  userId            String           @unique
+  tenantId          String
+  type              CaregiverType    @default(EMPLOYED)
+  bio               String?          @db.Text
+  qualifications    String[]
+  skills            String[]
+  languages         String[]
+  pflegestufe       PflegestufeLevel[]
+  availability      AvailabilityType @default(PART_TIME)
+  locationCity      String?
+  locationState     String?
+  travelRadius      Int?
+  hourlyRate        Decimal?         @db.Decimal(8, 2)
+  isActive          Boolean          @default(true)
+  isPlatformVisible Boolean          @default(false) // Cross-Tenant Matching Opt-In
+  averageRating     Float?           // denormalisiert, bei neuem Review aktualisiert
 
   backgroundChecked Boolean  @default(false)
   certificatesUrls  String[]
@@ -182,7 +216,8 @@ model CaregiverProfile {
 
   user             User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   tenant           Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  matchesAsPfleger Match[] @relation("PflegerMatches")
+  matchesAsPfleger Match[]                  @relation("PflegerMatches")
+  availabilities   CaregiverAvailability[]
 
   @@index([tenantId])
 }
@@ -236,9 +271,14 @@ model Match {
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 
+  provisionAmount  Decimal?        @db.Decimal(8, 2) // berechneter Provisionsbetrag
+  provisionStatus  ProvisionStatus @default(PENDING)
+
   tenant           Tenant           @relation(fields: [tenantId], references: [id])
   caregiverProfile CaregiverProfile @relation("PflegerMatches", fields: [caregiverProfileId], references: [id])
   clientProfile    ClientProfile    @relation("ClientMatches", fields: [clientProfileId], references: [id])
+  availabilities   CaregiverAvailability[]
+  reviews          Review[]
 
   @@index([tenantId])
   @@index([caregiverProfileId])
@@ -251,7 +291,7 @@ model Match {
 
 model MatchRequest {
   id              String            @id @default(cuid())
-  tenantId        String
+  tenantId        String            // platform tenant ID bis zur Zuweisung an einen Vermittler
   clientProfileId String?
   contactName     String?
   contactEmail    String?
@@ -263,8 +303,59 @@ model MatchRequest {
   isProcessed     Boolean           @default(false)
   createdAt       DateTime          @default(now())
 
+  assignedToUserId String? // Round-Robin: zugewiesener Vermittler-Admin
+
   tenant        Tenant         @relation(fields: [tenantId], references: [id])
   clientProfile ClientProfile? @relation(fields: [clientProfileId], references: [id])
+  assignedTo    User?          @relation("AssignedRequests", fields: [assignedToUserId], references: [id])
 
   @@index([tenantId])
+  @@index([assignedToUserId])
+}
+
+// ─────────────────────────────────────────────
+// CAREGIVER AVAILABILITY (Verfügbarkeitskalender)
+// ─────────────────────────────────────────────
+
+model CaregiverAvailability {
+  id                 String             @id @default(cuid())
+  caregiverProfileId String
+  tenantId           String
+  startDate          DateTime
+  endDate            DateTime?
+  status             AvailabilityStatus
+  matchId            String?            // gesetzt wenn ON_ASSIGNMENT
+  notes              String?            @db.Text
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  caregiverProfile CaregiverProfile @relation(fields: [caregiverProfileId], references: [id], onDelete: Cascade)
+  tenant           Tenant           @relation(fields: [tenantId], references: [id])
+  match            Match?           @relation(fields: [matchId], references: [id])
+
+  @@index([caregiverProfileId])
+  @@index([tenantId])
+  @@index([startDate, endDate])
+}
+
+// ─────────────────────────────────────────────
+// REVIEW (Bewertungen)
+// ─────────────────────────────────────────────
+
+model Review {
+  id         String       @id @default(cuid())
+  matchId    String
+  authorId   String
+  targetType ReviewTarget
+  targetId   String       // CaregiverProfile.id oder User.id
+  rating     Int          // 1–5
+  comment    String?      @db.Text
+  isPublic   Boolean      @default(true)
+  createdAt  DateTime     @default(now())
+
+  match  Match @relation(fields: [matchId], references: [id])
+  author User  @relation("ReviewsWritten", fields: [authorId], references: [id])
+
+  @@index([matchId])
+  @@index([targetId])
 }

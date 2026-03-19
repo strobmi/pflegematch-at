@@ -18,12 +18,13 @@ export default async function TenantBearbeitenPage({ params }: { params: Promise
   if (!tenant) notFound();
 
   const defaultValues = {
-    tenantName:    tenant.name,
-    tenantSlug:    tenant.slug,
-    tenantEmail:   tenant.email,
-    tenantPhone:   tenant.phone ?? "",
-    tenantAddress: tenant.address ?? "",
-    status:        tenant.status,
+    tenantName:       tenant.name,
+    tenantSlug:       tenant.slug,
+    tenantEmail:      tenant.email,
+    tenantPhone:      tenant.phone ?? "",
+    tenantAddress:    tenant.address ?? "",
+    status:           tenant.status,
+    provisionPercent: tenant.provisionPercent ? Number(tenant.provisionPercent) : undefined,
   };
 
   return (
