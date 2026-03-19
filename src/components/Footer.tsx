@@ -69,7 +69,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-white/35 text-xs">
-            © {new Date().getFullYear()} pflegematch AT GmbH · Alle Rechte vorbehalten
+            © {new Date().getFullYear()} pflegematch AT · Alle Rechte vorbehalten
           </p>
           <div className="flex items-center gap-4">
             <span className="text-xs text-white/35 flex items-center gap-1">
