@@ -68,6 +68,12 @@ export default function Header() {
               <span className="font-medium">0800 123 456</span>
             </a>
             <a
+              href="/login"
+              className="text-sm font-semibold text-[#2D2D2D]/70 hover:text-[#C06B4A] transition-colors px-3 py-2"
+            >
+              Anmelden
+            </a>
+            <a
               href="#get-started"
               className="bg-[#C06B4A] hover:bg-[#A05438] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-[#C06B4A]/25"
             >
@@ -105,7 +111,14 @@ export default function Header() {
                   {link.label}
                 </a>
               ))}
-              <div className="pt-2 border-t border-[#EAD9C8]">
+              <div className="pt-2 border-t border-[#EAD9C8] space-y-2">
+                <a
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="block w-full text-center border border-[#C06B4A] text-[#C06B4A] px-5 py-3 rounded-full font-semibold"
+                >
+                  Anmelden
+                </a>
                 <a
                   href="#get-started"
                   className="block w-full text-center bg-[#C06B4A] text-white px-5 py-3 rounded-full font-semibold"
