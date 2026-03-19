@@ -2,6 +2,7 @@
 
 import { Trash2 } from "lucide-react";
 import { updateMatchStatus, deleteMatch } from "@/app/(dashboard)/vermittler/matches/actions";
+import MeetingScheduleButton from "./MeetingScheduleButton";
 import type { Match, CaregiverProfile, ClientProfile, User } from "@prisma/client";
 import type { MatchStatus } from "@prisma/client";
 import { format } from "date-fns";
@@ -45,6 +46,7 @@ export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">Start</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide">Status</th>
               <th className="px-4 py-3" />
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-[#EAD9C8]">
@@ -78,6 +80,9 @@ export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
                         <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
                       ))}
                     </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <MeetingScheduleButton matchId={m.id} matchStatus={m.status} />
                   </td>
                   <td className="px-4 py-3">
                     <button
