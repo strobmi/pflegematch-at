@@ -9,8 +9,8 @@ const navItems = [
   { href: "/admin",          label: "Übersicht",  icon: LayoutGrid },
   { href: "/admin/tenants",  label: "Vermittler", icon: Building2 },
   { href: "/admin/users",    label: "Alle User",  icon: Users },
-  { href: "/admin/matches",  label: "Matches",    icon: Link2 },
   { href: "/admin/anfragen", label: "Anfragen",   icon: Inbox },
+  { href: "/admin/matches",  label: "Matches",    icon: Link2 },
 ];
 
 export default function AdminSidebar() {

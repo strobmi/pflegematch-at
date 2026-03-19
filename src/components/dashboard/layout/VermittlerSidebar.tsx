@@ -3,13 +3,14 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { Heart, LayoutGrid, Users, HeartHandshake, Link2, LogOut } from "lucide-react";
+import { Heart, LayoutGrid, Users, HeartHandshake, Link2, LogOut, Inbox } from "lucide-react";
 
 const navItems = [
-  { href: "/vermittler",          label: "Übersicht",     icon: LayoutGrid },
-  { href: "/vermittler/pfleger",  label: "Pflegekräfte",  icon: Users },
-  { href: "/vermittler/klienten", label: "Klienten",      icon: HeartHandshake },
-  { href: "/vermittler/matches",  label: "Matches",       icon: Link2 },
+  { href: "/vermittler",           label: "Übersicht",    icon: LayoutGrid },
+  { href: "/vermittler/pfleger",   label: "Pflegekräfte", icon: Users },
+  { href: "/vermittler/klienten",  label: "Klienten",     icon: HeartHandshake },
+  { href: "/vermittler/anfragen",  label: "Anfragen",     icon: Inbox },
+  { href: "/vermittler/matches",   label: "Matches",      icon: Link2 },
 ];
 
 export default function VermittlerSidebar({ tenantName }: { tenantName: string }) {
