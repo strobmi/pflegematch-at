@@ -1,4 +1,4 @@
-import { Heart, Mail, MapPin } from "lucide-react";
+import { Heart } from "lucide-react";
 
 const footerLinks = {
   "Plattform": [
@@ -44,13 +44,6 @@ export default function Footer() {
               Österreichs digitale Plattform für menschliche Pflegevermittlung. Wir verbinden Familien und Pflegekräfte mit Herz und Technologie.
             </p>
 
-            {/* Contact */}
-            <div className="space-y-2 text-sm text-white/55">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-[#C06B4A]" />
-                <span>Mariahilfer Straße 1, 1060 Wien</span>
-              </div>
-            </div>
           </div>
 
           {/* Links */}
