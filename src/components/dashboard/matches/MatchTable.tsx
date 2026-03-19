@@ -1,6 +1,7 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Trash2, Search } from "lucide-react";
 import { updateMatchStatus, deleteMatch } from "@/app/(dashboard)/vermittler/matches/actions";
 import MeetingScheduleButton from "./MeetingScheduleButton";
 import type { Match, CaregiverProfile, ClientProfile, User } from "@prisma/client";
@@ -13,6 +14,8 @@ type MatchWithRelations = Match & {
   clientProfile: ClientProfile & { user: Pick<User, "name"> };
 };
 
+type Tab = "offen" | "laufend" | "abgeschlossen" | "alle";
+
 const STATUS_CONFIG: Record<MatchStatus, { label: string; className: string }> = {
   PROPOSED:  { label: "Vorgeschlagen", className: "bg-[#F5EDE3] text-[#C06B4A]" },
   PENDING:   { label: "Ausstehend",    className: "bg-amber-50 text-amber-700" },
@@ -22,9 +25,16 @@ const STATUS_CONFIG: Record<MatchStatus, { label: string; className: string }> =
   CANCELLED: { label: "Storniert",     className: "bg-red-50 text-red-600" },
 };
 
-const ALL_STATUSES: MatchStatus[] = ["PROPOSED","PENDING","ACCEPTED","ACTIVE","COMPLETED","CANCELLED"];
+const ALL_STATUSES: MatchStatus[] = ["PROPOSED", "PENDING", "ACCEPTED", "ACTIVE", "COMPLETED", "CANCELLED"];
+
+const OFFEN_STATUSES:        MatchStatus[] = ["PROPOSED", "PENDING"];
+const LAUFEND_STATUSES:      MatchStatus[] = ["ACCEPTED", "ACTIVE"];
+const ABGESCHLOSSEN_STATUSES: MatchStatus[] = ["COMPLETED", "CANCELLED"];
 
 export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
+  const [tab, setTab]       = useState<Tab>("offen");
+  const [search, setSearch] = useState("");
+
   async function handleStatusChange(matchId: string, status: MatchStatus) {
     await updateMatchStatus(matchId, status);
   }
@@ -34,8 +44,71 @@ export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
     await deleteMatch(matchId);
   }
 
+  const counts = {
+    offen:         data.filter((m) => OFFEN_STATUSES.includes(m.status)).length,
+    laufend:       data.filter((m) => LAUFEND_STATUSES.includes(m.status)).length,
+    abgeschlossen: data.filter((m) => ABGESCHLOSSEN_STATUSES.includes(m.status)).length,
+    alle:          data.length,
+  };
+
+  const filtered = data.filter((m) => {
+    if (tab === "offen"         && !OFFEN_STATUSES.includes(m.status))         return false;
+    if (tab === "laufend"       && !LAUFEND_STATUSES.includes(m.status))       return false;
+    if (tab === "abgeschlossen" && !ABGESCHLOSSEN_STATUSES.includes(m.status)) return false;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      const haystack = [
+        m.caregiverProfile.user.name,
+        m.clientProfile.user.name,
+      ].join(" ").toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "offen",         label: "Offen" },
+    { key: "laufend",       label: "Laufend" },
+    { key: "abgeschlossen", label: "Abgeschlossen" },
+    { key: "alle",          label: "Alle" },
+  ];
+
   return (
     <div className="bg-white rounded-2xl border border-[#EAD9C8] overflow-hidden">
+      {/* Toolbar */}
+      <div className="px-4 pt-4 pb-3 border-b border-[#EAD9C8] space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2D2D2D]/30" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Pflegekraft oder Klient suchen…"
+            className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] transition-colors placeholder:text-[#2D2D2D]/35"
+          />
+        </div>
+        <div className="flex gap-1">
+          {tabs.map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                tab === key
+                  ? "bg-[#C06B4A]/10 text-[#C06B4A]"
+                  : "text-[#2D2D2D]/50 hover:bg-[#FAF6F1] hover:text-[#2D2D2D]"
+              }`}
+            >
+              {label}
+              <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
+                tab === key ? "bg-[#C06B4A]/15 text-[#C06B4A]" : "bg-[#EAD9C8] text-[#2D2D2D]/50"
+              }`}>
+                {counts[key]}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -50,51 +123,59 @@ export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#EAD9C8]">
-            {data.map((m) => {
-              const cfg = STATUS_CONFIG[m.status];
-              return (
-                <tr key={m.id} className="hover:bg-[#FAF6F1] transition-colors">
-                  <td className="px-4 py-3 font-medium text-[#2D2D2D]">
-                    {m.caregiverProfile.user.name ?? "–"}
-                  </td>
-                  <td className="px-4 py-3 text-[#2D2D2D]/70">
-                    {m.clientProfile.user.name ?? "–"}
-                  </td>
-                  <td className="px-4 py-3 hidden md:table-cell">
-                    {m.score != null ? (
-                      <span className="text-[#7B9E7B] font-semibold">{m.score}%</span>
-                    ) : "–"}
-                  </td>
-                  <td className="px-4 py-3 text-[#2D2D2D]/60 text-xs hidden lg:table-cell">
-                    {m.startDate
-                      ? format(new Date(m.startDate), "dd. MMM yyyy", { locale: de })
-                      : "–"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <select
-                      defaultValue={m.status}
-                      onChange={(e) => handleStatusChange(m.id, e.target.value as MatchStatus)}
-                      className={`text-xs font-medium px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none ${cfg.className}`}
-                    >
-                      {ALL_STATUSES.map((s) => (
-                        <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <MeetingScheduleButton matchId={m.id} matchStatus={m.status} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => handleDelete(m.id)}
-                      className="p-1.5 text-[#2D2D2D]/40 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-10 text-center text-[#2D2D2D]/35 text-sm">
+                  {search ? "Keine Treffer für diese Suche." : "Keine Matches vorhanden."}
+                </td>
+              </tr>
+            ) : (
+              filtered.map((m) => {
+                const cfg = STATUS_CONFIG[m.status];
+                return (
+                  <tr key={m.id} className="hover:bg-[#FAF6F1] transition-colors">
+                    <td className="px-4 py-3 font-medium text-[#2D2D2D]">
+                      {m.caregiverProfile.user.name ?? "–"}
+                    </td>
+                    <td className="px-4 py-3 text-[#2D2D2D]/70">
+                      {m.clientProfile.user.name ?? "–"}
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      {m.score != null ? (
+                        <span className="text-[#7B9E7B] font-semibold">{m.score}%</span>
+                      ) : "–"}
+                    </td>
+                    <td className="px-4 py-3 text-[#2D2D2D]/60 text-xs hidden lg:table-cell">
+                      {m.startDate
+                        ? format(new Date(m.startDate), "dd. MMM yyyy", { locale: de })
+                        : "–"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        defaultValue={m.status}
+                        onChange={(e) => handleStatusChange(m.id, e.target.value as MatchStatus)}
+                        className={`text-xs font-medium px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none ${cfg.className}`}
+                      >
+                        {ALL_STATUSES.map((s) => (
+                          <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <MeetingScheduleButton matchId={m.id} matchStatus={m.status} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => handleDelete(m.id)}
+                        className="p-1.5 text-[#2D2D2D]/40 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
