@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const { name, pflegebedarf } = await req.json();
+  const { name, pflegebedarf, nachricht } = await req.json();
 
   if (!name || name.trim().length < 2) {
     return NextResponse.json({ error: "Bitte Namen angeben." }, { status: 400 });
@@ -20,6 +20,7 @@ export async function POST(req: Request) {
       <table>
         <tr><td><strong>Name:</strong></td><td>${name}</td></tr>
         <tr><td><strong>Pflegebedarf:</strong></td><td>${pflegebedarf || "–"}</td></tr>
+        <tr><td><strong>Nachricht:</strong></td><td>${nachricht || "–"}</td></tr>
       </table>
     `,
   });

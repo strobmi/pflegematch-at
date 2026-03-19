@@ -7,6 +7,7 @@ import { useState } from "react";
 export default function CTASection() {
   const [name, setName] = useState("");
   const [pflegebedarf, setPflegebedarf] = useState("");
+  const [nachricht, setNachricht] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   async function handleSubmit() {
@@ -16,7 +17,7 @@ export default function CTASection() {
     const res = await fetch("/api/anfrage", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, pflegebedarf }),
+      body: JSON.stringify({ name, pflegebedarf, nachricht }),
     });
 
     setStatus(res.ok ? "success" : "error");
@@ -81,6 +82,13 @@ export default function CTASection() {
                       <option>24-Stunden-Pflege</option>
                       <option>Nachtsitzung</option>
                     </select>
+                    <textarea
+                      placeholder="Ihre Nachricht (optional)"
+                      value={nachricht}
+                      onChange={(e) => setNachricht(e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20 transition-colors placeholder:text-[#2D2D2D]/35 resize-none"
+                    />
                   </div>
 
                   {status === "error" && (
