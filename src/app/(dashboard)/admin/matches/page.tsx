@@ -5,6 +5,13 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { Link2 } from "lucide-react";
 import type { MatchStatus, ProvisionStatus } from "@prisma/client";
+import { computeScore } from "@/lib/scoring";
+
+const AVAIL_REVERSE: Partial<Record<string, string>> = {
+  LIVE_IN:   "24h",
+  HOURLY:    "stundenweise",
+  PART_TIME: "tagesbetreuung",
+};
 
 export const metadata = { title: "Matches · Admin · pflegematch" };
 
@@ -31,10 +38,45 @@ export default async function AdminMatchesPage() {
     where: { tenant: { isPlatform: false } },
     include: {
       tenant: { select: { name: true } },
-      caregiverProfile: { include: { user: { select: { name: true } } } },
-      clientProfile:    { include: { user: { select: { name: true } } } },
+      caregiverProfile: {
+        select: {
+          user: { select: { name: true } },
+          pflegestufe: true,
+          languages: true,
+          availability: true,
+          averageRating: true,
+        },
+      },
+      clientProfile: {
+        select: {
+          user: { select: { name: true } },
+          pflegegeldStufe: true,
+          preferredLanguages: true,
+          preferredSchedule: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
+  });
+
+  // Compute score where not stored: use saved value first, fall back to computeScore
+  const matchesWithScore = matches.map((m) => {
+    if (m.score != null) return { ...m, computedScore: m.score, scoreIsAuto: false };
+    const careNeedsRaw = (() => {
+      const obj: Record<string, unknown> = {};
+      if (m.clientProfile.preferredSchedule) {
+        const b = AVAIL_REVERSE[m.clientProfile.preferredSchedule];
+        if (b) obj.betreuungsart = b;
+      }
+      if (m.clientProfile.preferredLanguages.length > 0)
+        obj.sprachen = m.clientProfile.preferredLanguages.map((lang) => ({ lang }));
+      return Object.keys(obj).length > 0 ? JSON.stringify(obj) : null;
+    })();
+    const result = computeScore(m.caregiverProfile, {
+      pflegegeldStufe: m.clientProfile.pflegegeldStufe ?? null,
+      careNeedsRaw,
+    });
+    return { ...m, computedScore: result.score, scoreIsAuto: true };
   });
 
   const activeCount    = matches.filter((m) => m.status === "ACTIVE").length;
@@ -80,9 +122,10 @@ export default async function AdminMatchesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
-                {matches.map((m) => {
+                {matchesWithScore.map((m) => {
                   const statusCfg    = STATUS_CONFIG[m.status];
                   const provCfg      = PROVISION_CONFIG[m.provisionStatus];
+                  const scoreColor   = m.computedScore >= 70 ? "text-[#A8C5A8]" : m.computedScore >= 40 ? "text-amber-300" : "text-white/40";
                   return (
                     <tr key={m.id} className="hover:bg-white/5 transition-colors">
                       <td className="px-4 py-3 font-medium text-white">
@@ -95,9 +138,10 @@ export default async function AdminMatchesPage() {
                         {m.tenant.name}
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
-                        {m.score != null
-                          ? <span className="text-[#A8C5A8] font-semibold">{m.score}%</span>
-                          : <span className="text-white/25">–</span>}
+                        <span className={`font-semibold ${scoreColor}`}>{m.computedScore}</span>
+                        {m.scoreIsAuto && (
+                          <span className="ml-1.5 text-[10px] text-white/30">auto</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-white/50 text-xs hidden lg:table-cell">
                         {m.startDate

@@ -1,15 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Check } from "lucide-react";
+import { Loader2, Check, Zap } from "lucide-react";
 import { createMatch } from "@/app/(dashboard)/vermittler/matches/actions";
-import type { CaregiverProfile, ClientProfile, User } from "@prisma/client";
+import { computeScore } from "@/lib/scoring";
 
-type PflegerItem = CaregiverProfile & { user: Pick<User, "name"> };
-type KlientItem  = ClientProfile  & { user: Pick<User, "name"> };
+type PflegerItem = {
+  id: string;
+  locationCity: string | null;
+  availability: string;
+  pflegestufe: string[];
+  languages: string[];
+  averageRating: number | null;
+  user: { name: string | null };
+};
+
+type KlientItem = {
+  id: string;
+  locationCity: string | null;
+  pflegegeldStufe: string | null;
+  preferredLanguages: string[];
+  preferredSchedule: string | null;
+  user: { name: string | null };
+};
+
+// Reverse-map AvailabilityType → betreuungsart key used in careNeedsRaw JSON
+const AVAIL_REVERSE: Partial<Record<string, string>> = {
+  LIVE_IN:   "24h",
+  HOURLY:    "stundenweise",
+  PART_TIME: "tagesbetreuung",
+};
+
+function buildCareNeedsRaw(client: KlientItem): string | null {
+  const obj: Record<string, unknown> = {};
+  if (client.preferredSchedule) {
+    const betreuungsart = AVAIL_REVERSE[client.preferredSchedule];
+    if (betreuungsart) obj.betreuungsart = betreuungsart;
+  }
+  if (client.preferredLanguages.length > 0) {
+    obj.sprachen = client.preferredLanguages.map((lang) => ({ lang }));
+  }
+  return Object.keys(obj).length > 0 ? JSON.stringify(obj) : null;
+}
 
 const schema = z.object({
   caregiverProfileId: z.string().min(1, "Pflegekraft wählen"),
@@ -37,11 +72,31 @@ export default function MatchCreateForm({
   const [selectedKlient, setSelectedKlient]   = useState<string | null>(null);
   const [pflegerSearch, setPflegerSearch] = useState("");
   const [klientSearch,  setKlientSearch]  = useState("");
+  const [autoScore, setAutoScore] = useState<number | null>(null);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema) as any,
   });
+
+  // Auto-compute score whenever both are selected
+  useEffect(() => {
+    if (!selectedPfleger || !selectedKlient) {
+      setAutoScore(null);
+      return;
+    }
+    const pfleger = pflegekraefte.find((p) => p.id === selectedPfleger);
+    const klient  = klienten.find((k) => k.id === selectedKlient);
+    if (!pfleger || !klient) return;
+
+    const result = computeScore(pfleger, {
+      pflegegeldStufe: klient.pflegegeldStufe,
+      careNeedsRaw: buildCareNeedsRaw(klient),
+    });
+    setAutoScore(result.score);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("score" as any, result.score);
+  }, [selectedPfleger, selectedKlient, pflegekraefte, klienten, setValue]);
 
   function selectPfleger(id: string) {
     setSelectedPfleger(id);
@@ -63,6 +118,12 @@ export default function MatchCreateForm({
   );
 
   const inputClass = "w-full px-3 py-2 rounded-lg border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] transition-colors placeholder:text-[#2D2D2D]/35";
+
+  const scoreColor =
+    autoScore == null ? "#2D2D2D"
+    : autoScore >= 70  ? "#5A7A5A"
+    : autoScore >= 40  ? "#D97706"
+    : "#9CA3AF";
 
   return (
     <form onSubmit={handleSubmit(createMatch)} className="space-y-6">
@@ -165,6 +226,12 @@ export default function MatchCreateForm({
           <div>
             <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">
               Matching-Score (0–100)
+              {autoScore != null && (
+                <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[#EAD9C8] text-[#2D2D2D]/60">
+                  <Zap className="w-2.5 h-2.5" />
+                  auto
+                </span>
+              )}
             </label>
             <input
               type="number"
@@ -172,6 +239,7 @@ export default function MatchCreateForm({
               {...register("score")}
               placeholder="z.B. 85"
               className={inputClass}
+              style={{ color: scoreColor, fontWeight: autoScore != null ? 600 : undefined }}
             />
           </div>
           <div>

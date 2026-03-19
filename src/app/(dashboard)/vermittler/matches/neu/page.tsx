@@ -12,12 +12,27 @@ export default async function NeuerMatchPage() {
   const [pflegekraefte, klienten] = await Promise.all([
     prisma.caregiverProfile.findMany({
       where: { tenantId: session.tenantId, isActive: true },
-      include: { user: { select: { name: true } } },
+      select: {
+        id: true,
+        locationCity: true,
+        availability: true,
+        pflegestufe: true,
+        languages: true,
+        averageRating: true,
+        user: { select: { name: true } },
+      },
       orderBy: { createdAt: "desc" },
     }),
     prisma.clientProfile.findMany({
       where: { tenantId: session.tenantId, isActive: true },
-      include: { user: { select: { name: true } } },
+      select: {
+        id: true,
+        locationCity: true,
+        pflegegeldStufe: true,
+        preferredLanguages: true,
+        preferredSchedule: true,
+        user: { select: { name: true } },
+      },
       orderBy: { createdAt: "desc" },
     }),
   ]);

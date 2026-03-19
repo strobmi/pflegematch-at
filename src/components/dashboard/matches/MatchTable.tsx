@@ -8,6 +8,30 @@ import type { Match, CaregiverProfile, ClientProfile, User } from "@prisma/clien
 import type { MatchStatus } from "@prisma/client";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
+import { computeScore } from "@/lib/scoring";
+
+const AVAIL_REVERSE: Partial<Record<string, string>> = {
+  LIVE_IN:   "24h",
+  HOURLY:    "stundenweise",
+  PART_TIME: "tagesbetreuung",
+};
+
+function getEffectiveScore(m: MatchWithRelations): { score: number; isAuto: boolean } {
+  if (m.score != null) return { score: m.score, isAuto: false };
+  const obj: Record<string, unknown> = {};
+  if (m.clientProfile.preferredSchedule) {
+    const b = AVAIL_REVERSE[m.clientProfile.preferredSchedule];
+    if (b) obj.betreuungsart = b;
+  }
+  if (m.clientProfile.preferredLanguages.length > 0)
+    obj.sprachen = m.clientProfile.preferredLanguages.map((lang) => ({ lang }));
+  const careNeedsRaw = Object.keys(obj).length > 0 ? JSON.stringify(obj) : null;
+  const result = computeScore(m.caregiverProfile, {
+    pflegegeldStufe: m.clientProfile.pflegegeldStufe ?? null,
+    careNeedsRaw,
+  });
+  return { score: result.score, isAuto: true };
+}
 
 type MatchWithRelations = Match & {
   caregiverProfile: CaregiverProfile & { user: Pick<User, "name"> };
@@ -132,6 +156,8 @@ export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
             ) : (
               filtered.map((m) => {
                 const cfg = STATUS_CONFIG[m.status];
+                const { score, isAuto } = getEffectiveScore(m);
+                const scoreColor = score >= 70 ? "text-[#5A7A5A]" : score >= 40 ? "text-amber-600" : "text-[#2D2D2D]/40";
                 return (
                   <tr key={m.id} className="hover:bg-[#FAF6F1] transition-colors">
                     <td className="px-4 py-3 font-medium text-[#2D2D2D]">
@@ -141,9 +167,8 @@ export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
                       {m.clientProfile.user.name ?? "–"}
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
-                      {m.score != null ? (
-                        <span className="text-[#7B9E7B] font-semibold">{m.score}%</span>
-                      ) : "–"}
+                      <span className={`font-semibold ${scoreColor}`}>{score}</span>
+                      {isAuto && <span className="ml-1 text-[10px] text-[#2D2D2D]/30">auto</span>}
                     </td>
                     <td className="px-4 py-3 text-[#2D2D2D]/60 text-xs hidden lg:table-cell">
                       {m.startDate
