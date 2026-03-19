@@ -3,6 +3,7 @@
 import { signOut } from "next-auth/react";
 import { ChevronDown, User } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface Props {
   userName: string | null;
@@ -11,6 +12,7 @@ interface Props {
 
 export default function DashboardHeader({ userName, tenantName }: Props) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
   const initials = userName
     ?.split(" ")
     .map((n) => n[0])
@@ -38,7 +40,10 @@ export default function DashboardHeader({ userName, tenantName }: Props) {
 
         {open && (
           <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-[#EAD9C8] rounded-xl shadow-lg overflow-hidden z-50">
-            <button className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-[#2D2D2D]/70 hover:bg-[#F5EDE3] transition-colors">
+            <button
+              onClick={() => { setOpen(false); router.push("/vermittler/profil"); }}
+              className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-[#2D2D2D]/70 hover:bg-[#F5EDE3] transition-colors"
+            >
               <User className="w-4 h-4" />
               Profil
             </button>

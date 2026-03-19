@@ -1,13 +1,30 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Phone, Mail, ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 export default function CTASection() {
+  const [name, setName] = useState("");
+  const [pflegebedarf, setPflegebedarf] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  async function handleSubmit() {
+    if (!name.trim()) return;
+    setStatus("loading");
+
+    const res = await fetch("/api/anfrage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, pflegebedarf }),
+    });
+
+    setStatus(res.ok ? "success" : "error");
+  }
+
   return (
     <section id="get-started" className="py-20 lg:py-28 bg-[#FAF6F1]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Main CTA card */}
         <motion.div
           initial={{ opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -33,76 +50,63 @@ export default function CTASection() {
               </p>
             </div>
 
-            {/* Right: Form / Contact */}
+            {/* Right: Form */}
             <div className="bg-white rounded-3xl p-6 text-[#2D2D2D]">
-              <h3 className="font-bold text-xl mb-5">Jetzt unverbindlich anfragen</h3>
+              {status === "success" ? (
+                <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">
+                  <CheckCircle className="w-10 h-10 text-[#7B9E7B]" />
+                  <p className="font-bold text-lg">Anfrage gesendet!</p>
+                  <p className="text-sm text-[#2D2D2D]/60">Wir melden uns innerhalb von 24 Stunden bei Ihnen.</p>
+                </div>
+              ) : (
+                <>
+                  <h3 className="font-bold text-xl mb-5">Jetzt unverbindlich anfragen</h3>
 
-              <div className="space-y-3 mb-4">
-                <input
-                  type="text"
-                  placeholder="Ihr Name"
-                  className="w-full px-4 py-3 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20 transition-colors placeholder:text-[#2D2D2D]/35"
-                />
-                <input
-                  type="tel"
-                  placeholder="Telefonnummer"
-                  className="w-full px-4 py-3 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20 transition-colors placeholder:text-[#2D2D2D]/35"
-                />
-                <select
-                  className="w-full px-4 py-3 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] text-[#2D2D2D]/70"
-                >
-                  <option value="">Pflegebedarf auswählen...</option>
-                  <option>Stundenweise Betreuung</option>
-                  <option>Tagesbetreuung</option>
-                  <option>24-Stunden-Pflege</option>
-                  <option>Nachtsitzung</option>
-                </select>
-              </div>
+                  <div className="space-y-3 mb-4">
+                    <input
+                      type="text"
+                      placeholder="Ihr Name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20 transition-colors placeholder:text-[#2D2D2D]/35"
+                    />
+                    <select
+                      value={pflegebedarf}
+                      onChange={(e) => setPflegebedarf(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] text-[#2D2D2D]/70"
+                    >
+                      <option value="">Pflegebedarf auswählen...</option>
+                      <option>Stundenweise Betreuung</option>
+                      <option>Tagesbetreuung</option>
+                      <option>24-Stunden-Pflege</option>
+                      <option>Nachtsitzung</option>
+                    </select>
+                  </div>
 
-              <button className="w-full bg-[#C06B4A] hover:bg-[#A05438] text-white py-3.5 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2">
-                Kostenlos anfragen
-                <ArrowRight className="w-4 h-4" />
-              </button>
+                  {status === "error" && (
+                    <p className="text-xs text-red-500 mb-3 text-center">
+                      Fehler beim Senden. Bitte versuchen Sie es erneut.
+                    </p>
+                  )}
 
-              <p className="text-xs text-[#2D2D2D]/40 text-center mt-3">
-                Mit der Anfrage stimmen Sie unserer Datenschutzerklärung zu.
-              </p>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={status === "loading" || !name.trim()}
+                    className="w-full bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-60 text-white py-3.5 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                  >
+                    {status === "loading"
+                      ? <><Loader2 className="w-4 h-4 animate-spin" /> Wird gesendet…</>
+                      : <><span>Kostenlos anfragen</span><ArrowRight className="w-4 h-4" /></>
+                    }
+                  </button>
+
+                  <p className="text-xs text-[#2D2D2D]/40 text-center mt-3">
+                    Mit der Anfrage stimmen Sie unserer Datenschutzerklärung zu.
+                  </p>
+                </>
+              )}
             </div>
           </div>
-        </motion.div>
-
-        {/* Contact alternatives */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex flex-col sm:flex-row justify-center gap-4 mt-8"
-        >
-          <a
-            href="tel:+43800123456"
-            className="flex items-center justify-center gap-3 bg-white border border-[#EAD9C8] px-6 py-4 rounded-2xl hover:border-[#C06B4A]/30 hover:shadow-md transition-all group"
-          >
-            <div className="w-10 h-10 rounded-full bg-[#F5EDE3] flex items-center justify-center group-hover:bg-[#C06B4A]/10 transition-colors">
-              <Phone className="w-5 h-5 text-[#C06B4A]" />
-            </div>
-            <div>
-              <p className="text-xs text-[#2D2D2D]/50">Kostenlose Hotline</p>
-              <p className="font-bold text-[#2D2D2D]">0800 123 456</p>
-            </div>
-          </a>
-          <a
-            href="mailto:hallo@pflegematch.at"
-            className="flex items-center justify-center gap-3 bg-white border border-[#EAD9C8] px-6 py-4 rounded-2xl hover:border-[#C06B4A]/30 hover:shadow-md transition-all group"
-          >
-            <div className="w-10 h-10 rounded-full bg-[#F5EDE3] flex items-center justify-center group-hover:bg-[#C06B4A]/10 transition-colors">
-              <Mail className="w-5 h-5 text-[#C06B4A]" />
-            </div>
-            <div>
-              <p className="text-xs text-[#2D2D2D]/50">E-Mail</p>
-              <p className="font-bold text-[#2D2D2D]">hallo@pflegematch.at</p>
-            </div>
-          </a>
         </motion.div>
       </div>
     </section>

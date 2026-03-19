@@ -1,4 +1,4 @@
-import { Heart, Phone, Mail, MapPin } from "lucide-react";
+import { Heart, Mail, MapPin } from "lucide-react";
 
 const footerLinks = {
   "Plattform": [
@@ -18,7 +18,7 @@ const footerLinks = {
     { label: "Pflegegeld-Infos", href: "#pflegegeld" },
     { label: "Datenschutz", href: "#privacy" },
     { label: "AGB", href: "#terms" },
-    { label: "Impressum", href: "#imprint" },
+    { label: "Impressum", href: "/impressum" },
   ],
 };
 
@@ -46,14 +46,6 @@ export default function Footer() {
 
             {/* Contact */}
             <div className="space-y-2 text-sm text-white/55">
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-[#C06B4A]" />
-                <span>0800 123 456 (kostenlos)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-[#C06B4A]" />
-                <span>hallo@pflegematch.at</span>
-              </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-[#C06B4A]" />
                 <span>Mariahilfer Straße 1, 1060 Wien</span>

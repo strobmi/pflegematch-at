@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone, Heart } from "lucide-react";
+import { Menu, X, Heart } from "lucide-react";
 
 const navLinks = [
   { label: "So funktioniert's", href: "#how-it-works" },
@@ -60,13 +60,6 @@ export default function Header() {
 
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center gap-3">
-            <a
-              href="tel:+43800123456"
-              className="flex items-center gap-1.5 text-sm text-[#2D2D2D]/70 hover:text-[#C06B4A] transition-colors"
-            >
-              <Phone className="w-4 h-4" />
-              <span className="font-medium">0800 123 456</span>
-            </a>
             <a
               href="/login"
               className="text-sm font-semibold text-[#2D2D2D]/70 hover:text-[#C06B4A] transition-colors px-3 py-2"

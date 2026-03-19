@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/tenant";
 import { redirect } from "next/navigation";
 import { Building2, Plus } from "lucide-react";
+import Link from "next/link";
 
 export const metadata = { title: "Vermittler · Admin · pflegematch" };
 
@@ -30,6 +31,13 @@ export default async function AdminTenantsPage() {
           <h1 className="text-2xl font-bold text-white">Vermittler</h1>
           <p className="text-sm text-white/50 mt-0.5">{tenants.length} Tenant{tenants.length !== 1 ? "s" : ""} registriert</p>
         </div>
+        <Link
+          href="/admin/tenants/neu"
+          className="inline-flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Neuer Vermittler
+        </Link>
       </div>
 
       <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
@@ -43,12 +51,13 @@ export default async function AdminTenantsPage() {
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Klienten</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Matches</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Status</th>
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-white/10">
             {tenants.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-white/30">
+                <td colSpan={8} className="px-4 py-8 text-center text-white/30">
                   <Building2 className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   Keine Vermittler vorhanden
                 </td>
@@ -71,6 +80,14 @@ export default async function AdminTenantsPage() {
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cfg.className}`}>
                       {cfg.label}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/admin/tenants/${t.id}/bearbeiten`}
+                      className="text-xs text-white/40 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      Bearbeiten
+                    </Link>
                   </td>
                 </tr>
               );

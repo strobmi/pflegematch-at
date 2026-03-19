@@ -26,6 +26,7 @@ services:
       DATABASE_URL: "postgresql://pflegematch:${POSTGRES_PASSWORD}@postgres:5432/pflegematch"
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
+      RESEND_API_KEY: ${RESEND_API_KEY}
       NODE_ENV: production
     ports:
       - "127.0.0.1:3002:3000"

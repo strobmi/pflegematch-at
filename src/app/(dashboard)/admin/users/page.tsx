@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/tenant";
 import { redirect } from "next/navigation";
 import { Users } from "lucide-react";
+import Link from "next/link";
 
 export const metadata = { title: "Alle User · Admin · pflegematch" };
 
@@ -38,12 +39,13 @@ export default async function AdminUsersPage() {
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">E-Mail</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Rolle</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden lg:table-cell">Tenant</th>
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-white/10">
             {users.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-white/30">
+                <td colSpan={5} className="px-4 py-8 text-center text-white/30">
                   <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   Keine User vorhanden
                 </td>
@@ -62,6 +64,14 @@ export default async function AdminUsersPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-white/50 hidden lg:table-cell">{tenantName}</td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/admin/users/${u.id}/bearbeiten`}
+                      className="text-xs text-white/40 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      Bearbeiten
+                    </Link>
+                  </td>
                 </tr>
               );
             })}
