@@ -1,57 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import type { AvailabilityType, CaregiverProfile, MatchRequest } from "@prisma/client";
+import { computeScore } from "@/lib/scoring";
+import type { CaregiverProfile, MatchRequest } from "@prisma/client";
 
-// ─── Scoring ──────────────────────────────────────────────────────────────────
-
-const AVAIL_MAP: Partial<Record<string, AvailabilityType[]>> = {
-  "24h":            ["LIVE_IN"],
-  "stundenweise":   ["HOURLY", "PART_TIME"],
-  "tagesbetreuung": ["PART_TIME"],
-  "nachtsitzung":   ["PART_TIME", "HOURLY"],
-};
-
-function scoreCaregiverForRequest(
-  caregiver: CaregiverProfile,
-  request: MatchRequest
-): number {
-  let score = 0;
-
-  let raw: Record<string, unknown> = {};
-  try {
-    raw = request.careNeedsRaw ? JSON.parse(request.careNeedsRaw) : {};
-  } catch {
-    // malformed JSON → ignore
-  }
-
-  // Pflegestufe (40 Punkte)
-  if (request.pflegegeldStufe && caregiver.pflegestufe.includes(request.pflegegeldStufe)) {
-    score += 40;
-  }
-
-  // Betreuungsart / Availability (30 Punkte)
-  const betreuungsart = raw.betreuungsart as string | undefined;
-  const expected = betreuungsart ? (AVAIL_MAP[betreuungsart] ?? []) : [];
-  if (expected.length === 0 || expected.includes(caregiver.availability)) {
-    score += 30;
-  }
-
-  // Sprachen (20 Punkte)
-  const requestedLangs = Array.isArray(raw.sprachen)
-    ? (raw.sprachen as { lang: string }[])
-    : [];
-  if (requestedLangs.length === 0) {
-    score += 10; // keine Sprachanforderung → halbe Punkte
-  } else {
-    const matched = requestedLangs.filter((s) => caregiver.languages.includes(s.lang));
-    score += Math.round((matched.length / requestedLangs.length) * 20);
-  }
-
-  // Bewertungs-Bonus (10 Punkte)
-  if (caregiver.averageRating) {
-    score += Math.round((caregiver.averageRating / 5) * 10);
-  }
-
-  return score;
+function scoreCaregiverForRequest(caregiver: CaregiverProfile, request: MatchRequest): number {
+  return computeScore(caregiver, {
+    pflegegeldStufe: request.pflegegeldStufe,
+    careNeedsRaw: request.careNeedsRaw,
+  }).score;
 }
 
 // ─── Auto-Assign ──────────────────────────────────────────────────────────────

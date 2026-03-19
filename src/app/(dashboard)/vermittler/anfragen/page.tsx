@@ -20,7 +20,14 @@ export default async function VermittlerAnfragenPage() {
     }),
     prisma.caregiverProfile.findMany({
       where: { tenantId: session.tenantId, isActive: true },
-      select: { id: true, user: { select: { name: true } } },
+      select: {
+        id: true,
+        user: { select: { name: true } },
+        pflegestufe: true,
+        languages: true,
+        availability: true,
+        averageRating: true,
+      },
       orderBy: { createdAt: "asc" },
     }),
   ]);

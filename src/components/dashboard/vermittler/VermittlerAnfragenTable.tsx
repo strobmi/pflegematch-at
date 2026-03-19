@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { ChevronDown, ChevronUp, Check, Loader2, Search, Link2 } from "lucide-react";
 import { markAnfrageProcessed, createMatchFromAnfrage } from "@/app/(dashboard)/vermittler/anfragen/actions";
+import { computeScore, type ScoreResult } from "@/lib/scoring";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -14,6 +15,7 @@ interface Anfrage {
   contactEmail: string | null;
   contactPhone: string | null;
   careNeedsRaw: string | null;
+  pflegegeldStufe: string | null;
   notes: string | null;
   isProcessed: boolean;
   createdAt: Date;
@@ -24,6 +26,10 @@ interface Anfrage {
 interface Pfleger {
   id: string;
   user: { name: string | null };
+  pflegestufe: string[];
+  languages: string[];
+  availability: string;
+  averageRating: number | null;
 }
 
 // ─── Label helpers ────────────────────────────────────────────────────────────
@@ -63,6 +69,98 @@ function Detail({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
+// ─── Score Bar ────────────────────────────────────────────────────────────────
+
+function scoreColor(score: number) {
+  if (score >= 70) return "#7B9E7B";
+  if (score >= 40) return "#D97706";
+  return "#9CA3AF";
+}
+
+function ScoreBar({ score }: { score: number }) {
+  const color = scoreColor(score);
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-1.5 bg-[#EAD9C8] rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all"
+          style={{ width: `${score}%`, backgroundColor: color }}
+        />
+      </div>
+      <span className="text-xs font-bold tabular-nums" style={{ color }}>
+        {score}
+      </span>
+    </div>
+  );
+}
+
+function BreakdownChip({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+        ok
+          ? "bg-[#7B9E7B]/15 text-[#5A7A5A]"
+          : "bg-[#2D2D2D]/6 text-[#2D2D2D]/35"
+      }`}
+    >
+      {ok ? "✓" : "✗"} {label}
+    </span>
+  );
+}
+
+// ─── Scored Pfleger Card ──────────────────────────────────────────────────────
+
+function PflegerCard({
+  rank,
+  pfleger,
+  result,
+  selected,
+  onSelect,
+}: {
+  rank: number;
+  pfleger: Pfleger;
+  result: ScoreResult;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const sprachenLabel =
+    result.sprachen.total === 0
+      ? null
+      : `${result.sprachen.matched}/${result.sprachen.total} Sprache${result.sprachen.total !== 1 ? "n" : ""}`;
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onSelect(); }}
+      className={`w-full text-left px-3.5 py-3 rounded-xl border-2 transition-all ${
+        selected
+          ? "border-[#C06B4A] bg-[#FDF5F0]"
+          : result.score === 0
+          ? "border-[#EAD9C8] bg-white opacity-50 hover:opacity-75"
+          : "border-[#EAD9C8] bg-white hover:border-[#C06B4A]/40"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs font-bold text-[#C06B4A] shrink-0">#{rank}</span>
+          <span className="text-sm font-semibold text-[#2D2D2D] truncate">
+            {pfleger.user.name ?? "–"}
+          </span>
+        </div>
+        <span className="text-xs text-[#2D2D2D]/35 shrink-0">/100</span>
+      </div>
+      <ScoreBar score={result.score} />
+      <div className="flex flex-wrap gap-1 mt-2">
+        <BreakdownChip ok={result.pflegestufe} label="Pflegestufe" />
+        <BreakdownChip ok={result.betreuungsart} label="Betreuungsart" />
+        {sprachenLabel && (
+          <BreakdownChip ok={result.sprachen.matched === result.sprachen.total} label={sprachenLabel} />
+        )}
+      </div>
+    </button>
+  );
+}
+
 // ─── Row ──────────────────────────────────────────────────────────────────────
 
 function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pfleger[]; showBadge: boolean }) {
@@ -72,6 +170,18 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
   const [matchError, setMatchError] = useState<string | null>(null);
   const [selectedPfleger, setSelectedPfleger] = useState("");
   const raw = parseRaw(req.careNeedsRaw);
+
+  // Scores berechnen und nach Score DESC sortieren
+  const scoredPfleger = pfleger
+    .map((p) => ({
+      pfleger: p,
+      result: computeScore(p, { pflegegeldStufe: req.pflegegeldStufe, careNeedsRaw: req.careNeedsRaw }),
+    }))
+    .sort((a, b) =>
+      b.result.score !== a.result.score
+        ? b.result.score - a.result.score
+        : (a.pfleger.user.name ?? "").localeCompare(b.pfleger.user.name ?? "")
+    );
 
   async function handleMarkProcessed() {
     setProcessing(true);
@@ -165,35 +275,46 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
 
             {!req.isProcessed && (
               <div className="space-y-3">
-                {/* Match erstellen */}
-                <div>
-                  <p className="text-xs font-semibold text-[#2D2D2D]/40 uppercase tracking-wide mb-2">Matchvorschlag erstellen</p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <select
-                      value={selectedPfleger}
-                      onChange={(e) => setSelectedPfleger(e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="px-3 py-2 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm text-[#2D2D2D] focus:outline-none focus:border-[#C06B4A] transition-colors cursor-pointer"
-                    >
-                      <option value="">Pflegekraft auswählen…</option>
-                      {pfleger.map((p) => (
-                        <option key={p.id} value={p.id}>{p.user.name ?? p.id}</option>
+                {/* Scored Pfleger Cards */}
+                {pfleger.length === 0 ? (
+                  <p className="text-xs text-[#2D2D2D]/40">Keine aktiven Pflegekräfte vorhanden.</p>
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-[#2D2D2D]/40 uppercase tracking-wide">
+                        Passende Pflegekräfte
+                      </p>
+                      <span className="text-xs text-[#2D2D2D]/30">
+                        {pfleger.length} verfügbar
+                      </span>
+                    </div>
+                    <div className="space-y-2 mb-3">
+                      {scoredPfleger.map(({ pfleger: p, result }, i) => (
+                        <PflegerCard
+                          key={p.id}
+                          rank={i + 1}
+                          pfleger={p}
+                          result={result}
+                          selected={selectedPfleger === p.id}
+                          onSelect={() => setSelectedPfleger(prev => prev === p.id ? "" : p.id)}
+                        />
                       ))}
-                    </select>
-                    <button
-                      onClick={handleCreateMatch}
-                      disabled={!selectedPfleger || matching}
-                      className="inline-flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-40 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
-                    >
-                      {matching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
-                      Match erstellen
-                    </button>
+                    </div>
+                    <div className="flex items-center justify-end gap-3">
+                      {matchError && (
+                        <p className="text-xs text-red-500 flex-1">{matchError}</p>
+                      )}
+                      <button
+                        onClick={handleCreateMatch}
+                        disabled={!selectedPfleger || matching}
+                        className="inline-flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-40 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                      >
+                        {matching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
+                        Match erstellen
+                      </button>
+                    </div>
                   </div>
-                  {matchError && <p className="text-xs text-red-500 mt-1">{matchError}</p>}
-                  {pfleger.length === 0 && (
-                    <p className="text-xs text-[#2D2D2D]/40 mt-1">Keine aktiven Pflegekräfte vorhanden.</p>
-                  )}
-                </div>
+                )}
 
                 {/* Ohne Match abschließen */}
                 <div className="flex items-center gap-2 pt-1 border-t border-[#EAD9C8]">
@@ -229,23 +350,18 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
   const erledigtCount = requests.filter((r) => r.isProcessed).length;
 
   const filtered = requests.filter((r) => {
-    // Tab filter
     if (tab === "offen"    && r.isProcessed)  return false;
     if (tab === "erledigt" && !r.isProcessed) return false;
 
-    // Betreuungsart filter
     if (betreuungsFilter) {
       const raw = parseRaw(r.careNeedsRaw);
       if ((raw.betreuungsart as string) !== betreuungsFilter) return false;
     }
 
-    // Text search
     if (search.trim()) {
       const q = search.toLowerCase();
       const raw = parseRaw(r.careNeedsRaw);
-      const haystack = [
-        r.contactName, r.contactEmail, raw.ort as string,
-      ].join(" ").toLowerCase();
+      const haystack = [r.contactName, r.contactEmail, raw.ort as string].join(" ").toLowerCase();
       if (!haystack.includes(q)) return false;
     }
 
@@ -263,7 +379,6 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
       {/* Toolbar */}
       <div className="px-4 pt-4 pb-3 border-b border-[#EAD9C8] space-y-3">
         <div className="flex gap-3">
-          {/* Search */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2D2D2D]/30" />
             <input
@@ -273,7 +388,6 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
               className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] transition-colors placeholder:text-[#2D2D2D]/35"
             />
           </div>
-          {/* Betreuungsart filter */}
           <select
             value={betreuungsFilter}
             onChange={(e) => setBetreuungsFilter(e.target.value)}
@@ -287,7 +401,6 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
           </select>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-1">
           {tabs.map(({ key, label, count }) => (
             <button
@@ -310,7 +423,6 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
         </div>
       </div>
 
-      {/* Table */}
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-[#EAD9C8] bg-[#FAF6F1]">
@@ -318,9 +430,7 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
             <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden md:table-cell">Betreuung</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">Ort</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden md:table-cell">Eingegangen</th>
-            <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">
-              Bearbeiter
-            </th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">Bearbeiter</th>
             <th className="px-4 py-3 w-8" />
           </tr>
         </thead>
