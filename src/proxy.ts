@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/login", "/api/auth"];
+const PUBLIC_PATHS = ["/", "/login", "/api/auth", "/invite"];
 const STATIC_PREFIXES = ["/_next", "/favicon", "/public", "/robots.txt"];
 
 const ROLE_PREFIXES: Record<string, string[]> = {

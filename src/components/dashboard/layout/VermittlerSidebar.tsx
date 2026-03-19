@@ -11,6 +11,7 @@ const navItems = [
   { href: "/vermittler/klienten",  label: "Klienten",     icon: HeartHandshake },
   { href: "/vermittler/anfragen",  label: "Anfragen",     icon: Inbox },
   { href: "/vermittler/matches",   label: "Matches",      icon: Link2 },
+  { href: "/vermittler/team",      label: "Team",         icon: Users },
 ];
 
 export default function VermittlerSidebar({ tenantName }: { tenantName: string }) {

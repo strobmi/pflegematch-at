@@ -102,6 +102,7 @@ model Tenant {
   matchRequests         MatchRequest[]
   caregiverAvailabilities CaregiverAvailability[]
   videoMeetings         VideoMeeting[]
+  inviteTokens          InviteToken[]
 
   @@index([slug])
 }
@@ -322,6 +323,25 @@ model MatchRequest {
 
   @@index([tenantId])
   @@index([assignedToUserId])
+}
+
+// ─────────────────────────────────────────────
+// INVITE TOKEN (Team-Einladungen)
+// ─────────────────────────────────────────────
+
+model InviteToken {
+  id        String    @id @default(cuid())
+  token     String    @unique @default(cuid())
+  tenantId  String
+  email     String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([token])
 }
 
 // ─────────────────────────────────────────────
