@@ -2,11 +2,10 @@ services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
-    env_file:
-      - /opt/pflegematch/.env
     environment:
       POSTGRES_DB: pflegematch
       POSTGRES_USER: pflegematch
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -17,10 +16,10 @@ services:
     restart: unless-stopped
     depends_on:
       - postgres
-    env_file:
-      - /opt/pflegematch/.env
     environment:
       DATABASE_URL: "postgresql://pflegematch:${POSTGRES_PASSWORD}@postgres:5432/pflegematch"
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
       NODE_ENV: production
     ports:
       - "127.0.0.1:3002:3000"
