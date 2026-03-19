@@ -38,6 +38,10 @@ export async function assignMatchRequest(requestId: string, tenantId: string) {
       where: { id: assignedAdmin.id },
       data: { lastAssignedAt: new Date() },
     }),
+    prisma.tenant.update({
+      where: { id: tenantId },
+      data: { lastAssignedAt: new Date() },
+    }),
   ]);
 
   revalidatePath("/admin/anfragen");

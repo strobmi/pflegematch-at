@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { autoAssignByScore } from "@/lib/assignRequest";
 
 export const dynamic = "force-dynamic";
 
@@ -162,7 +163,7 @@ export async function POST(req: Request) {
     });
 
     if (platformTenant) {
-      await prisma.matchRequest.create({
+      const mr = await prisma.matchRequest.create({
         data: {
           tenantId: platformTenant.id,
           contactName: name,
@@ -173,6 +174,8 @@ export async function POST(req: Request) {
           notes: prioritaeten || null,
         },
       });
+      // Score-basierte Zuweisung: besten Vermittler anhand verfügbarer Pfleger ermitteln
+      await autoAssignByScore(mr.id);
     }
   } catch (err) {
     // DB save is best-effort — email was already sent

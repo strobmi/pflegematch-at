@@ -94,6 +94,7 @@ model Tenant {
 
   isPlatform        Boolean   @default(false)   // true = pflegematch.at selbst (genau 1x)
   provisionPercent  Decimal?  @db.Decimal(5, 2) // z.B. 15.00 = 15%, Superadmin konfigurierbar
+  lastAssignedAt    DateTime?                   // Score-Zuweisung: wann zuletzt eine Anfrage zugewiesen wurde
 
   memberships           TenantMembership[]
   caregiverProfiles     CaregiverProfile[]
