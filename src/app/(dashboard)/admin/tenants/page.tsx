@@ -21,7 +21,7 @@ export default async function AdminTenantsPage() {
     where: { isPlatform: false },
     orderBy: { createdAt: "desc" },
     include: {
-      _count: { select: { memberships: true, caregiverProfiles: true, clientProfiles: true, matches: true } },
+      _count: { select: { memberships: { where: { role: "VERMITTLER_ADMIN" } }, caregiverProfiles: true, clientProfiles: true, matches: true } },
     },
   });
 
@@ -47,7 +47,7 @@ export default async function AdminTenantsPage() {
             <tr className="border-b border-white/10">
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Firma</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden lg:table-cell">E-Mail</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Mitglieder</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Teammitglieder</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Pfleger</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Klienten</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Matches</th>
