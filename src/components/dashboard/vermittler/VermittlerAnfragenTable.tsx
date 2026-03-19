@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { ChevronDown, ChevronUp, Check, Loader2, Search } from "lucide-react";
-import { markAnfrageProcessed } from "@/app/(dashboard)/vermittler/anfragen/actions";
+import { ChevronDown, ChevronUp, Check, Loader2, Search, Link2 } from "lucide-react";
+import { markAnfrageProcessed, createMatchFromAnfrage } from "@/app/(dashboard)/vermittler/anfragen/actions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,6 +18,11 @@ interface Anfrage {
   isProcessed: boolean;
   createdAt: Date;
   assignedTo: { name: string | null } | null;
+}
+
+interface Pfleger {
+  id: string;
+  user: { name: string | null };
 }
 
 // ─── Label helpers ────────────────────────────────────────────────────────────
@@ -59,15 +64,30 @@ function Detail({ label, value }: { label: string; value?: string | null }) {
 
 // ─── Row ──────────────────────────────────────────────────────────────────────
 
-function AnfrageRow({ req, showBadge }: { req: Anfrage; showBadge: boolean }) {
+function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pfleger[]; showBadge: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [matching, setMatching]   = useState(false);
+  const [matchError, setMatchError] = useState<string | null>(null);
+  const [selectedPfleger, setSelectedPfleger] = useState("");
   const raw = parseRaw(req.careNeedsRaw);
 
   async function handleMarkProcessed() {
     setProcessing(true);
     await markAnfrageProcessed(req.id);
     setProcessing(false);
+  }
+
+  async function handleCreateMatch(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!selectedPfleger) return;
+    setMatching(true);
+    setMatchError(null);
+    const result = await createMatchFromAnfrage(req.id, selectedPfleger);
+    if (result?.error) {
+      setMatchError(result.error);
+      setMatching(false);
+    }
   }
 
   return (
@@ -147,14 +167,50 @@ function AnfrageRow({ req, showBadge }: { req: Anfrage; showBadge: boolean }) {
             )}
 
             {!req.isProcessed && (
-              <button
-                onClick={(e) => { e.stopPropagation(); handleMarkProcessed(); }}
-                disabled={processing}
-                className="inline-flex items-center gap-2 bg-[#7B9E7B] hover:bg-[#5A7A5A] disabled:opacity-40 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
-              >
-                {processing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                Als erledigt markieren
-              </button>
+              <div className="space-y-3">
+                {/* Match erstellen */}
+                <div>
+                  <p className="text-xs font-semibold text-[#2D2D2D]/40 uppercase tracking-wide mb-2">Matchvorschlag erstellen</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      value={selectedPfleger}
+                      onChange={(e) => setSelectedPfleger(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-3 py-2 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm text-[#2D2D2D] focus:outline-none focus:border-[#C06B4A] transition-colors cursor-pointer"
+                    >
+                      <option value="">Pflegekraft auswählen…</option>
+                      {pfleger.map((p) => (
+                        <option key={p.id} value={p.id}>{p.user.name ?? p.id}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleCreateMatch}
+                      disabled={!selectedPfleger || matching}
+                      className="inline-flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-40 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                    >
+                      {matching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
+                      Match erstellen
+                    </button>
+                  </div>
+                  {matchError && <p className="text-xs text-red-500 mt-1">{matchError}</p>}
+                  {pfleger.length === 0 && (
+                    <p className="text-xs text-[#2D2D2D]/40 mt-1">Keine aktiven Pflegekräfte vorhanden.</p>
+                  )}
+                </div>
+
+                {/* Ohne Match abschließen */}
+                <div className="flex items-center gap-2 pt-1 border-t border-[#EAD9C8]">
+                  <span className="text-xs text-[#2D2D2D]/35">Ohne Match abschließen:</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleMarkProcessed(); }}
+                    disabled={processing}
+                    className="inline-flex items-center gap-1.5 text-xs text-[#2D2D2D]/40 hover:text-[#2D2D2D] disabled:opacity-40 transition-colors cursor-pointer"
+                  >
+                    {processing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                    Als erledigt markieren
+                  </button>
+                </div>
+              </div>
             )}
           </td>
         </tr>
@@ -167,7 +223,7 @@ function AnfrageRow({ req, showBadge }: { req: Anfrage; showBadge: boolean }) {
 
 type Tab = "offen" | "erledigt" | "alle";
 
-export default function VermittlerAnfragenTable({ requests }: { requests: Anfrage[] }) {
+export default function VermittlerAnfragenTable({ requests, pfleger }: { requests: Anfrage[]; pfleger: Pfleger[] }) {
   const [tab, setTab] = useState<Tab>("offen");
   const [search, setSearch] = useState("");
   const [betreuungsFilter, setBetreuungsFilter] = useState("");
@@ -280,7 +336,7 @@ export default function VermittlerAnfragenTable({ requests }: { requests: Anfrag
             </tr>
           ) : (
             filtered.map((r) => (
-              <AnfrageRow key={r.id} req={r} showBadge={tab === "alle"} />
+              <AnfrageRow key={r.id} req={r} pfleger={pfleger} showBadge={tab === "alle"} />
             ))
           )}
         </tbody>

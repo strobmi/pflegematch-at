@@ -70,7 +70,6 @@ export async function createAnfrage(data: CreateAnfrageData) {
 export async function markAnfrageProcessed(requestId: string) {
   const session = await requireTenantSession();
 
-  // Verify the request belongs to this tenant
   const req = await prisma.matchRequest.findFirst({
     where: { id: requestId, tenantId: session.tenantId },
   });
@@ -82,4 +81,83 @@ export async function markAnfrageProcessed(requestId: string) {
   });
 
   revalidatePath("/vermittler/anfragen");
+}
+
+export async function createMatchFromAnfrage(
+  requestId: string,
+  caregiverProfileId: string
+): Promise<{ error?: string }> {
+  const session = await requireTenantSession();
+
+  // 1. Load the MatchRequest — must belong to this tenant
+  const req = await prisma.matchRequest.findFirst({
+    where: { id: requestId, tenantId: session.tenantId },
+  });
+  if (!req) return { error: "Anfrage nicht gefunden." };
+  if (!req.contactEmail) return { error: "Anfrage hat keine E-Mail-Adresse." };
+
+  // 2. Verify the CaregiverProfile belongs to this tenant
+  const caregiver = await prisma.caregiverProfile.findFirst({
+    where: { id: caregiverProfileId, tenantId: session.tenantId },
+  });
+  if (!caregiver) return { error: "Pflegekraft nicht gefunden." };
+
+  // 3. Find or create the Kunde User
+  let user = await prisma.user.findUnique({ where: { email: req.contactEmail } });
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        email:    req.contactEmail,
+        name:     req.contactName ?? undefined,
+        role:     "KUNDE",
+      },
+    });
+  }
+
+  // 4. Add TenantMembership if not already present
+  await prisma.tenantMembership.upsert({
+    where:  { userId_tenantId: { userId: user.id, tenantId: session.tenantId } },
+    update: {},
+    create: { userId: user.id, tenantId: session.tenantId, role: "KUNDE" },
+  });
+
+  // 5. Find or create ClientProfile for this tenant
+  let clientProfile = await prisma.clientProfile.findFirst({
+    where: { userId: user.id, tenantId: session.tenantId },
+  });
+  if (!clientProfile) {
+    const raw = req.careNeedsRaw ? JSON.parse(req.careNeedsRaw) : {};
+    clientProfile = await prisma.clientProfile.create({
+      data: {
+        userId:           user.id,
+        tenantId:         session.tenantId,
+        pflegegeldStufe:  req.pflegegeldStufe ?? undefined,
+        preferredLanguages: Array.isArray(raw.sprachen)
+          ? (raw.sprachen as Array<{ lang: string }>).map((s) => s.lang)
+          : [],
+        locationCity:     (raw.ort as string) ?? undefined,
+        careNeedsDescription: req.notes ?? undefined,
+      },
+    });
+  }
+
+  // 6. Create the Match
+  await prisma.match.create({
+    data: {
+      tenantId:          session.tenantId,
+      caregiverProfileId: caregiverProfileId,
+      clientProfileId:   clientProfile.id,
+      status:            "PROPOSED",
+    },
+  });
+
+  // 7. Mark the MatchRequest as processed
+  await prisma.matchRequest.update({
+    where: { id: requestId },
+    data:  { isProcessed: true, clientProfileId: clientProfile.id },
+  });
+
+  revalidatePath("/vermittler/anfragen");
+  revalidatePath("/vermittler/matches");
+  return {};
 }

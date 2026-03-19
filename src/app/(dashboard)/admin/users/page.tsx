@@ -17,18 +17,66 @@ export default async function AdminUsersPage() {
   const session = await requireSession();
   if (session.role !== "SUPERADMIN") redirect("/login");
 
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      memberships: { include: { tenant: { select: { name: true } } } },
-    },
-  });
+  const [users, leads] = await Promise.all([
+    prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        memberships: { include: { tenant: { select: { name: true } } } },
+      },
+    }),
+    prisma.matchRequest.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        contactName: true,
+        contactEmail: true,
+        contactPhone: true,
+        createdAt: true,
+        isProcessed: true,
+        tenant: { select: { name: true, isPlatform: true } },
+      },
+    }),
+  ]);
+
+  // Merge: registered users + leads (de-duped by email)
+  const userEmails = new Set(users.map((u) => u.email.toLowerCase()));
+  const uniqueLeads = leads.filter(
+    (l) => l.contactEmail && !userEmails.has(l.contactEmail.toLowerCase())
+  );
+
+  type Row =
+    | { kind: "user"; id: string; name: string | null; email: string; role: string; tenantName: string; createdAt: Date }
+    | { kind: "lead"; id: string; name: string | null; email: string | null; phone: string | null; tenantName: string; isProcessed: boolean; createdAt: Date };
+
+  const rows: Row[] = [
+    ...users.map((u) => ({
+      kind: "user" as const,
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      tenantName: u.memberships[0]?.tenant.name ?? "–",
+      createdAt: u.createdAt,
+    })),
+    ...uniqueLeads.map((l) => ({
+      kind: "lead" as const,
+      id: l.id,
+      name: l.contactName,
+      email: l.contactEmail,
+      phone: l.contactPhone,
+      tenantName: l.tenant?.isPlatform ? "Plattform (Lead)" : (l.tenant?.name ?? "–"),
+      isProcessed: l.isProcessed,
+      createdAt: l.createdAt,
+    })),
+  ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Alle User</h1>
-        <p className="text-sm text-white/50 mt-0.5">{users.length} User registriert</p>
+        <p className="text-sm text-white/50 mt-0.5">
+          {users.length} registriert · {uniqueLeads.length} Leads
+        </p>
       </div>
 
       <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
@@ -37,13 +85,13 @@ export default async function AdminUsersPage() {
             <tr className="border-b border-white/10">
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Name</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">E-Mail</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Rolle</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden lg:table-cell">Tenant</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Typ</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden lg:table-cell">Herkunft</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-white/10">
-            {users.length === 0 && (
+            {rows.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-white/30">
                   <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
@@ -51,25 +99,51 @@ export default async function AdminUsersPage() {
                 </td>
               </tr>
             )}
-            {users.map((u) => {
-              const cfg = ROLE_CONFIG[u.role] ?? { label: u.role, className: "bg-white/10 text-white/50" };
-              const tenantName = u.memberships[0]?.tenant.name ?? "–";
+            {rows.map((row) => {
+              if (row.kind === "user") {
+                const cfg = ROLE_CONFIG[row.role] ?? { label: row.role, className: "bg-white/10 text-white/50" };
+                return (
+                  <tr key={`u-${row.id}`} className="hover:bg-white/5 transition-colors">
+                    <td className="px-4 py-3 font-medium text-white">{row.name ?? "–"}</td>
+                    <td className="px-4 py-3 text-white/50 hidden md:table-cell">{row.email}</td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cfg.className}`}>
+                        {cfg.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-white/50 hidden lg:table-cell">{row.tenantName}</td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/admin/users/${row.id}/bearbeiten`}
+                        className="text-xs text-white/40 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        Bearbeiten
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              }
+
+              // Lead row
               return (
-                <tr key={u.id} className="hover:bg-white/5 transition-colors">
-                  <td className="px-4 py-3 font-medium text-white">{u.name ?? "–"}</td>
-                  <td className="px-4 py-3 text-white/50 hidden md:table-cell">{u.email}</td>
+                <tr key={`l-${row.id}`} className="hover:bg-white/5 transition-colors">
                   <td className="px-4 py-3">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cfg.className}`}>
-                      {cfg.label}
+                    <p className="font-medium text-white">{row.name ?? "–"}</p>
+                    {row.phone && <p className="text-xs text-white/35">{row.phone}</p>}
+                  </td>
+                  <td className="px-4 py-3 text-white/50 hidden md:table-cell">{row.email ?? "–"}</td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">
+                      Lead
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-white/50 hidden lg:table-cell">{tenantName}</td>
+                  <td className="px-4 py-3 text-white/50 hidden lg:table-cell">{row.tenantName}</td>
                   <td className="px-4 py-3 text-right">
                     <Link
-                      href={`/admin/users/${u.id}/bearbeiten`}
+                      href="/admin/anfragen"
                       className="text-xs text-white/40 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors"
                     >
-                      Bearbeiten
+                      Anfrage
                     </Link>
                   </td>
                 </tr>

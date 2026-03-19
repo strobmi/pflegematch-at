@@ -9,11 +9,18 @@ export const metadata = { title: "Anfragen · pflegematch" };
 export default async function VermittlerAnfragenPage() {
   const session = await requireTenantSession();
 
-  const requests = await prisma.matchRequest.findMany({
-    where: { tenantId: session.tenantId },
-    include: { assignedTo: { select: { name: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+  const [requests, pfleger] = await Promise.all([
+    prisma.matchRequest.findMany({
+      where: { tenantId: session.tenantId },
+      include: { assignedTo: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.caregiverProfile.findMany({
+      where: { tenantId: session.tenantId, isActive: true },
+      select: { id: true, user: { select: { name: true } } },
+      orderBy: { createdAt: "asc" },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -42,7 +49,7 @@ export default async function VermittlerAnfragenPage() {
           </p>
         </div>
       ) : (
-        <VermittlerAnfragenTable requests={requests} />
+        <VermittlerAnfragenTable requests={requests} pfleger={pfleger} />
       )}
     </div>
   );
