@@ -22,12 +22,14 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
       NODE_ENV: production
+    ports:
+      - "127.0.0.1:3002:3000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.pflegematch.rule=Host(`pflegematch.at`)"
       - "traefik.http.routers.pflegematch.entrypoints=websecure"
       - "traefik.http.routers.pflegematch.tls.certresolver=letsencrypt"
-      - "traefik.http.services.pflegematch.loadbalancer.server.port=3000"
+      - "traefik.http.services.pflegematch.loadbalancer.server.url=http://127.0.0.1:3002"
       - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.regex=^https://www\\.pflegematch\\.at(.*)"
       - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.replacement=https://pflegematch.at$${1}"
       - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.permanent=true"
@@ -36,10 +38,8 @@ services:
       - "traefik.http.routers.pflegematch-www.tls.certresolver=letsencrypt"
       - "traefik.http.routers.pflegematch-www.middlewares=pflegematch-www-redirect"
       - "traefik.http.routers.pflegematch-www.service=pflegematch"
-      - "traefik.docker.network=traefik_proxy"
     networks:
       - internal
-      - traefik_proxy
 
   # robots:
   #   image: nginx:alpine
@@ -56,8 +56,6 @@ services:
 networks:
   internal:
     driver: bridge
-  traefik_proxy:
-    external: true
 
 volumes:
   postgres_data:
