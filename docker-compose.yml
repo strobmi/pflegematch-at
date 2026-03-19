@@ -1,21 +1,41 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pflegematch
+      POSTGRES_USER: pflegematch
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    # Kein externer Port — nur internes Netzwerk
+
   web:
     build: .
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: "postgresql://pflegematch:${POSTGRES_PASSWORD}@postgres:5432/pflegematch"
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NODE_ENV: production
     # Vorerst direkt über VPS-IP:3001 erreichbar
     # Sobald Domain verfügbar: Port-Binding entfernen und Traefik-Labels einkommentieren
     ports:
       - "0.0.0.0:3001:3000"
-    restart: unless-stopped
+    networks:
+      - internal
 
     # --- Traefik-Labels (einkommentieren sobald Domain verfügbar) ---
     # labels:
     #   - "traefik.enable=true"
-    #   # Hauptrouter: nur non-www
     #   - "traefik.http.routers.pflegematch.rule=Host(`pflegematch.at`)"
     #   - "traefik.http.routers.pflegematch.entrypoints=websecure"
     #   - "traefik.http.routers.pflegematch.tls.certresolver=letsencrypt"
     #   - "traefik.http.services.pflegematch.loadbalancer.server.url=http://localhost:3000"
-    #   # www → non-www Redirect
     #   - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.regex=^https://www\\.pflegematch\\.at(.*)"
     #   - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.replacement=https://pflegematch.at$${1}"
     #   - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.permanent=true"
@@ -24,6 +44,10 @@ services:
     #   - "traefik.http.routers.pflegematch-www.tls.certresolver=letsencrypt"
     #   - "traefik.http.routers.pflegematch-www.middlewares=pflegematch-www-redirect"
     #   - "traefik.http.routers.pflegematch-www.service=pflegematch"
+    #   - "traefik.docker.network=traefik_proxy"
+    #   networks:
+    #     - internal
+    #     - traefik_proxy
 
   # robots:
   #   image: nginx:alpine
@@ -36,3 +60,12 @@ services:
   #     - "traefik.http.routers.pflegematch-robots.entrypoints=websecure"
   #     - "traefik.http.routers.pflegematch-robots.tls.certresolver=letsencrypt"
   #   restart: unless-stopped
+
+networks:
+  internal:
+    driver: bridge
+  # traefik_proxy:
+  #   external: true
+
+volumes:
+  postgres_data:
