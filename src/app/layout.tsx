@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   title: "pflegematch AT – Die richtige Pflegekraft für Ihre Familie",
   description:
     "Österreichs Pflege-Matching-Plattform: Vertrauensvolle Vermittlung zwischen Familien und verifizierten Pflegekräften. Intelligentes Matching, digitales Kennenlernen per Video, pflegegeldkompatibel.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
