@@ -21,12 +21,14 @@ export default async function DashboardLayout({
       <VermittlerSidebar tenantName={tenantName ?? ""} />
     ) : null;
 
+  const isAdmin = role === "SUPERADMIN";
+
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FAF6F1]">
+    <div className={`flex h-screen overflow-hidden ${isAdmin ? "bg-[#1E1E1E]" : "bg-[#FAF6F1]"}`}>
       {sidebar}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <DashboardHeader userName={name ?? null} tenantName={tenantName} />
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8">{children}</main>
+        {!isAdmin && <DashboardHeader userName={name ?? null} tenantName={tenantName} />}
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   );
