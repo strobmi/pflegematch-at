@@ -22,32 +22,24 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
       NODE_ENV: production
-    # Vorerst direkt über VPS-IP:3001 erreichbar
-    # Sobald Domain verfügbar: Port-Binding entfernen und Traefik-Labels einkommentieren
-    ports:
-      - "0.0.0.0:3001:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pflegematch.rule=Host(`pflegematch.at`)"
+      - "traefik.http.routers.pflegematch.entrypoints=websecure"
+      - "traefik.http.routers.pflegematch.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pflegematch.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.regex=^https://www\\.pflegematch\\.at(.*)"
+      - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.replacement=https://pflegematch.at$${1}"
+      - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.permanent=true"
+      - "traefik.http.routers.pflegematch-www.rule=Host(`www.pflegematch.at`)"
+      - "traefik.http.routers.pflegematch-www.entrypoints=websecure"
+      - "traefik.http.routers.pflegematch-www.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.pflegematch-www.middlewares=pflegematch-www-redirect"
+      - "traefik.http.routers.pflegematch-www.service=pflegematch"
+      - "traefik.docker.network=traefik_proxy"
     networks:
       - internal
-
-    # --- Traefik-Labels (einkommentieren sobald Domain verfügbar) ---
-    # labels:
-    #   - "traefik.enable=true"
-    #   - "traefik.http.routers.pflegematch.rule=Host(`pflegematch.at`)"
-    #   - "traefik.http.routers.pflegematch.entrypoints=websecure"
-    #   - "traefik.http.routers.pflegematch.tls.certresolver=letsencrypt"
-    #   - "traefik.http.services.pflegematch.loadbalancer.server.url=http://localhost:3000"
-    #   - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.regex=^https://www\\.pflegematch\\.at(.*)"
-    #   - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.replacement=https://pflegematch.at$${1}"
-    #   - "traefik.http.middlewares.pflegematch-www-redirect.redirectregex.permanent=true"
-    #   - "traefik.http.routers.pflegematch-www.rule=Host(`www.pflegematch.at`)"
-    #   - "traefik.http.routers.pflegematch-www.entrypoints=websecure"
-    #   - "traefik.http.routers.pflegematch-www.tls.certresolver=letsencrypt"
-    #   - "traefik.http.routers.pflegematch-www.middlewares=pflegematch-www-redirect"
-    #   - "traefik.http.routers.pflegematch-www.service=pflegematch"
-    #   - "traefik.docker.network=traefik_proxy"
-    #   networks:
-    #     - internal
-    #     - traefik_proxy
+      - traefik_proxy
 
   # robots:
   #   image: nginx:alpine
@@ -64,8 +56,8 @@ services:
 networks:
   internal:
     driver: bridge
-  # traefik_proxy:
-  #   external: true
+  traefik_proxy:
+    external: true
 
 volumes:
   postgres_data:
