@@ -45,7 +45,7 @@ export default async function KlientBearbeitenPage({ params }: { params: Promise
           <p className="text-sm text-[#2D2D2D]/50">{profile.user.name}</p>
         </div>
       </div>
-      <KlientForm onSubmit={(data) => updateKlient(id, data)} defaultValues={defaultValues} isEdit disableEmail />
+      <KlientForm onSubmit={updateKlient.bind(null, id)} defaultValues={defaultValues} isEdit disableEmail />
     </div>
   );
 }

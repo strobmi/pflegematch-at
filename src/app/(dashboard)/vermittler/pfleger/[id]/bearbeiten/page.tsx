@@ -46,7 +46,7 @@ export default async function BearbeitenPage({ params }: { params: Promise<{ id:
         </div>
       </div>
       <PflegerForm
-        onSubmit={(data) => updatePfleger(id, data)}
+        onSubmit={updatePfleger.bind(null, id)}
         defaultValues={defaultValues}
         isEdit
         disableEmail
