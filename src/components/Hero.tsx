@@ -11,7 +11,7 @@ const stats = [
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-[#FAF6F1]">
+    <section className="relative flex items-center pt-20 overflow-hidden bg-[#FAF6F1]">
       {/* Background shapes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-[#C06B4A]/8 blur-3xl" />
