@@ -41,7 +41,7 @@ export default function CTASection() {
             {/* Left */}
             <div>
               <span className="inline-block bg-white/20 text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-5">
-                🇦🇹 Kostenloser Erstberatung
+                🇦🇹 Kostenlose Erstberatung
               </span>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
                 Finden Sie jetzt die passende Pflegekraft für Ihre Familie
