@@ -17,6 +17,7 @@
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
     "@tanstack/react-table": "^8.21.3",
+    "@whereby.com/browser-sdk": "^3.18.32",
     "bcryptjs": "^3.0.3",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.38.0",
