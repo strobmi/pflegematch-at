@@ -83,6 +83,23 @@ export async function markAnfrageProcessed(requestId: string) {
   revalidatePath("/vermittler/anfragen");
 }
 
+export async function reopenAnfrage(requestId: string) {
+  const session = await requireTenantSession();
+
+  const req = await prisma.matchRequest.findFirst({
+    where: { id: requestId, tenantId: session.tenantId },
+  });
+  if (!req) return { error: "Nicht gefunden." };
+  if (req.clientProfileId) return { error: "Leads mit einem Match können nicht wieder geöffnet werden." };
+
+  await prisma.matchRequest.update({
+    where: { id: requestId },
+    data: { isProcessed: false, processedByUserId: null },
+  });
+
+  revalidatePath("/vermittler/anfragen");
+}
+
 export async function createMatchFromAnfrage(
   requestId: string,
   caregiverProfileId: string

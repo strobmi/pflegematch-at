@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { ChevronDown, ChevronUp, Check, Loader2, Search, Link2 } from "lucide-react";
-import { markAnfrageProcessed, createMatchFromAnfrage } from "@/app/(dashboard)/vermittler/anfragen/actions";
+import { ChevronDown, ChevronUp, Check, Loader2, Search, Link2, RotateCcw, UserCheck } from "lucide-react";
+import { markAnfrageProcessed, createMatchFromAnfrage, reopenAnfrage } from "@/app/(dashboard)/vermittler/anfragen/actions";
 import { computeScore, type ScoreResult } from "@/lib/scoring";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -18,6 +18,7 @@ interface Anfrage {
   pflegegeldStufe: string | null;
   notes: string | null;
   isProcessed: boolean;
+  clientProfileId: string | null;
   createdAt: Date;
   assignedTo:  { name: string | null } | null;
   processedBy: { name: string | null } | null;
@@ -166,6 +167,7 @@ function PflegerCard({
 function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pfleger[]; showBadge: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [reopening, setReopening]   = useState(false);
   const [matching, setMatching]   = useState(false);
   const [matchError, setMatchError] = useState<string | null>(null);
   const [selectedPfleger, setSelectedPfleger] = useState("");
@@ -187,6 +189,13 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
     setProcessing(true);
     await markAnfrageProcessed(req.id);
     setProcessing(false);
+  }
+
+  async function handleReopen(e: React.MouseEvent) {
+    e.stopPropagation();
+    setReopening(true);
+    await reopenAnfrage(req.id);
+    setReopening(false);
   }
 
   async function handleCreateMatch(e: React.MouseEvent) {
@@ -273,6 +282,35 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
               </div>
             )}
 
+            {req.isProcessed && !req.clientProfileId && (
+              <div className="flex items-center justify-between gap-3 mt-1 pt-3 border-t border-[#EAD9C8]">
+                <div>
+                  <p className="text-sm font-medium text-[#2D2D2D]/70">Ohne Match abgeschlossen</p>
+                  <p className="text-xs text-[#2D2D2D]/40 mt-0.5">Kein Kundenprofil angelegt · Anfrage kann wieder geöffnet werden</p>
+                </div>
+                <button
+                  onClick={handleReopen}
+                  disabled={reopening}
+                  className="inline-flex items-center gap-2 shrink-0 border border-[#C06B4A] text-[#C06B4A] hover:bg-[#C06B4A] hover:text-white disabled:opacity-40 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                >
+                  {reopening ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                  Wieder öffnen
+                </button>
+              </div>
+            )}
+
+            {req.isProcessed && req.clientProfileId && (
+              <div className="flex items-center gap-3 mt-1 pt-3 border-t border-[#EAD9C8]">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#7B9E7B]/15 shrink-0">
+                  <UserCheck className="w-4 h-4 text-[#7B9E7B]" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[#2D2D2D]/70">Kunde wurde angelegt</p>
+                  <p className="text-xs text-[#2D2D2D]/40 mt-0.5">Diese Anfrage wurde mit einem Match abgeschlossen · Wiedereröffnung nicht möglich</p>
+                </div>
+              </div>
+            )}
+
             {!req.isProcessed && (
               <div className="space-y-3">
                 {/* Scored Pfleger Cards */}
@@ -317,14 +355,17 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
                 )}
 
                 {/* Ohne Match abschließen */}
-                <div className="flex items-center gap-2 pt-1 border-t border-[#EAD9C8]">
-                  <span className="text-xs text-[#2D2D2D]/35">Ohne Match abschließen:</span>
+                <div className="flex items-center justify-between gap-3 pt-3 border-t border-[#EAD9C8]">
+                  <div>
+                    <p className="text-sm font-medium text-[#2D2D2D]/70">Ohne Match abschließen</p>
+                    <p className="text-xs text-[#2D2D2D]/40 mt-0.5">Anfrage als erledigt markieren ohne eine Pflegekraft zuzuweisen</p>
+                  </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleMarkProcessed(); }}
                     disabled={processing}
-                    className="inline-flex items-center gap-1.5 text-xs text-[#2D2D2D]/40 hover:text-[#2D2D2D] disabled:opacity-40 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-2 shrink-0 border border-[#2D2D2D]/20 text-[#2D2D2D]/50 hover:border-[#2D2D2D]/40 hover:text-[#2D2D2D] disabled:opacity-40 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
                   >
-                    {processing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                    {processing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                     Als erledigt markieren
                   </button>
                 </div>
