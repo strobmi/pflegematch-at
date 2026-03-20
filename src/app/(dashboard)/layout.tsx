@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import VermittlerSidebar from "@/components/dashboard/layout/VermittlerSidebar";
 import AdminSidebar from "@/components/dashboard/layout/AdminSidebar";
+import KundeSidebar from "@/components/dashboard/layout/KundeSidebar";
 import DashboardHeader from "@/components/dashboard/layout/DashboardHeader";
 
 export default async function DashboardLayout({
@@ -19,6 +20,8 @@ export default async function DashboardLayout({
       <AdminSidebar />
     ) : role === "VERMITTLER_ADMIN" ? (
       <VermittlerSidebar tenantName={tenantName ?? ""} />
+    ) : role === "KUNDE" ? (
+      <KundeSidebar />
     ) : null;
 
   const isAdmin = role === "SUPERADMIN";
@@ -27,11 +30,11 @@ export default async function DashboardLayout({
     <div className={`flex h-screen overflow-hidden ${isAdmin ? "bg-[#1E1E1E]" : "bg-[#FAF6F1]"}`}>
       {sidebar}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {!isAdmin && (
+        {!isAdmin && role !== "KUNDE" && (
           <DashboardHeader
             userName={name ?? null}
             tenantName={tenantName}
-            profileHref={role === "KUNDE" ? "/kunde/einstellungen" : "/vermittler/profil"}
+            profileHref="/vermittler/profil"
           />
         )}
         <main className="flex-1 overflow-y-auto">{children}</main>
