@@ -67,6 +67,25 @@ export async function deleteMatch(matchId: string) {
     where: { id: matchId, tenantId: session.tenantId },
   });
   if (!match) return { error: "Nicht gefunden." };
-  await prisma.match.delete({ where: { id: matchId } });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.match.delete({ where: { id: matchId } });
+
+    // Zugehörige Anfrage zurücksetzen, falls dieser Match aus einer Anfrage entstanden ist
+    await tx.matchRequest.updateMany({
+      where: {
+        tenantId: session.tenantId,
+        clientProfileId: match.clientProfileId,
+        isProcessed: true,
+      },
+      data: {
+        isProcessed: false,
+        clientProfileId: null,
+        processedByUserId: null,
+      },
+    });
+  });
+
   revalidatePath("/vermittler/matches");
+  revalidatePath("/vermittler/anfragen");
 }
