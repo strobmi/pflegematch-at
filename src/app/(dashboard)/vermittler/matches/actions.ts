@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { MatchStatus } from "@prisma/client";
 import { computeScore } from "@/lib/scoring";
+import { sendWelcomeToken } from "@/lib/sendWelcomeToken";
 
 // Reverse-map AvailabilityType → betreuungsart key for careNeedsRaw JSON
 const AVAIL_REVERSE: Partial<Record<string, string>> = {
@@ -46,6 +47,7 @@ export async function createMatch(data: CreateMatchData) {
         pflegegeldStufe: true,
         preferredSchedule: true,
         preferredLanguages: true,
+        user: { select: { email: true, name: true, passwordHash: true } },
       },
     }),
   ]);
@@ -86,6 +88,10 @@ export async function createMatch(data: CreateMatchData) {
       status: "PROPOSED",
     },
   });
+
+  if (client.user && !client.user.passwordHash) {
+    await sendWelcomeToken(client.user.email, client.user.name ?? client.user.email);
+  }
 
   revalidatePath("/vermittler/matches");
   redirect("/vermittler/matches");

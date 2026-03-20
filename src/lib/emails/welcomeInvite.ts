@@ -42,6 +42,6 @@ export async function sendWelcomeEmail({ to, name, setupUrl }: WelcomeInvitePara
   });
 
   if (error) {
-    console.error("Resend error (welcome invite):", error);
+    throw new Error(`Resend error (welcome invite): ${error.message}`);
   }
 }
