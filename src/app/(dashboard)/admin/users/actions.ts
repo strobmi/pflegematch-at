@@ -49,6 +49,13 @@ export async function updateUser(userId: string, data: UserEditFormData) {
     await prisma.tenantMembership.deleteMany({
       where: { userId, NOT: { tenantId: parsed.tenantId } },
     });
+    // Keep caregiverProfile.tenantId in sync (Vermittler page filters by this)
+    if (parsed.role === "PFLEGER") {
+      await prisma.caregiverProfile.updateMany({
+        where: { userId },
+        data:  { tenantId: parsed.tenantId },
+      });
+    }
   } else {
     await prisma.tenantMembership.deleteMany({ where: { userId } });
   }

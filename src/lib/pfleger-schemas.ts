@@ -11,11 +11,19 @@ export const RegistrationBaseSchema = z.object({
   qualifications: z.array(z.string()).default([]),
   skills: z.array(z.string()).default([]),
   languages: z.array(z.string()).default([]),
+  // Bevorzugte Einsatzregion
   locationCity: z.string().optional(),
   locationState: z.string().optional(),
   travelRadius: z.coerce.number().optional(),
   hourlyRate: z.coerce.number().optional(),
   availability: z.enum(["FULL_TIME", "PART_TIME", "HOURLY", "LIVE_IN"]).default("PART_TIME"),
+  // Wohnadresse
+  addressStreet: z.string().optional(),
+  addressPostal: z.string().optional(),
+  addressCity: z.string().optional(),
+  addressCountry: z.string().optional(),
+  // Empfehlung
+  referredBy: z.string().optional(),
 });
 
 export type RegistrationFormData = z.infer<typeof RegistrationBaseSchema>;
@@ -27,12 +35,24 @@ export const ProfileUpdateSchema = z.object({
   skills: z.array(z.string()).default([]),
   languages: z.array(z.string()).default([]),
   availability: z.enum(["FULL_TIME", "PART_TIME", "HOURLY", "LIVE_IN"]),
+  // Bevorzugte Einsatzregion
   locationCity: z.string().optional(),
   locationState: z.string().optional(),
   travelRadius: z.coerce.number().optional(),
   hourlyRate: z.coerce.number().optional(),
   isActive: z.boolean().default(true),
   isPlatformVisible: z.boolean().default(false),
+  // Wohnadresse
+  addressStreet: z.string().optional(),
+  addressPostal: z.string().optional(),
+  addressCity: z.string().optional(),
+  addressCountry: z.string().optional(),
+  // Bankverbindung
+  iban: z.string().optional(),
+  bic: z.string().optional(),
+  bankAccountHolder: z.string().optional(),
+  // Empfehlung
+  referredBy: z.string().optional(),
 });
 
 export type ProfileUpdateData = z.infer<typeof ProfileUpdateSchema>;

@@ -221,6 +221,15 @@ model CaregiverProfile {
   backgroundChecked Boolean  @default(false)
   certificatesUrls  String[]
 
+  addressStreet     String?  // Wohnadresse
+  addressPostal     String?
+  addressCity       String?
+  addressCountry    String?
+  iban              String?  // Bankverbindung
+  bic               String?
+  bankAccountHolder String?
+  referredBy        String?  // Empfehlung / Vermittlung durch
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

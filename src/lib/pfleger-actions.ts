@@ -4,13 +4,16 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/tenant";
 import { hash } from "bcryptjs";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { Resend } from "resend";
 import {
   RegistrationBaseSchema,
   ProfileUpdateSchema,
   AvailabilitySchema,
   DirectRequestSchema,
+  type RegistrationFormData,
+  type ProfileUpdateData,
+  type AvailabilityFormData,
+  type DirectRequestFormData,
 } from "@/lib/pfleger-schemas";
 
 export type {
@@ -20,7 +23,7 @@ export type {
   DirectRequestFormData,
 } from "@/lib/pfleger-schemas";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Server-side only: full registration schema with password-match check
 const RegistrationSchema = RegistrationBaseSchema.refine(
@@ -57,12 +60,20 @@ export async function registerFreelancePfleger(
   }
 
   const { name, email, password, bio, qualifications, skills, languages,
-          locationCity, locationState, travelRadius, hourlyRate, availability } = parsed.data;
+          locationCity, locationState, travelRadius, hourlyRate, availability,
+          addressStreet, addressPostal, addressCity, addressCountry, referredBy } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return { error: "emailTaken" };
 
   const platformTenant = await getPlatformTenant();
+
+  // Auto-assign to the first active Vermittler tenant (single-Vermittler setup).
+  // To switch to manual admin assignment later: replace `assignTenant` with `platformTenant`.
+  const assignTenant = (await prisma.tenant.findFirst({
+    where: { isPlatform: false, status: "ACTIVE" },
+    orderBy: { createdAt: "asc" },
+  })) ?? platformTenant;
 
   const user = await prisma.user.create({
     data: {
@@ -76,7 +87,7 @@ export async function registerFreelancePfleger(
   await prisma.tenantMembership.create({
     data: {
       userId: user.id,
-      tenantId: platformTenant.id,
+      tenantId: assignTenant.id,
       role: "PFLEGER",
     },
   });
@@ -84,7 +95,7 @@ export async function registerFreelancePfleger(
   await prisma.caregiverProfile.create({
     data: {
       userId: user.id,
-      tenantId: platformTenant.id,
+      tenantId: assignTenant.id,
       type: "FREELANCE",
       bio,
       qualifications,
@@ -97,12 +108,17 @@ export async function registerFreelancePfleger(
       hourlyRate: hourlyRate ? hourlyRate.toString() : undefined,
       isActive: true,
       isPlatformVisible: false,
+      addressStreet,
+      addressPostal,
+      addressCity,
+      addressCountry,
+      referredBy,
     },
   });
 
   // Welcome email
   try {
-    await resend.emails.send({
+    await resend?.emails.send({
       from: "pflegematch.at <noreply@pflegematch.at>",
       to: email,
       subject: "Willkommen bei pflegematch.at",
@@ -142,6 +158,14 @@ export async function updateOwnProfile(
       hourlyRate: parsed.data.hourlyRate ? parsed.data.hourlyRate.toString() : null,
       isActive: parsed.data.isActive,
       isPlatformVisible: parsed.data.isPlatformVisible,
+      addressStreet: parsed.data.addressStreet,
+      addressPostal: parsed.data.addressPostal,
+      addressCity: parsed.data.addressCity,
+      addressCountry: parsed.data.addressCountry,
+      iban: parsed.data.iban,
+      bic: parsed.data.bic,
+      bankAccountHolder: parsed.data.bankAccountHolder,
+      referredBy: parsed.data.referredBy,
     },
   });
 
@@ -240,12 +264,12 @@ export async function createDirectRequest(
 
   // Notify caregiver by email
   try {
-    await resend.emails.send({
+    await resend?.emails.send({
       from: "pflegematch.at <noreply@pflegematch.at>",
-      to: caregiver.user.email,
+      to: caregiver.user!.email,
       subject: `Neue Direktanfrage von ${parsed.data.contactName}`,
       html: `
-        <p>Hallo ${caregiver.user.name},</p>
+        <p>Hallo ${caregiver.user!.name},</p>
         <p>Sie haben eine neue Direktanfrage erhalten:</p>
         <ul>
           <li><strong>Name:</strong> ${parsed.data.contactName}</li>

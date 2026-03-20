@@ -17,8 +17,17 @@ const PflegerSchema = z.object({
   availability: z.enum(["FULL_TIME", "PART_TIME", "HOURLY", "LIVE_IN"]),
   locationCity: z.string().optional(),
   locationState: z.string().optional(),
-  travelRadius: z.number().optional(),
+  travelRadius: z.coerce.number().optional(),
+  hourlyRate: z.coerce.number().optional(),
   isActive: z.boolean().default(true),
+  addressStreet: z.string().optional(),
+  addressPostal: z.string().optional(),
+  addressCity: z.string().optional(),
+  addressCountry: z.string().optional(),
+  iban: z.string().optional(),
+  bic: z.string().optional(),
+  bankAccountHolder: z.string().optional(),
+  referredBy: z.string().optional(),
 });
 
 export type PflegerFormData = z.infer<typeof PflegerSchema>;
@@ -67,7 +76,16 @@ export async function createPfleger(data: PflegerFormData) {
       locationCity: parsed.locationCity,
       locationState: parsed.locationState,
       travelRadius: parsed.travelRadius,
+      hourlyRate: parsed.hourlyRate ? parsed.hourlyRate.toString() : undefined,
       isActive: parsed.isActive,
+      addressStreet: parsed.addressStreet,
+      addressPostal: parsed.addressPostal,
+      addressCity: parsed.addressCity,
+      addressCountry: parsed.addressCountry,
+      iban: parsed.iban,
+      bic: parsed.bic,
+      bankAccountHolder: parsed.bankAccountHolder,
+      referredBy: parsed.referredBy,
     },
   });
 
@@ -95,7 +113,16 @@ export async function updatePfleger(profileId: string, data: PflegerFormData) {
       locationCity: parsed.locationCity,
       locationState: parsed.locationState,
       travelRadius: parsed.travelRadius,
+      hourlyRate: parsed.hourlyRate ? parsed.hourlyRate.toString() : null,
       isActive: parsed.isActive,
+      addressStreet: parsed.addressStreet,
+      addressPostal: parsed.addressPostal,
+      addressCity: parsed.addressCity,
+      addressCountry: parsed.addressCountry,
+      iban: parsed.iban,
+      bic: parsed.bic,
+      bankAccountHolder: parsed.bankAccountHolder,
+      referredBy: parsed.referredBy,
     },
   });
 

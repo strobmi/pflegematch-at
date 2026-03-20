@@ -114,3 +114,58 @@ export async function deleteTenant(tenantId: string) {
 
   revalidatePath("/admin/tenants");
 }
+
+// ─────────────────────────────────────────────
+// PFLEGER-ZUORDNUNG
+// ─────────────────────────────────────────────
+
+async function getPlatformTenant() {
+  const t = await prisma.tenant.findFirst({ where: { isPlatform: true } });
+  if (!t) throw new Error("Platform-Tenant nicht konfiguriert.");
+  return t;
+}
+
+export async function assignPflegerToTenant(
+  pflegerUserId: string,
+  targetTenantId: string
+): Promise<{ error?: string }> {
+  const session = await requireSession();
+  if (session.role !== "SUPERADMIN") return { error: "Keine Berechtigung." };
+
+  const user = await prisma.user.findUnique({ where: { id: pflegerUserId } });
+  if (!user || user.role !== "PFLEGER") return { error: "Pfleger nicht gefunden." };
+
+  await prisma.tenantMembership.deleteMany({ where: { userId: pflegerUserId } });
+  await prisma.tenantMembership.create({
+    data: { userId: pflegerUserId, tenantId: targetTenantId, role: "PFLEGER" },
+  });
+  await prisma.caregiverProfile.updateMany({
+    where: { userId: pflegerUserId },
+    data: { tenantId: targetTenantId },
+  });
+
+  revalidatePath(`/admin/tenants/${targetTenantId}/pfleger`);
+  return {};
+}
+
+export async function unassignPflegerFromTenant(
+  pflegerUserId: string,
+  currentTenantId: string
+): Promise<{ error?: string }> {
+  const session = await requireSession();
+  if (session.role !== "SUPERADMIN") return { error: "Keine Berechtigung." };
+
+  const platformTenant = await getPlatformTenant();
+
+  await prisma.tenantMembership.deleteMany({ where: { userId: pflegerUserId } });
+  await prisma.tenantMembership.create({
+    data: { userId: pflegerUserId, tenantId: platformTenant.id, role: "PFLEGER" },
+  });
+  await prisma.caregiverProfile.updateMany({
+    where: { userId: pflegerUserId },
+    data: { tenantId: platformTenant.id },
+  });
+
+  revalidatePath(`/admin/tenants/${currentTenantId}/pfleger`);
+  return {};
+}

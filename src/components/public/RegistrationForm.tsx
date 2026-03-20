@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, ChevronRight, ChevronLeft, Check } from "lucide-react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { RegistrationBaseSchema, type RegistrationFormData } from "@/lib/pfleger-schemas";
 import { registerFreelancePfleger } from "@/lib/pfleger-actions";
 
@@ -92,7 +93,7 @@ export default function RegistrationForm({ locale }: { locale: string }) {
   const steps = [
     { title: t("step1Title"), fields: ["name", "email", "password", "passwordConfirm"] as const },
     { title: t("step2Title"), fields: ["bio", "skills", "languages", "qualifications"] as const },
-    { title: t("step3Title"), fields: ["locationCity", "locationState", "travelRadius", "hourlyRate", "availability"] as const },
+    { title: t("step3Title"), fields: ["locationCity", "locationState", "travelRadius", "hourlyRate", "availability", "addressStreet", "addressPostal", "addressCity", "addressCountry", "referredBy"] as const },
   ];
 
   async function goNext() {
@@ -116,6 +117,8 @@ export default function RegistrationForm({ locale }: { locale: string }) {
       setServerError(result.error === "emailTaken" ? t("errors.emailTaken") : t("errors.general"));
       return;
     }
+    // Auto-login after successful registration
+    await signIn("credentials", { email: data.email, password: data.password, redirect: false });
     setSuccess(true);
     setTimeout(() => router.push(`/${locale}/dashboard/pfleger`), 1500);
   }
@@ -257,6 +260,7 @@ export default function RegistrationForm({ locale }: { locale: string }) {
             className="space-y-4"
           >
             <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
+              <p className="text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide">{t("sectionEinsatzregion")}</p>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">{t("city")}</label>
@@ -287,6 +291,31 @@ export default function RegistrationForm({ locale }: { locale: string }) {
                     </label>
                   ))}
                 </div>
+              </div>
+
+              <p className="text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide pt-2">{t("sectionAddress")}</p>
+              <div>
+                <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">{t("addressStreet")}</label>
+                <input {...register("addressStreet")} placeholder={t("addressStreetPlaceholder")} className={inputClass} />
+              </div>
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">{t("addressPostal")}</label>
+                  <input {...register("addressPostal")} placeholder="1010" className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">{t("addressCity")}</label>
+                  <input {...register("addressCity")} placeholder="Wien" className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">{t("addressCountry")}</label>
+                  <input {...register("addressCountry")} placeholder="Österreich" className={inputClass} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">{t("referredBy")}</label>
+                <input {...register("referredBy")} placeholder={t("referredByPlaceholder")} className={inputClass} />
               </div>
             </div>
           </motion.div>

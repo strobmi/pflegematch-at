@@ -96,6 +96,14 @@ export default function PflegerProfileForm({ profile, user, locale }: Props) {
       hourlyRate: profile.hourlyRate ? Number(profile.hourlyRate) : undefined,
       isActive: profile.isActive,
       isPlatformVisible: profile.isPlatformVisible,
+      addressStreet: profile.addressStreet ?? "",
+      addressPostal: profile.addressPostal ?? "",
+      addressCity: profile.addressCity ?? "",
+      addressCountry: profile.addressCountry ?? "",
+      iban: profile.iban ?? "",
+      bic: profile.bic ?? "",
+      bankAccountHolder: profile.bankAccountHolder ?? "",
+      referredBy: profile.referredBy ?? "",
     },
   });
 
@@ -116,7 +124,7 @@ export default function PflegerProfileForm({ profile, user, locale }: Props) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
       {/* Personal Data */}
       <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
-        <h3 className="font-semibold text-[#2D2D2D]">{t("personalData")}</h3>
+        <h3 className="font-semibold text-[#2D2D2D]">Kurzübersicht</h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Name *</label>
@@ -130,12 +138,12 @@ export default function PflegerProfileForm({ profile, user, locale }: Props) {
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Stadt</label>
-            <input {...register("locationCity")} placeholder="Wien" className={inputClass} />
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Bevorzugte Einsatzregion (Stadt)</label>
+            <input {...register("locationCity")} placeholder="z.B. Wien, Graz" className={inputClass} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Bundesland</label>
-            <input {...register("locationState")} placeholder="Wien" className={inputClass} />
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Bevorzugtes Bundesland</label>
+            <input {...register("locationState")} placeholder="z.B. Wien" className={inputClass} />
           </div>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -151,6 +159,53 @@ export default function PflegerProfileForm({ profile, user, locale }: Props) {
         <div>
           <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Über mich</label>
           <textarea {...register("bio")} rows={4} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Empfohlen durch</label>
+          <input {...register("referredBy")} placeholder="Name der Person oder Organisation" className={inputClass} />
+        </div>
+      </div>
+
+      {/* Wohnadresse */}
+      <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
+        <h3 className="font-semibold text-[#2D2D2D]">Wohnadresse</h3>
+        <div>
+          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Straße &amp; Hausnummer</label>
+          <input {...register("addressStreet")} placeholder="Musterstraße 1" className={inputClass} />
+        </div>
+        <div className="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">PLZ</label>
+            <input {...register("addressPostal")} placeholder="1010" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Ort</label>
+            <input {...register("addressCity")} placeholder="Wien" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Land</label>
+            <input {...register("addressCountry")} placeholder="Österreich" className={inputClass} />
+          </div>
+        </div>
+      </div>
+
+      {/* Bankverbindung */}
+      <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
+        <h3 className="font-semibold text-[#2D2D2D]">Bankverbindung</h3>
+        <p className="text-xs text-[#2D2D2D]/50">Nur intern sichtbar – nicht auf dem öffentlichen Profil.</p>
+        <div>
+          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">IBAN</label>
+          <input {...register("iban")} placeholder="AT12 3456 7890 1234 5678" className={inputClass} />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">BIC</label>
+            <input {...register("bic")} placeholder="RLNWATWW" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Kontoinhaber</label>
+            <input {...register("bankAccountHolder")} placeholder="Vor- und Nachname" className={inputClass} />
+          </div>
         </div>
       </div>
 
