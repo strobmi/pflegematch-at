@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
-import { notifyKeinKonto, requestPasswordReset } from "@/app/(auth)/login/actions";
+import { requestPasswordReset } from "@/app/(auth)/login/actions";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -20,9 +20,7 @@ export default function LoginForm() {
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotPending, startForgotTransition] = useTransition();
 
-  // Kein Konto
-  const [keinKontoSent, setKeinKontoSent] = useState(false);
-  const [keinKontoPending, startKeinKontoTransition] = useTransition();
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -61,13 +59,6 @@ export default function LoginForm() {
     startForgotTransition(async () => {
       await requestPasswordReset(forgotEmail);
       setForgotSent(true);
-    });
-  }
-
-  function handleKeinKonto() {
-    startKeinKontoTransition(async () => {
-      await notifyKeinKonto();
-      setKeinKontoSent(true);
     });
   }
 
@@ -173,21 +164,20 @@ export default function LoginForm() {
       </button>
 
       {/* Kein Konto */}
-      <p className="text-xs text-center text-[#2D2D2D]/40 mt-4">
-        Kein Konto?{" "}
-        {keinKontoSent ? (
-          <span className="text-[#7B9E7B] font-medium">Nachricht gesendet – wir melden uns!</span>
-        ) : (
-          <button
-            type="button"
-            onClick={handleKeinKonto}
-            disabled={keinKontoPending}
-            className="text-[#C06B4A] hover:underline disabled:opacity-60"
-          >
-            {keinKontoPending ? "Senden..." : "Kontakt aufnehmen"}
-          </button>
-        )}
-      </p>
+      <div className="text-xs text-center text-[#2D2D2D]/40 mt-4 space-y-1">
+        <p>
+          Als Pflegekraft?{" "}
+          <a href="/de/registrierung" className="text-[#C06B4A] hover:underline">
+            Jetzt registrieren
+          </a>
+        </p>
+        <p>
+          Pflegebedarf?{" "}
+          <a href="/de/pfleger" className="text-[#C06B4A] hover:underline">
+            Pflegekraft finden
+          </a>
+        </p>
+      </div>
     </form>
   );
 }
