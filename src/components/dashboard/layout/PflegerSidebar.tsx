@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { Heart, LayoutGrid, User, Calendar, Inbox, Video, LogOut } from "lucide-react";
+import { Heart, LayoutGrid, User, Calendar, Video, LogOut } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export default function PflegerSidebar({
@@ -22,7 +22,6 @@ export default function PflegerSidebar({
     { href: base,                        label: t("overview"),     icon: LayoutGrid },
     { href: `${base}/profil`,            label: t("profile"),      icon: User },
     { href: `${base}/verfuegbarkeit`,    label: t("availability"), icon: Calendar },
-    { href: `${base}/anfragen`,          label: t("requests"),     icon: Inbox },
     { href: `${base}/meetings`,          label: t("meetings"),     icon: Video },
   ];
 

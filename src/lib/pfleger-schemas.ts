@@ -66,13 +66,3 @@ export const AvailabilitySchema = z.object({
 
 export type AvailabilityFormData = z.infer<typeof AvailabilitySchema>;
 
-export const DirectRequestSchema = z.object({
-  caregiverProfileId: z.string(),
-  contactName: z.string().min(2),
-  contactEmail: z.string().email(),
-  contactPhone: z.string().optional(),
-  careNeedsRaw: z.string().min(10, "Bitte beschreiben Sie den Pflegebedarf"),
-  preferredStart: z.string().optional(),
-});
-
-export type DirectRequestFormData = z.infer<typeof DirectRequestSchema>;

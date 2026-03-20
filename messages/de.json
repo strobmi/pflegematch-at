@@ -86,26 +86,6 @@
     "notVisible": "Dieses Profil ist momentan nicht öffentlich sichtbar.",
     "backToSearch": "Zurück zur Übersicht"
   },
-  "directRequest": {
-    "title": "Direkte Anfrage senden",
-    "subtitle": "Anfrage an {name}",
-    "contactName": "Ihr Name",
-    "contactNamePlaceholder": "Vorname Nachname",
-    "contactEmail": "Ihre E-Mail",
-    "contactEmailPlaceholder": "name@example.at",
-    "contactPhone": "Ihre Telefonnummer",
-    "contactPhonePlaceholder": "+43 ...",
-    "careNeeds": "Pflegebedarf beschreiben",
-    "careNeedsPlaceholder": "Bitte beschreiben Sie kurz die benötigte Pflege und Unterstützung...",
-    "preferredStart": "Gewünschter Starttermin",
-    "submit": "Anfrage senden",
-    "submitting": "Wird gesendet...",
-    "success": "Ihre Anfrage wurde erfolgreich gesendet. Die Pflegekraft wird sich bei Ihnen melden.",
-    "backToProfile": "Zurück zum Profil",
-    "errors": {
-      "general": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
-    }
-  },
   "dashboard": {
     "pfleger": {
       "welcome": "Willkommen, {name}",
@@ -115,7 +95,6 @@
         "overview": "Übersicht",
         "profile": "Mein Profil",
         "availability": "Verfügbarkeit",
-        "requests": "Anfragen",
         "meetings": "Termine"
       },
       "profile": {
@@ -157,16 +136,6 @@
           "VACATION": "Urlaub",
           "BLOCKED": "Nicht verfügbar"
         }
-      },
-      "requests": {
-        "title": "Direkte Anfragen",
-        "noRequests": "Noch keine direkten Anfragen eingegangen.",
-        "from": "Von",
-        "careNeeds": "Pflegebedarf",
-        "preferredStart": "Gewünschter Start",
-        "receivedAt": "Eingegangen",
-        "markProcessed": "Als erledigt markieren",
-        "processed": "Erledigt"
       },
       "meetings": {
         "title": "Meine Videotermine"

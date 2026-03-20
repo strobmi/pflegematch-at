@@ -9,18 +9,15 @@ import {
   RegistrationBaseSchema,
   ProfileUpdateSchema,
   AvailabilitySchema,
-  DirectRequestSchema,
   type RegistrationFormData,
   type ProfileUpdateData,
   type AvailabilityFormData,
-  type DirectRequestFormData,
 } from "@/lib/pfleger-schemas";
 
 export type {
   RegistrationFormData,
   ProfileUpdateData,
   AvailabilityFormData,
-  DirectRequestFormData,
 } from "@/lib/pfleger-schemas";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -232,82 +229,3 @@ export async function deleteAvailability(
   return {};
 }
 
-// ─────────────────────────────────────────────
-// FEATURE 4: DIREKTANFRAGEN
-// ─────────────────────────────────────────────
-
-export async function createDirectRequest(
-  data: DirectRequestFormData
-): Promise<{ error?: string }> {
-  const parsed = DirectRequestSchema.safeParse(data);
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message };
-
-  const caregiver = await prisma.caregiverProfile.findFirst({
-    where: { id: parsed.data.caregiverProfileId, isPlatformVisible: true, isActive: true },
-    include: { user: { select: { email: true, name: true } } },
-  });
-  if (!caregiver) return { error: "Profil nicht gefunden." };
-
-  const platformTenant = await getPlatformTenant();
-
-  await prisma.matchRequest.create({
-    data: {
-      tenantId: platformTenant.id,
-      targetCaregiverId: caregiver.id,
-      contactName: parsed.data.contactName,
-      contactEmail: parsed.data.contactEmail,
-      contactPhone: parsed.data.contactPhone,
-      careNeedsRaw: parsed.data.careNeedsRaw,
-      preferredStart: parsed.data.preferredStart ? new Date(parsed.data.preferredStart) : null,
-    },
-  });
-
-  // Notify caregiver by email
-  try {
-    await resend?.emails.send({
-      from: "pflegematch.at <noreply@pflegematch.at>",
-      to: caregiver.user!.email,
-      subject: `Neue Direktanfrage von ${parsed.data.contactName}`,
-      html: `
-        <p>Hallo ${caregiver.user!.name},</p>
-        <p>Sie haben eine neue Direktanfrage erhalten:</p>
-        <ul>
-          <li><strong>Name:</strong> ${parsed.data.contactName}</li>
-          <li><strong>E-Mail:</strong> ${parsed.data.contactEmail}</li>
-          ${parsed.data.contactPhone ? `<li><strong>Telefon:</strong> ${parsed.data.contactPhone}</li>` : ""}
-          <li><strong>Pflegebedarf:</strong> ${parsed.data.careNeedsRaw}</li>
-          ${parsed.data.preferredStart ? `<li><strong>Gewünschter Start:</strong> ${parsed.data.preferredStart}</li>` : ""}
-        </ul>
-        <p>Melden Sie sich in Ihrem Dashboard an, um die Anfrage zu bearbeiten.</p>
-        <p>Ihr pflegematch.at-Team</p>
-      `,
-    });
-  } catch {
-    // Non-critical
-  }
-
-  return {};
-}
-
-export async function markDirectRequestProcessed(
-  requestId: string
-): Promise<{ error?: string }> {
-  const user = await requireSession();
-  const profile = await getOwnCaregiverProfile(user.id);
-
-  const request = await prisma.matchRequest.findFirst({
-    where: { id: requestId, targetCaregiverId: profile.id },
-  });
-  if (!request) return { error: "Nicht gefunden." };
-
-  await prisma.matchRequest.update({
-    where: { id: requestId },
-    data: { isProcessed: true, processedByUserId: user.id },
-  });
-
-  revalidatePath("/de/dashboard/pfleger/anfragen");
-  revalidatePath("/en/dashboard/pfleger/anfragen");
-  revalidatePath("/ro/dashboard/pfleger/anfragen");
-  revalidatePath("/hr/dashboard/pfleger/anfragen");
-  return {};
-}

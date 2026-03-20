@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { User, Calendar, Inbox, ArrowRight, Video } from "lucide-react";
+import { User, Calendar, ArrowRight, Video } from "lucide-react";
 import UpcomingMeetingsList from "@/components/dashboard/meetings/UpcomingMeetingsList";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -27,24 +27,17 @@ export default async function PflegerOverviewPage({
     where: { userId: session.user.id },
   });
 
-  const [pendingRequests, upcomingMeetings] = await Promise.all([
-    caregiverProfile
-      ? prisma.matchRequest.count({
-          where: { targetCaregiverId: caregiverProfile.id, isProcessed: false },
-        })
-      : 0,
-    caregiverProfile
-      ? prisma.videoMeeting.findMany({
-          where: {
-            match: { caregiverProfileId: caregiverProfile.id },
-            status: "SCHEDULED",
-            scheduledAt: { gt: new Date(Date.now() - 60 * 60 * 1000) },
-          },
-          orderBy: { scheduledAt: "asc" },
-          take: 3,
-        })
-      : [],
-  ]);
+  const upcomingMeetings = await (caregiverProfile
+    ? prisma.videoMeeting.findMany({
+        where: {
+          match: { caregiverProfileId: caregiverProfile.id },
+          status: "SCHEDULED",
+          scheduledAt: { gt: new Date(Date.now() - 60 * 60 * 1000) },
+        },
+        orderBy: { scheduledAt: "asc" },
+        take: 3,
+      })
+    : Promise.resolve([]));
 
   const base = `/${locale}/dashboard/pfleger`;
 
@@ -86,18 +79,16 @@ export default async function PflegerOverviewPage({
         </Link>
 
         <Link
-          href={`${base}/anfragen`}
-          className="bg-white rounded-2xl border border-[#EAD9C8] p-5 hover:border-[#C06B4A]/40 hover:shadow-md transition-all group relative"
+          href={`${base}/meetings`}
+          className="bg-white rounded-2xl border border-[#EAD9C8] p-5 hover:border-[#C06B4A]/40 hover:shadow-md transition-all group"
         >
-          <div className="w-9 h-9 rounded-xl bg-[#EAD9C8]/60 flex items-center justify-center mb-3 group-hover:bg-[#EAD9C8] transition-colors">
-            <Inbox className="w-4.5 h-4.5 text-[#2D2D2D]/60" />
+          <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors">
+            <Video className="w-4.5 h-4.5 text-blue-500" />
           </div>
-          <p className="font-semibold text-sm text-[#2D2D2D]">{t("nav.requests")}</p>
-          {pendingRequests > 0 && (
-            <span className="absolute top-4 right-4 w-5 h-5 rounded-full bg-[#C06B4A] text-white text-[10px] font-bold flex items-center justify-center">
-              {pendingRequests}
-            </span>
-          )}
+          <p className="font-semibold text-sm text-[#2D2D2D]">{t("nav.meetings")}</p>
+          <div className="flex items-center gap-1 text-xs text-[#2D2D2D]/40 mt-0.5">
+            <ArrowRight className="w-3 h-3" />
+          </div>
         </Link>
       </div>
 

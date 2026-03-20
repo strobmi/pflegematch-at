@@ -86,26 +86,6 @@
     "notVisible": "Acest profil nu este momentan vizibil public.",
     "backToSearch": "Înapoi la prezentare"
   },
-  "directRequest": {
-    "title": "Trimite solicitare directă",
-    "subtitle": "Solicitare către {name}",
-    "contactName": "Numele dvs.",
-    "contactNamePlaceholder": "Prenume Nume",
-    "contactEmail": "E-mailul dvs.",
-    "contactEmailPlaceholder": "nume@exemplu.at",
-    "contactPhone": "Numărul dvs. de telefon",
-    "contactPhonePlaceholder": "+43 ...",
-    "careNeeds": "Descrieți nevoile de îngrijire",
-    "careNeedsPlaceholder": "Vă rugăm să descrieți pe scurt îngrijirea și sprijinul necesar...",
-    "preferredStart": "Data de început dorită",
-    "submit": "Trimite solicitarea",
-    "submitting": "Se trimite...",
-    "success": "Solicitarea dvs. a fost trimisă cu succes. Îngrijitorul vă va contacta.",
-    "backToProfile": "Înapoi la profil",
-    "errors": {
-      "general": "A apărut o eroare. Vă rugăm să încercați din nou."
-    }
-  },
   "dashboard": {
     "pfleger": {
       "welcome": "Bun venit, {name}",
@@ -115,7 +95,6 @@
         "overview": "Prezentare generală",
         "profile": "Profilul meu",
         "availability": "Disponibilitate",
-        "requests": "Solicitări",
         "meetings": "Programări"
       },
       "profile": {
@@ -157,16 +136,6 @@
           "VACATION": "În concediu",
           "BLOCKED": "Indisponibil"
         }
-      },
-      "requests": {
-        "title": "Solicitări directe",
-        "noRequests": "Nicio solicitare directă primită încă.",
-        "from": "De la",
-        "careNeeds": "Nevoi de îngrijire",
-        "preferredStart": "Start preferat",
-        "receivedAt": "Primit",
-        "markProcessed": "Marchează ca rezolvat",
-        "processed": "Rezolvat"
       },
       "meetings": {
         "title": "Programările mele video"

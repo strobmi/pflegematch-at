@@ -86,26 +86,6 @@
     "notVisible": "Ovaj profil trenutno nije javno vidljiv.",
     "backToSearch": "Natrag na pregled"
   },
-  "directRequest": {
-    "title": "Pošalji izravni upit",
-    "subtitle": "Upit za {name}",
-    "contactName": "Vaše ime",
-    "contactNamePlaceholder": "Ime Prezime",
-    "contactEmail": "Vaš e-mail",
-    "contactEmailPlaceholder": "ime@primjer.at",
-    "contactPhone": "Vaš broj telefona",
-    "contactPhonePlaceholder": "+43 ...",
-    "careNeeds": "Opišite potrebe njege",
-    "careNeedsPlaceholder": "Molimo kratko opišite potrebnu njegu i podršku...",
-    "preferredStart": "Željeni datum početka",
-    "submit": "Pošalji upit",
-    "submitting": "Slanje...",
-    "success": "Vaš upit je uspješno poslan. Njegovatelj će vas kontaktirati.",
-    "backToProfile": "Natrag na profil",
-    "errors": {
-      "general": "Došlo je do pogreške. Pokušajte ponovo."
-    }
-  },
   "dashboard": {
     "pfleger": {
       "welcome": "Dobrodošli, {name}",
@@ -115,7 +95,6 @@
         "overview": "Pregled",
         "profile": "Moj profil",
         "availability": "Dostupnost",
-        "requests": "Upiti",
         "meetings": "Termini"
       },
       "profile": {
@@ -157,16 +136,6 @@
           "VACATION": "Na godišnjem",
           "BLOCKED": "Nedostupan"
         }
-      },
-      "requests": {
-        "title": "Izravni upiti",
-        "noRequests": "Još nema primljenih izravnih upita.",
-        "from": "Od",
-        "careNeeds": "Potrebe njege",
-        "preferredStart": "Željeni početak",
-        "receivedAt": "Primljeno",
-        "markProcessed": "Označi kao riješeno",
-        "processed": "Riješeno"
       },
       "meetings": {
         "title": "Moji video termini"

@@ -86,26 +86,6 @@
     "notVisible": "This profile is currently not publicly visible.",
     "backToSearch": "Back to overview"
   },
-  "directRequest": {
-    "title": "Send direct enquiry",
-    "subtitle": "Enquiry to {name}",
-    "contactName": "Your name",
-    "contactNamePlaceholder": "First Last",
-    "contactEmail": "Your email",
-    "contactEmailPlaceholder": "name@example.at",
-    "contactPhone": "Your phone number",
-    "contactPhonePlaceholder": "+43 ...",
-    "careNeeds": "Describe care needs",
-    "careNeedsPlaceholder": "Please briefly describe the required care and support...",
-    "preferredStart": "Preferred start date",
-    "submit": "Send enquiry",
-    "submitting": "Sending...",
-    "success": "Your enquiry was sent successfully. The caregiver will get back to you.",
-    "backToProfile": "Back to profile",
-    "errors": {
-      "general": "An error occurred. Please try again."
-    }
-  },
   "dashboard": {
     "pfleger": {
       "welcome": "Welcome, {name}",
@@ -115,7 +95,6 @@
         "overview": "Overview",
         "profile": "My profile",
         "availability": "Availability",
-        "requests": "Enquiries",
         "meetings": "Appointments"
       },
       "profile": {
@@ -157,16 +136,6 @@
           "VACATION": "On vacation",
           "BLOCKED": "Unavailable"
         }
-      },
-      "requests": {
-        "title": "Direct enquiries",
-        "noRequests": "No direct enquiries received yet.",
-        "from": "From",
-        "careNeeds": "Care needs",
-        "preferredStart": "Preferred start",
-        "receivedAt": "Received",
-        "markProcessed": "Mark as done",
-        "processed": "Done"
       },
       "meetings": {
         "title": "My Video Appointments"
