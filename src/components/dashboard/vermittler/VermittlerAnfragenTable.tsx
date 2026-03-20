@@ -250,9 +250,14 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
           {format(new Date(req.createdAt), "dd.MM.yy HH:mm", { locale: de })}
         </td>
         <td className="px-4 py-3 hidden lg:table-cell">
-          {req.isProcessed && req.processedBy?.name
-            ? <span className="text-xs text-[#2D2D2D]/50">{req.processedBy.name}</span>
-            : null}
+          {req.isProcessed && !req.clientProfileId && req.closedReason && (
+            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-[#2D2D2D]/6 text-[#2D2D2D]/50">
+              {CLOSED_REASON_LABELS[req.closedReason]}
+            </span>
+          )}
+          {req.isProcessed && req.processedBy?.name && (
+            <p className="text-xs text-[#2D2D2D]/40 mt-0.5">{req.processedBy.name}</p>
+          )}
         </td>
         <td className="px-4 py-3 text-right">
           {expanded
@@ -466,6 +471,7 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
   const [tab, setTab] = useState<Tab>("offen");
   const [search, setSearch] = useState("");
   const [betreuungsFilter, setBetreuungsFilter] = useState("");
+  const [reasonFilter, setReasonFilter] = useState("");
 
   const offenCount    = requests.filter((r) => !r.isProcessed).length;
   const erledigtCount = requests.filter((r) => r.isProcessed).length;
@@ -479,10 +485,15 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
       if ((raw.betreuungsart as string) !== betreuungsFilter) return false;
     }
 
+    if (reasonFilter) {
+      if (r.closedReason !== reasonFilter) return false;
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase();
       const raw = parseRaw(r.careNeedsRaw);
-      const haystack = [r.contactName, r.contactEmail, raw.ort as string].join(" ").toLowerCase();
+      const reasonLabel = r.closedReason ? CLOSED_REASON_LABELS[r.closedReason] : "";
+      const haystack = [r.contactName, r.contactEmail, raw.ort as string, reasonLabel, r.closedNote].join(" ").toLowerCase();
       if (!haystack.includes(q)) return false;
     }
 
@@ -520,6 +531,18 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
             <option value="tagesbetreuung">Tagesbetreuung</option>
             <option value="nachtsitzung">Nachtsitzung</option>
           </select>
+          {(tab === "erledigt" || tab === "alle") && (
+            <select
+              value={reasonFilter}
+              onChange={(e) => setReasonFilter(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] transition-colors text-[#2D2D2D]/70 cursor-pointer"
+            >
+              <option value="">Alle Abschlussgründe</option>
+              {Object.entries(CLOSED_REASON_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className="flex gap-1">
