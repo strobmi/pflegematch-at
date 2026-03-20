@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireTenantSession } from "@/lib/tenant";
-import { hash } from "bcryptjs";
+import { sendWelcomeToken } from "@/lib/sendWelcomeToken";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -37,13 +37,10 @@ export async function createKlient(data: KlientFormData) {
   const existing = await prisma.user.findUnique({ where: { email: parsed.email } });
   if (existing) return { error: "Ein Nutzer mit dieser E-Mail existiert bereits." };
 
-  const tempPassword = Math.random().toString(36).slice(-10);
-
   const user = await prisma.user.create({
     data: {
       email: parsed.email,
       name: parsed.name,
-      passwordHash: await hash(tempPassword, 12),
       role: "KUNDE",
     },
   });
@@ -74,6 +71,8 @@ export async function createKlient(data: KlientFormData) {
       isActive: parsed.isActive,
     },
   });
+
+  await sendWelcomeToken(parsed.email, parsed.name);
 
   revalidatePath("/vermittler/klienten");
   redirect("/vermittler/klienten");

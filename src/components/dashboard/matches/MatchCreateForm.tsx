@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
@@ -73,8 +73,9 @@ export default function MatchCreateForm({
   const [klientSearch,  setKlientSearch]  = useState("");
   const [autoScore, setAutoScore] = useState<number | null>(null);
 
+  const [isPending, startTransition] = useTransition();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     resolver: standardSchemaResolver(schema) as any,
   });
 
@@ -124,7 +125,7 @@ export default function MatchCreateForm({
 
 
   return (
-    <form onSubmit={handleSubmit(createMatch)} className="space-y-6">
+    <form onSubmit={handleSubmit((data) => startTransition(() => { createMatch(data); }))} className="space-y-6">
       {/* Two-panel selector */}
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Pfleger panel */}
@@ -249,10 +250,10 @@ export default function MatchCreateForm({
 
       <button
         type="submit"
-        disabled={isSubmitting || !selectedPfleger || !selectedKlient}
+        disabled={isPending || !selectedPfleger || !selectedKlient}
         className="inline-flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold text-sm transition-colors"
       >
-        {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+        {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
         Match erstellen
       </button>
     </form>

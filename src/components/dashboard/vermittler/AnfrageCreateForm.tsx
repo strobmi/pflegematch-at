@@ -69,6 +69,9 @@ export default function AnfrageCreateForm() {
         notes:         (fd.get("notes") as string) || undefined,
       });
     } catch (err) {
+      // Re-throw Next.js redirect errors so they are handled correctly
+      if (err instanceof Error && err.message === "NEXT_REDIRECT") throw err;
+      if (typeof err === "object" && err !== null && "digest" in err) throw err;
       setError(err instanceof Error ? err.message : "Unbekannter Fehler");
       setLoading(false);
     }

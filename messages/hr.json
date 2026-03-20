@@ -115,7 +115,8 @@
         "overview": "Pregled",
         "profile": "Moj profil",
         "availability": "Dostupnost",
-        "requests": "Upiti"
+        "requests": "Upiti",
+        "meetings": "Termini"
       },
       "profile": {
         "title": "Moj profil",

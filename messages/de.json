@@ -115,7 +115,8 @@
         "overview": "Übersicht",
         "profile": "Mein Profil",
         "availability": "Verfügbarkeit",
-        "requests": "Anfragen"
+        "requests": "Anfragen",
+        "meetings": "Termine"
       },
       "profile": {
         "title": "Mein Profil",

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireTenantSession } from "@/lib/tenant";
+import { sendWelcomeToken } from "@/lib/sendWelcomeToken";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -131,6 +132,7 @@ export async function createMatchFromAnfrage(
 
     // 3. Find or create the Kunde User
     let user = await prisma.user.findUnique({ where: { email: req.contactEmail } });
+    const isNewUser = !user;
     if (!user) {
       user = await prisma.user.create({
         data: {
@@ -183,6 +185,11 @@ export async function createMatchFromAnfrage(
       where: { id: requestId },
       data:  { isProcessed: true, clientProfileId: clientProfile.id, processedByUserId: session.id },
     });
+
+    // 8. Send welcome email to new users so they can set their password
+    if (isNewUser) {
+      await sendWelcomeToken(user.email, user.name ?? user.email);
+    }
 
     revalidatePath("/vermittler/anfragen");
     revalidatePath("/vermittler/matches");

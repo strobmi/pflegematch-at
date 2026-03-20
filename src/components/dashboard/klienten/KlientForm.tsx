@@ -1,5 +1,6 @@
 "use client";
 
+import { useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
@@ -58,8 +59,9 @@ interface Props {
 }
 
 export default function KlientForm({ onSubmit, defaultValues, isEdit, disableEmail }: Props) {
+  const [isPending, startTransition] = useTransition();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<FormData>({
     resolver: standardSchemaResolver(schema) as any,
     defaultValues: { requiredSkills: [], preferredLanguages: [], isActive: true, ...defaultValues },
   });
@@ -67,7 +69,7 @@ export default function KlientForm({ onSubmit, defaultValues, isEdit, disableEma
   const inputClass = "w-full px-4 py-2.5 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20 transition-colors placeholder:text-[#2D2D2D]/35";
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
+    <form onSubmit={handleSubmit((data) => startTransition(() => { onSubmit(data); }))} className="space-y-6 max-w-2xl">
 
       {/* Stammdaten */}
       <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
@@ -75,7 +77,7 @@ export default function KlientForm({ onSubmit, defaultValues, isEdit, disableEma
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Name *</label>
-            <input {...register("name")} placeholder="Vorname Nachname" className={inputClass} />
+            <input {...register("name")} placeholder="Vorname Nachname" autoComplete="off" className={inputClass} />
             {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
           </div>
           <div>
@@ -182,10 +184,10 @@ export default function KlientForm({ onSubmit, defaultValues, isEdit, disableEma
         <label htmlFor="isActive" className="text-sm font-medium text-[#2D2D2D]">Klient ist aktiv</label>
       </div>
 
-      <button type="submit" disabled={isSubmitting}
+      <button type="submit" disabled={isPending}
         className="inline-flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-60 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-colors"
       >
-        {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+        {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
         {isEdit ? "Änderungen speichern" : "Klient anlegen"}
       </button>
     </form>
