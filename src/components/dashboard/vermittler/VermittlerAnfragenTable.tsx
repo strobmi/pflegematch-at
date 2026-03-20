@@ -250,14 +250,20 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
           {format(new Date(req.createdAt), "dd.MM.yy HH:mm", { locale: de })}
         </td>
         <td className="px-4 py-3 hidden lg:table-cell">
-          {req.isProcessed && !req.clientProfileId && req.closedReason && (
-            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-[#2D2D2D]/6 text-[#2D2D2D]/50">
+          {req.isProcessed && req.processedBy?.name
+            ? <span className="text-xs text-[#2D2D2D]/50">{req.processedBy.name}</span>
+            : null}
+        </td>
+        <td className="px-4 py-3 hidden lg:table-cell">
+          {req.isProcessed && !req.clientProfileId && req.closedReason ? (
+            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-[#2D2D2D]/6 text-[#2D2D2D]/50 whitespace-nowrap">
               {CLOSED_REASON_LABELS[req.closedReason]}
             </span>
-          )}
-          {req.isProcessed && req.processedBy?.name && (
-            <p className="text-xs text-[#2D2D2D]/40 mt-0.5">{req.processedBy.name}</p>
-          )}
+          ) : req.isProcessed && req.clientProfileId ? (
+            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-[#7B9E7B]/15 text-[#5A7A5A] whitespace-nowrap">
+              Kunde angelegt
+            </span>
+          ) : null}
         </td>
         <td className="px-4 py-3 text-right">
           {expanded
@@ -268,7 +274,7 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
 
       {expanded && (
         <tr className="bg-[#FAF6F1]/60">
-          <td colSpan={6} className="px-4 pb-5 pt-2">
+          <td colSpan={7} className="px-4 pb-5 pt-2">
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div className="bg-white rounded-xl border border-[#EAD9C8] p-4 space-y-1.5">
                 <p className="text-xs font-semibold text-[#2D2D2D]/40 uppercase tracking-wide mb-2">Kontakt</p>
@@ -575,13 +581,14 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
             <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">Ort</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden md:table-cell">Eingegangen</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">Bearbeiter</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">Erledigungsgrund</th>
             <th className="px-4 py-3 w-8" />
           </tr>
         </thead>
         <tbody className="divide-y divide-[#EAD9C8]">
           {filtered.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-4 py-10 text-center text-[#2D2D2D]/35 text-sm">
+              <td colSpan={7} className="px-4 py-10 text-center text-[#2D2D2D]/35 text-sm">
                 {search || betreuungsFilter ? "Keine Treffer für diese Filtereinstellungen." : "Keine Anfragen vorhanden."}
               </td>
             </tr>
