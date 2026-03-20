@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { Mail, Calendar } from "lucide-react";
 import EmailChangeForm from "@/components/dashboard/EmailChangeForm";
+import KundeProfilForm from "@/components/dashboard/kunde/KundeProfilForm";
 
 export const metadata = { title: "Einstellungen · pflegematch" };
 
@@ -19,11 +20,33 @@ export default async function KundeEinstellungenPage() {
 
   if (!user) redirect("/login");
 
+  const profile = await prisma.clientProfile.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  const profileDefaults = profile ? {
+    name: user.name ?? "",
+    careNeedsDescription: profile.careNeedsDescription ?? "",
+    pflegegeldStufe: profile.pflegegeldStufe ?? undefined,
+    requiredSkills: profile.requiredSkills,
+    preferredLanguages: profile.preferredLanguages,
+    locationPostal: profile.locationPostal ?? "",
+    locationCity: profile.locationCity ?? "",
+    locationState: profile.locationState ?? "",
+    addressStreet: profile.addressStreet ?? "",
+    addressCountry: profile.addressCountry ?? "",
+    iban: profile.iban ?? "",
+    bic: profile.bic ?? "",
+    bankAccountHolder: profile.bankAccountHolder ?? "",
+    emergencyContactName: profile.emergencyContactName ?? "",
+    emergencyContactPhone: profile.emergencyContactPhone ?? "",
+  } : { name: user.name ?? "" };
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6 py-2">
+    <div className="max-w-2xl mx-auto space-y-8 py-2">
       <div>
         <h1 className="text-2xl font-bold text-[#2D2D2D]">Einstellungen</h1>
-        <p className="text-sm text-[#2D2D2D]/50 mt-0.5">Kontoinformationen</p>
+        <p className="text-sm text-[#2D2D2D]/50 mt-0.5">Mein Profil &amp; Kontoinformationen</p>
       </div>
 
       {/* Konto-Übersicht */}
@@ -45,6 +68,9 @@ export default async function KundeEinstellungenPage() {
 
       {/* E-Mail ändern */}
       <EmailChangeForm currentEmail={user.email} />
+
+      {/* Profil vervollständigen */}
+      {profile && <KundeProfilForm defaultValues={profileDefaults} />}
     </div>
   );
 }
