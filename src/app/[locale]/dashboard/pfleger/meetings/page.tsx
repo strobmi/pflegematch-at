@@ -45,7 +45,7 @@ export default async function PflegerMeetingsPage({
         </h1>
       </div>
 
-      <UpcomingMeetingsList meetings={meetings} role="PFLEGER" />
+      <UpcomingMeetingsList meetings={meetings} role="PFLEGER" locale={locale} />
     </div>
   );
 }

@@ -99,7 +99,7 @@ export default async function PflegerOverviewPage({
             <Video className="w-4 h-4 text-[#C06B4A]" />
             <h2 className="text-sm font-semibold text-[#2D2D2D]">Bevorstehende Videotermine</h2>
           </div>
-          <UpcomingMeetingsList meetings={upcomingMeetings} role="PFLEGER" />
+          <UpcomingMeetingsList meetings={upcomingMeetings} role="PFLEGER" locale={locale} />
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-[#EAD9C8] p-8 text-center text-sm text-[#2D2D2D]/40">

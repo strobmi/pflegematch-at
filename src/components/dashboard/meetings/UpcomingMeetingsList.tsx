@@ -17,6 +17,7 @@ interface Meeting {
 interface UpcomingMeetingsListProps {
   meetings: Meeting[];
   role: "KUNDE" | "PFLEGER";
+  locale?: string;
 }
 
 const STATUS_LABELS: Record<MeetingStatus, string> = {
@@ -42,8 +43,13 @@ function isJoinable(scheduledAt: Date): boolean {
 export default function UpcomingMeetingsList({
   meetings,
   role,
+  locale,
 }: UpcomingMeetingsListProps) {
-  const basePath = role === "KUNDE" ? "/kunde" : "/pfleger";
+  const basePath = role === "KUNDE"
+    ? "/kunde"
+    : locale
+      ? `/${locale}/dashboard/pfleger`
+      : "/pfleger";
 
   if (meetings.length === 0) {
     return (
@@ -93,14 +99,16 @@ export default function UpcomingMeetingsList({
 
           {m.status === "SCHEDULED" && (
             <div className="flex gap-2 shrink-0">
-              {isJoinable(m.scheduledAt) && (
-                <Link
-                  href={`${basePath}/meetings/${m.id}`}
-                  className="px-4 py-2 rounded-xl bg-[#C06B4A] text-white text-sm font-medium hover:bg-[#A05438] transition"
-                >
-                  Beitreten
-                </Link>
-              )}
+              <Link
+                href={`${basePath}/meetings/${m.id}`}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+                  isJoinable(m.scheduledAt)
+                    ? "bg-[#C06B4A] text-white hover:bg-[#A05438]"
+                    : "bg-[#EAD9C8] text-[#2D2D2D]/60 hover:bg-[#DCC9B0]"
+                }`}
+              >
+                {isJoinable(m.scheduledAt) ? "Beitreten" : "Öffnen"}
+              </Link>
             </div>
           )}
         </div>
