@@ -257,7 +257,7 @@ export default function PflegerForm({ onSubmit, defaultValues, isEdit, disableEm
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isPending}
         className="inline-flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-60 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-colors"
       >
         {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
