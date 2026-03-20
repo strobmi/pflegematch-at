@@ -1,7 +1,7 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --include=optional
+RUN npm ci --include=optional && npm install @parcel/watcher-linux-x64-musl --no-save
 
 FROM node:20-alpine AS builder
 WORKDIR /app
