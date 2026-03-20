@@ -173,7 +173,7 @@ export default function LoginForm() {
         </p>
         <p>
           Pflegebedarf?{" "}
-          <a href="/de/pfleger" className="text-[#C06B4A] hover:underline">
+          <a href="/" className="text-[#C06B4A] hover:underline">
             Pflegekraft finden
           </a>
         </p>
