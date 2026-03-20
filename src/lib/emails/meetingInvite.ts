@@ -34,7 +34,7 @@ export async function sendMeetingScheduledEmail({
   const subject = `Ihr Videotermin bei pflegematch.at – ${dateStr}`;
 
   const { error } = await resend.emails.send({
-    from: "pflegematch AT <onboarding@resend.dev>",
+    from: "pflegematch.at <noreply@pflegematch.at>",
     to,
     subject,
     html: `
@@ -94,7 +94,7 @@ export async function sendMeetingCancelledEmail({
   const timeStr = format(scheduledAt, "HH:mm", { locale: de });
 
   const { error } = await resend.emails.send({
-    from: "pflegematch AT <onboarding@resend.dev>",
+    from: "pflegematch.at <noreply@pflegematch.at>",
     to,
     subject: `Videotermin abgesagt – ${dateStr}`,
     html: `
