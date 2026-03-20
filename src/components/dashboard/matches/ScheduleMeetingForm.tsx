@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { scheduleVideoMeeting } from "@/app/(dashboard)/vermittler/matches/video-actions";
@@ -32,7 +32,7 @@ export default function ScheduleMeetingForm({
     formState: { errors, isSubmitting },
     setError,
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: standardSchemaResolver(schema) as any,
     defaultValues: { durationMin: 30 },
   });
 

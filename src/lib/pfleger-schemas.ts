@@ -1,0 +1,58 @@
+import { z } from "zod";
+
+// Base schema without .refine() — safe to import in Client Components
+// (.refine() produces a ZodPipe in Zod v4 which doesn't implement Standard Schema)
+export const RegistrationBaseSchema = z.object({
+  name: z.string().min(2, "Min. 2 Zeichen"),
+  email: z.string().email("Ungültige E-Mail"),
+  password: z.string().min(8, "Mindestens 8 Zeichen"),
+  passwordConfirm: z.string().min(1, "Bitte Passwort bestätigen"),
+  bio: z.string().optional(),
+  qualifications: z.array(z.string()).default([]),
+  skills: z.array(z.string()).default([]),
+  languages: z.array(z.string()).default([]),
+  locationCity: z.string().optional(),
+  locationState: z.string().optional(),
+  travelRadius: z.coerce.number().optional(),
+  hourlyRate: z.coerce.number().optional(),
+  availability: z.enum(["FULL_TIME", "PART_TIME", "HOURLY", "LIVE_IN"]).default("PART_TIME"),
+});
+
+export type RegistrationFormData = z.infer<typeof RegistrationBaseSchema>;
+
+export const ProfileUpdateSchema = z.object({
+  name: z.string().min(2),
+  bio: z.string().optional(),
+  qualifications: z.array(z.string()).default([]),
+  skills: z.array(z.string()).default([]),
+  languages: z.array(z.string()).default([]),
+  availability: z.enum(["FULL_TIME", "PART_TIME", "HOURLY", "LIVE_IN"]),
+  locationCity: z.string().optional(),
+  locationState: z.string().optional(),
+  travelRadius: z.coerce.number().optional(),
+  hourlyRate: z.coerce.number().optional(),
+  isActive: z.boolean().default(true),
+  isPlatformVisible: z.boolean().default(false),
+});
+
+export type ProfileUpdateData = z.infer<typeof ProfileUpdateSchema>;
+
+export const AvailabilitySchema = z.object({
+  status: z.enum(["AVAILABLE", "VACATION", "BLOCKED"]),
+  startDate: z.string().min(1, "Datum erforderlich"),
+  endDate: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export type AvailabilityFormData = z.infer<typeof AvailabilitySchema>;
+
+export const DirectRequestSchema = z.object({
+  caregiverProfileId: z.string(),
+  contactName: z.string().min(2),
+  contactEmail: z.string().email(),
+  contactPhone: z.string().optional(),
+  careNeedsRaw: z.string().min(10, "Bitte beschreiben Sie den Pflegebedarf"),
+  preferredStart: z.string().optional(),
+});
+
+export type DirectRequestFormData = z.infer<typeof DirectRequestSchema>;

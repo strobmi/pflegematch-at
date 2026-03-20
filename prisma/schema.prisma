@@ -228,6 +228,7 @@ model CaregiverProfile {
   tenant           Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   matchesAsPfleger Match[]                  @relation("PflegerMatches")
   availabilities   CaregiverAvailability[]
+  directRequests   MatchRequest[]           @relation("DirectRequests")
 
   @@index([tenantId])
 }
@@ -317,6 +318,9 @@ model MatchRequest {
   assignedToUserId   String? // Round-Robin: zugewiesener Vermittler-Admin
   processedByUserId  String? // wer die Anfrage abgeschlossen hat
 
+  targetCaregiverId  String? // Direktanfrage an eine bestimmte Pflegekraft
+  targetCaregiver    CaregiverProfile? @relation("DirectRequests", fields: [targetCaregiverId], references: [id])
+
   tenant        Tenant         @relation(fields: [tenantId], references: [id])
   clientProfile ClientProfile? @relation(fields: [clientProfileId], references: [id])
   assignedTo    User?          @relation("AssignedRequests",   fields: [assignedToUserId],  references: [id])
@@ -324,6 +328,7 @@ model MatchRequest {
 
   @@index([tenantId])
   @@index([assignedToUserId])
+  @@index([targetCaregiverId])
 }
 
 // ─────────────────────────────────────────────

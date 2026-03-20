@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -45,7 +45,7 @@ export default function TenantEditForm({ tenantId, defaultValues, onSubmit, onDe
     handleSubmit,
     formState: { errors, isSubmitting },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } = useForm<FormData>({ resolver: zodResolver(schema) as any, defaultValues });
+  } = useForm<FormData>({ resolver: standardSchemaResolver(schema) as any, defaultValues });
 
   async function submit(data: FormData) {
     setServerError(null);

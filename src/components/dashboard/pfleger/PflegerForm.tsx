@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import type { CaregiverProfile, User } from "@prisma/client";
@@ -92,7 +92,7 @@ export default function PflegerForm({ onSubmit, defaultValues, isEdit, disableEm
     formState: { errors, isSubmitting },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = useForm<FormData>({
-    resolver: zodResolver(schema) as any,
+    resolver: standardSchemaResolver(schema) as any,
     defaultValues: {
       availability: "PART_TIME",
       qualifications: [],

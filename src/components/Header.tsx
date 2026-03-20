@@ -63,6 +63,12 @@ export default function Header() {
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center gap-3">
             <a
+              href="/de/registrierung"
+              className="text-sm font-semibold text-[#2D2D2D]/70 hover:text-[#C06B4A] transition-colors px-3 py-2"
+            >
+              Für Pflegekräfte
+            </a>
+            <a
               href="/login"
               className="text-sm font-semibold text-[#2D2D2D]/70 hover:text-[#C06B4A] transition-colors px-3 py-2"
             >
@@ -107,6 +113,13 @@ export default function Header() {
                 </a>
               ))}
               <div className="pt-2 border-t border-[#EAD9C8] space-y-2">
+                <a
+                  href="/de/registrierung"
+                  onClick={() => setMobileOpen(false)}
+                  className="block w-full text-center border border-[#EAD9C8] text-[#2D2D2D]/70 px-5 py-3 rounded-full font-semibold"
+                >
+                  Für Pflegekräfte
+                </a>
                 <a
                   href="/login"
                   onClick={() => setMobileOpen(false)}

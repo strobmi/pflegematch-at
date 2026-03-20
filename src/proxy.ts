@@ -1,9 +1,19 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import createIntlMiddleware from "next-intl/middleware";
+import { routing } from "@/i18n/routing";
+
+const intlMiddleware = createIntlMiddleware(routing);
+
+// Locale-prefixed paths handled by next-intl (de/en/ro/hr)
+const LOCALE_PREFIX_RE = /^\/(de|en|ro|hr)(\/|$)/;
 
 const PUBLIC_PATHS = ["/", "/login", "/api/auth", "/invite"];
 const STATIC_PREFIXES = ["/_next", "/favicon", "/public", "/robots.txt"];
+
+// Locale-prefixed public paths (registration, public profiles, direct requests)
+const LOCALE_PUBLIC_RE = /^\/(de|en|ro|hr)\/(registrierung|pfleger)(\/|$)/;
 
 const ROLE_PREFIXES: Record<string, string[]> = {
   "/admin":      ["SUPERADMIN"],
@@ -12,11 +22,16 @@ const ROLE_PREFIXES: Record<string, string[]> = {
   "/kunde":      ["KUNDE", "SUPERADMIN"],
 };
 
+// Locale-prefixed role paths
+const LOCALE_ROLE_PREFIXES: Record<string, string[]> = {
+  "/dashboard/pfleger": ["PFLEGER", "SUPERADMIN"],
+};
+
 function getRoleDashboard(role: string): string {
   switch (role) {
     case "SUPERADMIN":       return "/admin";
     case "VERMITTLER_ADMIN": return "/vermittler";
-    case "PFLEGER":          return "/pfleger";
+    case "PFLEGER":          return "/de/dashboard/pfleger";
     case "KUNDE":            return "/kunde";
     default:                 return "/login";
   }
@@ -25,10 +40,38 @@ function getRoleDashboard(role: string): string {
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
-  // Static assets & public paths — always allowed
+  // Static assets — always allowed
   if (STATIC_PREFIXES.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
+
+  // Locale-prefixed public paths (registration, public profiles) — run intl middleware, no auth
+  if (LOCALE_PUBLIC_RE.test(pathname)) {
+    return intlMiddleware(req);
+  }
+
+  // Locale-prefixed paths — run intl middleware first, then check auth for dashboard paths
+  if (LOCALE_PREFIX_RE.test(pathname)) {
+    // Check auth for locale-prefixed dashboard paths
+    const pathWithoutLocale = pathname.replace(/^\/(de|en|ro|hr)/, "");
+    const session = (req as NextRequest & { auth: { user?: { role: string } } | null }).auth;
+
+    for (const [prefix, allowed] of Object.entries(LOCALE_ROLE_PREFIXES)) {
+      if (pathWithoutLocale.startsWith(prefix)) {
+        if (!session?.user) {
+          return NextResponse.redirect(new URL("/login", req.nextUrl));
+        }
+        if (!allowed.includes(session.user.role)) {
+          return NextResponse.redirect(new URL(getRoleDashboard(session.user.role), req.nextUrl));
+        }
+      }
+    }
+
+    // Run next-intl middleware for locale-prefixed paths
+    return intlMiddleware(req);
+  }
+
+  // Non-locale public paths — always allowed
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return NextResponse.next();
   }
@@ -42,7 +85,7 @@ export default auth((req) => {
 
   const role = session.user.role;
 
-  // Role-based access check
+  // Role-based access check for non-locale paths
   for (const [prefix, allowed] of Object.entries(ROLE_PREFIXES)) {
     if (pathname.startsWith(prefix) && !allowed.includes(role)) {
       return NextResponse.redirect(new URL(getRoleDashboard(role), req.nextUrl));

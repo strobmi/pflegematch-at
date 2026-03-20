@@ -38,7 +38,7 @@ export default function LoginForm() {
     const redirectMap: Record<string, string> = {
       SUPERADMIN: "/admin",
       VERMITTLER_ADMIN: "/vermittler",
-      PFLEGER: "/pfleger",
+      PFLEGER: "/de/dashboard/pfleger",
       KUNDE: "/kunde",
     };
 
