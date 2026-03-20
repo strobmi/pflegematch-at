@@ -3,14 +3,17 @@ import { prisma } from "@/lib/prisma";
 import { requireTenantSession } from "@/lib/tenant";
 import { Plus, Link2, ArrowRight } from "lucide-react";
 import MatchTable from "@/components/dashboard/matches/MatchTable";
+import { computeScore } from "@/lib/scoring";
 
 export const metadata = { title: "Matches · pflegematch" };
 
 const FUNNEL_STAGES = [
-  { status: "PROPOSED",  label: "Vorgeschlagen", color: "#C06B4A", bg: "#F5EDE3", textColor: "#C06B4A" },
-  { status: "PENDING",   label: "Ausstehend",    color: "#D97706", bg: "#FEF3C7", textColor: "#D97706" },
-  { status: "ACCEPTED",  label: "Akzeptiert",    color: "#5A7A5A", bg: "#F0F7F0", textColor: "#5A7A5A" },
-  { status: "ACTIVE",    label: "Aktiv",          color: "#7B9E7B", bg: "#DCFCE7", textColor: "#166534" },
+  { status: "PROPOSED",  label: "Vorgeschlagen",  color: "#C06B4A", bg: "#F5EDE3", textColor: "#C06B4A" },
+  { status: "PENDING",   label: "Ausstehend",     color: "#D97706", bg: "#FEF3C7", textColor: "#D97706" },
+  { status: "ACCEPTED",  label: "Akzeptiert",     color: "#5A7A5A", bg: "#F0F7F0", textColor: "#5A7A5A" },
+  { status: "ACTIVE",    label: "Aktiv",           color: "#7B9E7B", bg: "#DCFCE7", textColor: "#166534" },
+  { status: "COMPLETED", label: "Abgeschlossen",  color: "#6B7280", bg: "#F3F4F6", textColor: "#374151" },
+  { status: "CANCELLED", label: "Storniert",      color: "#9CA3AF", bg: "#F9FAFB", textColor: "#6B7280" },
 ] as const;
 
 export default async function MatchesPage() {
@@ -19,14 +22,18 @@ export default async function MatchesPage() {
   const rawMatches = await prisma.match.findMany({
     where: { tenantId: session.tenantId },
     include: {
-      caregiverProfile: { include: { user: { select: { name: true } } } },
-      clientProfile:    { include: { user: { select: { name: true } } } },
+      caregiverProfile: {
+        include: { user: { select: { name: true } } },
+      },
+      clientProfile: {
+        include: { user: { select: { name: true } } },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
 
   // Decimal → number serialisieren (Client Components akzeptieren keine Prisma Decimal-Objekte)
-  const matches = rawMatches.map((m) => ({
+  const matches = rawMatches.filter((m) => m.caregiverProfile != null && m.clientProfile != null).map((m) => ({
     ...m,
     caregiverProfile: m.caregiverProfile
       ? { ...m.caregiverProfile, hourlyRate: m.caregiverProfile.hourlyRate ? Number(m.caregiverProfile.hourlyRate) : null }
@@ -36,9 +43,27 @@ export default async function MatchesPage() {
   // ── KPI calculations ──────────────────────────────────────
   const activeCount    = matches.filter((m) => m.status === "ACTIVE").length;
   const completedCount = matches.filter((m) => m.status === "COMPLETED").length;
-  const scoredMatches  = matches.filter((m) => m.score != null);
-  const avgScore = scoredMatches.length > 0
-    ? Math.round(scoredMatches.reduce((s, m) => s + m.score!, 0) / scoredMatches.length)
+
+  // Ø Score über abgeschlossene Matches – via computeScore berechnet
+  const completedMatches = rawMatches.filter(
+    (m) => m.status === "COMPLETED" && m.caregiverProfile && m.clientProfile
+  );
+  const completedScores = completedMatches.map((m) =>
+    computeScore(
+      {
+        pflegestufe: m.caregiverProfile!.pflegestufe,
+        languages: m.caregiverProfile!.languages,
+        availability: m.caregiverProfile!.availability,
+        averageRating: m.caregiverProfile!.averageRating,
+      },
+      {
+        pflegegeldStufe: m.clientProfile!.pflegegeldStufe ?? null,
+        careNeedsRaw: null,
+      }
+    ).score
+  );
+  const avgScore = completedScores.length > 0
+    ? Math.round(completedScores.reduce((a, b) => a + b, 0) / completedScores.length)
     : null;
 
   const countByStatus = (status: string) => matches.filter((m) => m.status === status).length;
@@ -72,7 +97,7 @@ export default async function MatchesPage() {
               { label: "Gesamt",        value: matches.length, suffix: "",  accent: "#2D2D2D", bg: "bg-white" },
               { label: "Aktiv",         value: activeCount,    suffix: "",  accent: "#7B9E7B", bg: "bg-[#F0F7F0]" },
               { label: "Abgeschlossen", value: completedCount, suffix: "",  accent: "#9CA3AF", bg: "bg-white" },
-              { label: "Ø Score",       value: avgScore,       suffix: "%", accent: "#C06B4A", bg: "bg-[#FDF5F0]" },
+              { label: "Ø Score (abgeschl.)", value: avgScore, suffix: "%", accent: "#C06B4A", bg: "bg-[#FDF5F0]" },
             ].map(({ label, value, suffix, accent, bg }) => (
               <div key={label} className={`${bg} rounded-2xl border border-[#EAD9C8] px-5 py-4`}>
                 <p className="text-xs font-medium text-[#2D2D2D]/50 mb-1">{label}</p>
@@ -115,7 +140,8 @@ export default async function MatchesPage() {
           </div>
 
           {/* ── Table ──────────────────────────────────────────── */}
-          <MatchTable data={matches} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <MatchTable data={matches as any} />
         </>
       )}
     </div>
