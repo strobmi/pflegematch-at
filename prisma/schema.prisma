@@ -287,6 +287,12 @@ model ClientProfile {
   emergencyContactName  String?
   emergencyContactPhone String?
 
+  addressStreet    String?  // Wohnadresse
+  addressCountry   String?
+  iban             String?  // Bankverbindung
+  bic              String?
+  bankAccountHolder String?
+
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

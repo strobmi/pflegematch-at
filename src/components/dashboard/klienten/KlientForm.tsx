@@ -16,6 +16,11 @@ const schema = z.object({
   locationCity: z.string().optional(),
   locationState: z.string().optional(),
   locationPostal: z.string().optional(),
+  addressStreet: z.string().optional(),
+  addressCountry: z.string().optional(),
+  iban: z.string().optional(),
+  bic: z.string().optional(),
+  bankAccountHolder: z.string().optional(),
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
   isActive: z.boolean().default(true),
@@ -63,6 +68,8 @@ export default function KlientForm({ onSubmit, defaultValues, isEdit, disableEma
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
+
+      {/* Stammdaten */}
       <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
         <h3 className="font-semibold text-[#2D2D2D]">Stammdaten</h3>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -75,20 +82,6 @@ export default function KlientForm({ onSubmit, defaultValues, isEdit, disableEma
             <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">E-Mail *</label>
             <input {...register("email")} type="email" disabled={disableEmail} placeholder="name@example.at" className={`${inputClass} ${disableEmail ? "opacity-50 cursor-not-allowed" : ""}`} />
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
-          </div>
-        </div>
-        <div className="grid sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Stadt</label>
-            <input {...register("locationCity")} placeholder="Wien" className={inputClass} />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Bundesland</label>
-            <input {...register("locationState")} placeholder="Wien" className={inputClass} />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">PLZ</label>
-            <input {...register("locationPostal")} placeholder="1010" className={inputClass} />
           </div>
         </div>
         <div>
@@ -106,6 +99,53 @@ export default function KlientForm({ onSubmit, defaultValues, isEdit, disableEma
         </div>
       </div>
 
+      {/* Wohnadresse */}
+      <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
+        <h3 className="font-semibold text-[#2D2D2D]">Wohnadresse</h3>
+        <div>
+          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Straße &amp; Hausnummer</label>
+          <input {...register("addressStreet")} placeholder="Musterstraße 1" className={inputClass} />
+        </div>
+        <div className="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">PLZ</label>
+            <input {...register("locationPostal")} placeholder="1010" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Ort</label>
+            <input {...register("locationCity")} placeholder="Wien" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Land</label>
+            <input {...register("addressCountry")} placeholder="Österreich" className={inputClass} />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Bundesland</label>
+          <input {...register("locationState")} placeholder="Wien" className={inputClass} />
+        </div>
+      </div>
+
+      {/* Bankverbindung */}
+      <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
+        <h3 className="font-semibold text-[#2D2D2D]">Bankverbindung</h3>
+        <div>
+          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">IBAN</label>
+          <input {...register("iban")} placeholder="AT12 3456 7890 1234 5678" className={inputClass} />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">BIC</label>
+            <input {...register("bic")} placeholder="RLNWATWW" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Kontoinhaber</label>
+            <input {...register("bankAccountHolder")} placeholder="Vor- und Nachname" className={inputClass} />
+          </div>
+        </div>
+      </div>
+
+      {/* Anforderungen */}
       <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
         <h3 className="font-semibold text-[#2D2D2D]">Anforderungen</h3>
         <div>
@@ -122,6 +162,7 @@ export default function KlientForm({ onSubmit, defaultValues, isEdit, disableEma
         </div>
       </div>
 
+      {/* Notfallkontakt */}
       <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
         <h3 className="font-semibold text-[#2D2D2D]">Notfallkontakt</h3>
         <div className="grid sm:grid-cols-2 gap-4">
