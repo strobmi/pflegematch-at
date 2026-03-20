@@ -125,7 +125,18 @@
         "visibilityHint": "Când este activat, profilul dvs. este vizibil public pentru clienți și puteți primi solicitări directe.",
         "save": "Salvați modificările",
         "saving": "Se salvează...",
-        "saved": "Salvat!"
+        "saved": "Salvat!",
+        "emailChange": {
+          "title": "Schimbați adresa de e-mail",
+          "currentLabel": "Adresa de e-mail actuală",
+          "newLabel": "Noua adresă de e-mail",
+          "newPlaceholder": "noua@adresa.ro",
+          "submit": "Trimiteți linkul de confirmare",
+          "submitting": "Se trimite...",
+          "success": "Un link de confirmare a fost trimis la noua dvs. adresă. Vă rugăm să verificați căsuța poștală.",
+          "errorTaken": "Această adresă de e-mail este deja utilizată.",
+          "errorGeneral": "A apărut o eroare. Vă rugăm să încercați din nou."
+        }
       },
       "availability": {
         "title": "Disponibilitatea mea",

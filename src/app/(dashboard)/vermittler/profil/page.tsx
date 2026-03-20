@@ -3,6 +3,7 @@ import { requireTenantSession } from "@/lib/tenant";
 import { User, Building2, Mail, Phone, MapPin, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
+import EmailChangeForm from "@/components/dashboard/EmailChangeForm";
 
 export const metadata = { title: "Mein Profil · pflegematch" };
 
@@ -63,6 +64,9 @@ export default async function VermittlerProfilPage() {
           </div>
         </div>
       </div>
+
+      {/* E-Mail ändern */}
+      <EmailChangeForm currentEmail={user.email} />
 
       {/* Tenant card */}
       <div className="bg-white rounded-2xl border border-[#EAD9C8] p-6">

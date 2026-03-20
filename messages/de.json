@@ -125,7 +125,18 @@
         "visibilityHint": "Wenn aktiviert, ist Ihr Profil für Klienten öffentlich sichtbar und Sie können direkte Anfragen erhalten.",
         "save": "Änderungen speichern",
         "saving": "Wird gespeichert...",
-        "saved": "Gespeichert!"
+        "saved": "Gespeichert!",
+        "emailChange": {
+          "title": "E-Mail-Adresse ändern",
+          "currentLabel": "Aktuelle E-Mail-Adresse",
+          "newLabel": "Neue E-Mail-Adresse",
+          "newPlaceholder": "neue@adresse.at",
+          "submit": "Bestätigungslink senden",
+          "submitting": "Wird gesendet...",
+          "success": "Bestätigungslink wurde an Ihre neue Adresse gesendet. Bitte prüfen Sie Ihr Postfach.",
+          "errorTaken": "Diese E-Mail-Adresse wird bereits verwendet.",
+          "errorGeneral": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+        }
       },
       "availability": {
         "title": "Meine Verfügbarkeit",

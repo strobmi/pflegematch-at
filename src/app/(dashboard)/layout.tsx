@@ -27,7 +27,13 @@ export default async function DashboardLayout({
     <div className={`flex h-screen overflow-hidden ${isAdmin ? "bg-[#1E1E1E]" : "bg-[#FAF6F1]"}`}>
       {sidebar}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {!isAdmin && <DashboardHeader userName={name ?? null} tenantName={tenantName} />}
+        {!isAdmin && (
+          <DashboardHeader
+            userName={name ?? null}
+            tenantName={tenantName}
+            profileHref={role === "KUNDE" ? "/kunde/einstellungen" : "/vermittler/profil"}
+          />
+        )}
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>

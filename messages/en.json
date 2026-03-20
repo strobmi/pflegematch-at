@@ -125,7 +125,18 @@
         "visibilityHint": "When enabled, your profile is publicly visible to clients and you can receive direct enquiries.",
         "save": "Save changes",
         "saving": "Saving...",
-        "saved": "Saved!"
+        "saved": "Saved!",
+        "emailChange": {
+          "title": "Change email address",
+          "currentLabel": "Current email address",
+          "newLabel": "New email address",
+          "newPlaceholder": "new@address.com",
+          "submit": "Send confirmation link",
+          "submitting": "Sending...",
+          "success": "A confirmation link has been sent to your new address. Please check your inbox.",
+          "errorTaken": "This email address is already in use.",
+          "errorGeneral": "An error occurred. Please try again."
+        }
       },
       "availability": {
         "title": "My availability",

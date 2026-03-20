@@ -125,7 +125,18 @@
         "visibilityHint": "Kada je aktivirano, vaš profil je javno vidljiv klijentima i možete primati izravne upite.",
         "save": "Spremi promjene",
         "saving": "Spremanje...",
-        "saved": "Spremljeno!"
+        "saved": "Spremljeno!",
+        "emailChange": {
+          "title": "Promjena e-mail adrese",
+          "currentLabel": "Trenutna e-mail adresa",
+          "newLabel": "Nova e-mail adresa",
+          "newPlaceholder": "nova@adresa.hr",
+          "submit": "Pošalji link za potvrdu",
+          "submitting": "Slanje...",
+          "success": "Link za potvrdu poslan je na vašu novu adresu. Molimo provjerite pretinac.",
+          "errorTaken": "Ova e-mail adresa je već u upotrebi.",
+          "errorGeneral": "Došlo je do pogreške. Molimo pokušajte ponovo."
+        }
       },
       "availability": {
         "title": "Moja dostupnost",

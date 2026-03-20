@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useTranslations } from "next-intl";
@@ -8,6 +8,7 @@ import { Loader2, Check, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { ProfileUpdateSchema, type ProfileUpdateData } from "@/lib/pfleger-schemas";
 import { updateOwnProfile } from "@/lib/pfleger-actions";
+import { requestEmailChange } from "@/lib/email-change-actions";
 import type { CaregiverProfile, User } from "@prisma/client";
 
 const SKILL_SUGGESTIONS = [
@@ -71,6 +72,32 @@ export default function PflegerProfileForm({ profile, user, locale }: Props) {
   const [saved, setSaved] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
+  // E-Mail-Änderung state
+  const [newEmail, setNewEmail] = useState("");
+  const [emailChangeStatus, setEmailChangeStatus] = useState<"idle" | "success" | "error">("idle");
+  const [emailChangeError, setEmailChangeError] = useState<string | null>(null);
+  const [isEmailChangePending, startEmailChangeTransition] = useTransition();
+
+  function handleEmailChange(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailChangeStatus("idle");
+    setEmailChangeError(null);
+    startEmailChangeTransition(async () => {
+      const result = await requestEmailChange(newEmail);
+      if (result.ok) {
+        setEmailChangeStatus("success");
+        setNewEmail("");
+      } else {
+        setEmailChangeStatus("error");
+        setEmailChangeError(
+          result.error?.includes("bereits verwendet")
+            ? t("emailChange.errorTaken")
+            : t("emailChange.errorGeneral")
+        );
+      }
+    });
+  }
+
   const inputClass =
     "w-full px-4 py-2.5 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20 transition-colors placeholder:text-[#2D2D2D]/35";
 
@@ -125,16 +152,10 @@ export default function PflegerProfileForm({ profile, user, locale }: Props) {
       {/* Personal Data */}
       <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
         <h3 className="font-semibold text-[#2D2D2D]">Kurzübersicht</h3>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Name *</label>
-            <input {...register("name")} className={inputClass} />
-            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">E-Mail</label>
-            <input value={user.email} disabled className={`${inputClass} opacity-50 cursor-not-allowed`} />
-          </div>
+        <div>
+          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Name *</label>
+          <input {...register("name")} className={inputClass} />
+          {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
@@ -164,6 +185,42 @@ export default function PflegerProfileForm({ profile, user, locale }: Props) {
           <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Empfohlen durch</label>
           <input {...register("referredBy")} placeholder="Name der Person oder Organisation" className={inputClass} />
         </div>
+      </div>
+
+      {/* E-Mail-Adresse ändern */}
+      <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
+        <h3 className="font-semibold text-[#2D2D2D]">{t("emailChange.title")}</h3>
+        <div>
+          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">{t("emailChange.currentLabel")}</label>
+          <input value={user.email} disabled className={`${inputClass} opacity-50 cursor-not-allowed`} />
+        </div>
+        <form onSubmit={handleEmailChange} className="space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">{t("emailChange.newLabel")}</label>
+            <input
+              type="email"
+              required
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder={t("emailChange.newPlaceholder")}
+              className={inputClass}
+            />
+          </div>
+          {emailChangeStatus === "success" && (
+            <p className="text-sm text-[#7B9E7B] bg-[#7B9E7B]/10 px-3 py-2 rounded-lg">{t("emailChange.success")}</p>
+          )}
+          {emailChangeStatus === "error" && emailChangeError && (
+            <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{emailChangeError}</p>
+          )}
+          <button
+            type="submit"
+            disabled={isEmailChangePending || !newEmail}
+            className="bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-60 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors flex items-center gap-2"
+          >
+            {isEmailChangePending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isEmailChangePending ? t("emailChange.submitting") : t("emailChange.submit")}
+          </button>
+        </form>
       </div>
 
       {/* Wohnadresse */}

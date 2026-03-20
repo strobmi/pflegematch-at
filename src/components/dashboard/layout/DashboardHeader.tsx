@@ -8,9 +8,10 @@ import { useRouter } from "next/navigation";
 interface Props {
   userName: string | null;
   tenantName?: string | null;
+  profileHref?: string;
 }
 
-export default function DashboardHeader({ userName, tenantName }: Props) {
+export default function DashboardHeader({ userName, tenantName, profileHref = "/vermittler/profil" }: Props) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const initials = userName
@@ -41,7 +42,7 @@ export default function DashboardHeader({ userName, tenantName }: Props) {
         {open && (
           <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-[#EAD9C8] rounded-xl shadow-lg overflow-hidden z-50">
             <button
-              onClick={() => { setOpen(false); router.push("/vermittler/profil"); }}
+              onClick={() => { setOpen(false); router.push(profileHref); }}
               className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-[#2D2D2D]/70 hover:bg-[#F5EDE3] transition-colors"
             >
               <User className="w-4 h-4" />

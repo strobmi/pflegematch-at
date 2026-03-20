@@ -73,7 +73,7 @@ export default function KlientForm({ onSubmit, defaultValues, isEdit, disableEma
           </div>
           <div>
             <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">E-Mail *</label>
-            <input {...register("email")} type="email" disabled={disableEmail} placeholder="name@example.at" className={inputClass} />
+            <input {...register("email")} type="email" disabled={disableEmail} placeholder="name@example.at" className={`${inputClass} ${disableEmail ? "opacity-50 cursor-not-allowed" : ""}`} />
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
           </div>
         </div>
