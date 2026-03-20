@@ -28,7 +28,17 @@ export default async function BearbeitenPage({ params }: { params: Promise<{ id:
     availability: profile.availability,
     locationCity: profile.locationCity ?? "",
     locationState: profile.locationState ?? "",
+    travelRadius: profile.travelRadius ?? undefined,
+    hourlyRate: profile.hourlyRate ? Number(profile.hourlyRate) : undefined,
     isActive: profile.isActive,
+    addressStreet: profile.addressStreet ?? "",
+    addressPostal: profile.addressPostal ?? "",
+    addressCity: profile.addressCity ?? "",
+    addressCountry: profile.addressCountry ?? "",
+    iban: profile.iban ?? "",
+    bic: profile.bic ?? "",
+    bankAccountHolder: profile.bankAccountHolder ?? "",
+    referredBy: profile.referredBy ?? "",
   };
 
   return (

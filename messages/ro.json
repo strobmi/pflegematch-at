@@ -1,0 +1,172 @@
+{
+  "nav": {
+    "home": "Acasă",
+    "login": "Conectare",
+    "register": "Înregistrare îngrijitor"
+  },
+  "register": {
+    "title": "Înregistrare ca îngrijitor",
+    "subtitle": "Creați-vă profilul pe pflegematch.at și primiți solicitări directe de la clienți.",
+    "step1Title": "Date cont",
+    "step2Title": "Calificări",
+    "step3Title": "Locație & Disponibilitate",
+    "name": "Nume complet",
+    "namePlaceholder": "Prenume Nume",
+    "email": "Adresă de e-mail",
+    "emailPlaceholder": "nume@exemplu.at",
+    "password": "Parolă",
+    "passwordPlaceholder": "Min. 8 caractere",
+    "passwordConfirm": "Confirmați parola",
+    "passwordConfirmPlaceholder": "Repetați parola",
+    "bio": "Despre mine",
+    "bioPlaceholder": "Scurtă prezentare – ce vă face un îngrijitor bun?",
+    "skills": "Abilități",
+    "languages": "Limbi",
+    "qualifications": "Calificări",
+    "qualificationsPlaceholder": "ex. asistent medical, îngrijitor la domiciliu, ...",
+    "sectionEinsatzregion": "Regiune preferată",
+    "city": "Regiune de lucru preferată",
+    "cityPlaceholder": "ex. Viena, Graz",
+    "state": "Land",
+    "statePlaceholder": "ex. Viena",
+    "travelRadius": "Raza de deplasare (km)",
+    "travelRadiusPlaceholder": "ex. 30",
+    "hourlyRate": "Tarif orar (€)",
+    "hourlyRatePlaceholder": "ex. 18",
+    "availability": "Disponibilitate",
+    "sectionAddress": "Adresă de domiciliu",
+    "addressStreet": "Stradă & număr",
+    "addressStreetPlaceholder": "Strada Exemplu 1",
+    "addressPostal": "Cod poștal",
+    "addressCity": "Localitate",
+    "addressCountry": "Țară",
+    "referredBy": "Recomandat de (opțional)",
+    "referredByPlaceholder": "Numele persoanei sau organizației",
+    "next": "Înainte",
+    "back": "Înapoi",
+    "submit": "Creare profil",
+    "alreadyAccount": "Aveți deja un cont?",
+    "loginLink": "Conectare",
+    "submitting": "Se creează...",
+    "success": "Înregistrare reușită! Veți fi redirecționat...",
+    "errors": {
+      "emailTaken": "Această adresă de e-mail este deja utilizată.",
+      "passwordMismatch": "Parolele nu coincid.",
+      "minPassword": "Sunt necesare cel puțin 8 caractere.",
+      "general": "A apărut o eroare. Vă rugăm să încercați din nou."
+    }
+  },
+  "publicProfile": {
+    "requestDirect": "Trimite solicitare",
+    "availability": "Disponibilitate",
+    "skills": "Abilități",
+    "languages": "Limbi",
+    "qualifications": "Calificări",
+    "reviews": "Recenzii",
+    "noReviews": "Nicio recenzie încă.",
+    "rating": "Evaluare",
+    "hourlyRate": "Tarif orar",
+    "hourlyRateSuffix": "€/oră",
+    "location": "Locație",
+    "travelRadius": "Raza de deplasare",
+    "travelRadiusSuffix": "km",
+    "experience": "Ani de experiență",
+    "availabilityTypes": {
+      "FULL_TIME": "Program complet",
+      "PART_TIME": "Program parțial",
+      "HOURLY": "Pe oră",
+      "LIVE_IN": "24h / Live-in"
+    },
+    "availabilityStatus": {
+      "AVAILABLE": "Disponibil",
+      "ON_ASSIGNMENT": "În misiune",
+      "VACATION": "În concediu",
+      "BLOCKED": "Indisponibil"
+    },
+    "notVisible": "Acest profil nu este momentan vizibil public.",
+    "backToSearch": "Înapoi la prezentare"
+  },
+  "directRequest": {
+    "title": "Trimite solicitare directă",
+    "subtitle": "Solicitare către {name}",
+    "contactName": "Numele dvs.",
+    "contactNamePlaceholder": "Prenume Nume",
+    "contactEmail": "E-mailul dvs.",
+    "contactEmailPlaceholder": "nume@exemplu.at",
+    "contactPhone": "Numărul dvs. de telefon",
+    "contactPhonePlaceholder": "+43 ...",
+    "careNeeds": "Descrieți nevoile de îngrijire",
+    "careNeedsPlaceholder": "Vă rugăm să descrieți pe scurt îngrijirea și sprijinul necesar...",
+    "preferredStart": "Data de început dorită",
+    "submit": "Trimite solicitarea",
+    "submitting": "Se trimite...",
+    "success": "Solicitarea dvs. a fost trimisă cu succes. Îngrijitorul vă va contacta.",
+    "backToProfile": "Înapoi la profil",
+    "errors": {
+      "general": "A apărut o eroare. Vă rugăm să încercați din nou."
+    }
+  },
+  "dashboard": {
+    "pfleger": {
+      "welcome": "Bun venit, {name}",
+      "subtitle": "Misiunile și solicitările dvs. dintr-o privire.",
+      "noMatches": "Nicio potrivire încă. Completați-vă profilul și activați vizibilitatea pe platformă pentru a fi găsit.",
+      "nav": {
+        "overview": "Prezentare generală",
+        "profile": "Profilul meu",
+        "availability": "Disponibilitate",
+        "requests": "Solicitări"
+      },
+      "profile": {
+        "title": "Profilul meu",
+        "personalData": "Date personale",
+        "publicProfile": "Vizualizați profilul public",
+        "visibilityLabel": "Vizibil pe platformă",
+        "visibilityHint": "Când este activat, profilul dvs. este vizibil public pentru clienți și puteți primi solicitări directe.",
+        "save": "Salvați modificările",
+        "saving": "Se salvează...",
+        "saved": "Salvat!"
+      },
+      "availability": {
+        "title": "Disponibilitatea mea",
+        "addEntry": "Adaugă intrare",
+        "addEntryTitle": "Intrare nouă",
+        "status": "Stare",
+        "from": "De la",
+        "to": "Până la (opțional)",
+        "notes": "Note",
+        "notesPlaceholder": "Observații opționale...",
+        "save": "Salvare",
+        "cancel": "Anulare",
+        "delete": "Ștergere",
+        "noEntries": "Nicio intrare de disponibilitate încă. Adăugați prima intrare.",
+        "statuses": {
+          "AVAILABLE": "Disponibil",
+          "VACATION": "În concediu",
+          "BLOCKED": "Indisponibil"
+        }
+      },
+      "requests": {
+        "title": "Solicitări directe",
+        "noRequests": "Nicio solicitare directă primită încă.",
+        "from": "De la",
+        "careNeeds": "Nevoi de îngrijire",
+        "preferredStart": "Start preferat",
+        "receivedAt": "Primit",
+        "markProcessed": "Marchează ca rezolvat",
+        "processed": "Rezolvat"
+      }
+    }
+  },
+  "common": {
+    "loading": "Se încarcă...",
+    "error": "A apărut o eroare.",
+    "cancel": "Anulare",
+    "save": "Salvare",
+    "delete": "Ștergere",
+    "edit": "Editare",
+    "back": "Înapoi",
+    "notFound": "Nu a fost găsit.",
+    "signOut": "Deconectare"
+  }
+}

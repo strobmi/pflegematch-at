@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
 
@@ -55,7 +55,7 @@ interface Props {
 export default function KlientForm({ onSubmit, defaultValues, isEdit, disableEmail }: Props) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema) as any,
+    resolver: standardSchemaResolver(schema) as any,
     defaultValues: { requiredSkills: [], preferredLanguages: [], isActive: true, ...defaultValues },
   });
 

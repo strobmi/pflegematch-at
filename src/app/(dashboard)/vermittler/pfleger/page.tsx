@@ -8,12 +8,50 @@ export const metadata = { title: "Pflegekräfte · pflegematch" };
 
 export default async function PflegerListPage() {
   const session = await requireTenantSession();
+  const today = new Date();
 
-  const pflegekraefte = await prisma.caregiverProfile.findMany({
+  const raw = await prisma.caregiverProfile.findMany({
     where: { tenantId: session.tenantId },
     include: { user: { select: { id: true, name: true, email: true } } },
     orderBy: { createdAt: "desc" },
   });
+  const pflegekraefte = JSON.parse(JSON.stringify(raw)) as typeof raw;
+
+  const profileIds = pflegekraefte.map((p) => p.id);
+
+  // Auslastung: aktive / vorgeschlagene Matches pro Pfleger
+  const matches = await prisma.match.findMany({
+    where: {
+      tenantId: session.tenantId,
+      caregiverProfileId: { in: profileIds },
+      status: { in: ["ACTIVE", "PROPOSED", "PENDING"] },
+    },
+    select: { caregiverProfileId: true, status: true },
+  });
+
+  const matchInfo: Record<string, { active: number; pending: number }> = {};
+  for (const m of matches) {
+    if (!matchInfo[m.caregiverProfileId]) matchInfo[m.caregiverProfileId] = { active: 0, pending: 0 };
+    if (m.status === "ACTIVE") matchInfo[m.caregiverProfileId].active++;
+    else matchInfo[m.caregiverProfileId].pending++;
+  }
+
+  // Verfügbarkeit: aktuell laufende Einträge aus dem Kalender
+  const availabilities = await prisma.caregiverAvailability.findMany({
+    where: {
+      caregiverProfileId: { in: profileIds },
+      startDate: { lte: today },
+      OR: [{ endDate: null }, { endDate: { gte: today } }],
+    },
+    orderBy: { startDate: "desc" },
+    select: { caregiverProfileId: true, status: true },
+  });
+
+  // Erster (neuester) Eintrag pro Pfleger
+  const availInfo: Record<string, string> = {};
+  for (const a of availabilities) {
+    if (!availInfo[a.caregiverProfileId]) availInfo[a.caregiverProfileId] = a.status;
+  }
 
   return (
     <div>
@@ -40,7 +78,7 @@ export default async function PflegerListPage() {
           <p className="text-sm mt-1">Füge die erste Pflegekraft hinzu</p>
         </div>
       ) : (
-        <PflegerTable data={pflegekraefte} />
+        <PflegerTable data={pflegekraefte} matchInfo={matchInfo} availInfo={availInfo} />
       )}
     </div>
   );

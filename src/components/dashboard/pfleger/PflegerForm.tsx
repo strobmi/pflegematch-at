@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import type { CaregiverProfile, User } from "@prisma/client";
@@ -17,7 +17,16 @@ const schema = z.object({
   locationCity: z.string().optional(),
   locationState: z.string().optional(),
   travelRadius: z.coerce.number().optional(),
+  hourlyRate: z.coerce.number().optional(),
   isActive: z.boolean().default(true),
+  addressStreet: z.string().optional(),
+  addressPostal: z.string().optional(),
+  addressCity: z.string().optional(),
+  addressCountry: z.string().optional(),
+  iban: z.string().optional(),
+  bic: z.string().optional(),
+  bankAccountHolder: z.string().optional(),
+  referredBy: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -92,7 +101,7 @@ export default function PflegerForm({ onSubmit, defaultValues, isEdit, disableEm
     formState: { errors, isSubmitting },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = useForm<FormData>({
-    resolver: zodResolver(schema) as any,
+    resolver: standardSchemaResolver(schema) as any,
     defaultValues: {
       availability: "PART_TIME",
       qualifications: [],
@@ -110,7 +119,7 @@ export default function PflegerForm({ onSubmit, defaultValues, isEdit, disableEm
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
       {/* Name & Email */}
       <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
-        <h3 className="font-semibold text-[#2D2D2D]">Stammdaten</h3>
+        <h3 className="font-semibold text-[#2D2D2D]">Kurzübersicht</h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Name *</label>
@@ -125,17 +134,73 @@ export default function PflegerForm({ onSubmit, defaultValues, isEdit, disableEm
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Stadt</label>
-            <input {...register("locationCity")} placeholder="Wien" className={inputClass} />
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Bevorzugte Einsatzregion (Stadt)</label>
+            <input {...register("locationCity")} placeholder="z.B. Wien, Graz" className={inputClass} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Bundesland</label>
-            <input {...register("locationState")} placeholder="Wien" className={inputClass} />
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Bevorzugtes Bundesland</label>
+            <input {...register("locationState")} placeholder="z.B. Wien" className={inputClass} />
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Aktionsradius (km)</label>
+            <input {...register("travelRadius")} type="number" placeholder="z.B. 30" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Stundensatz (€)</label>
+            <input {...register("hourlyRate")} type="number" step="0.5" placeholder="z.B. 18" className={inputClass} />
           </div>
         </div>
         <div>
           <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Kurzbiographie</label>
           <textarea {...register("bio")} rows={3} placeholder="Über die Pflegekraft..." className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Empfohlen durch</label>
+          <input {...register("referredBy")} placeholder="Name der Person oder Organisation" className={inputClass} />
+        </div>
+      </div>
+
+      {/* Wohnadresse */}
+      <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
+        <h3 className="font-semibold text-[#2D2D2D]">Wohnadresse</h3>
+        <div>
+          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Straße &amp; Hausnummer</label>
+          <input {...register("addressStreet")} placeholder="Musterstraße 1" className={inputClass} />
+        </div>
+        <div className="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">PLZ</label>
+            <input {...register("addressPostal")} placeholder="1010" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Ort</label>
+            <input {...register("addressCity")} placeholder="Wien" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Land</label>
+            <input {...register("addressCountry")} placeholder="Österreich" className={inputClass} />
+          </div>
+        </div>
+      </div>
+
+      {/* Bankverbindung */}
+      <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5 space-y-4">
+        <h3 className="font-semibold text-[#2D2D2D]">Bankverbindung</h3>
+        <div>
+          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">IBAN</label>
+          <input {...register("iban")} placeholder="AT12 3456 7890 1234 5678" className={inputClass} />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">BIC</label>
+            <input {...register("bic")} placeholder="RLNWATWW" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Kontoinhaber</label>
+            <input {...register("bankAccountHolder")} placeholder="Vor- und Nachname" className={inputClass} />
+          </div>
         </div>
       </div>
 

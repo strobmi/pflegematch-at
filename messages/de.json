@@ -1,0 +1,172 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "login": "Anmelden",
+    "register": "Als Pflegekraft registrieren"
+  },
+  "register": {
+    "title": "Als Pflegekraft registrieren",
+    "subtitle": "Erstellen Sie Ihr Profil auf pflegematch.at und erreichen Sie direkte Anfragen von Klienten.",
+    "step1Title": "Zugangsdaten",
+    "step2Title": "Qualifikationen",
+    "step3Title": "Standort & Verfügbarkeit",
+    "name": "Vollständiger Name",
+    "namePlaceholder": "Vorname Nachname",
+    "email": "E-Mail-Adresse",
+    "emailPlaceholder": "name@example.at",
+    "password": "Passwort",
+    "passwordPlaceholder": "Min. 8 Zeichen",
+    "passwordConfirm": "Passwort bestätigen",
+    "passwordConfirmPlaceholder": "Passwort wiederholen",
+    "bio": "Über mich",
+    "bioPlaceholder": "Kurze Vorstellung – was macht Sie als Pflegekraft aus?",
+    "skills": "Fähigkeiten & Skills",
+    "languages": "Sprachen",
+    "qualifications": "Qualifikationen",
+    "qualificationsPlaceholder": "z.B. DGKP, Heimhilfe, ...",
+    "sectionEinsatzregion": "Einsatzregion",
+    "city": "Bevorzugte Einsatzregion",
+    "cityPlaceholder": "z.B. Wien, Graz",
+    "state": "Bundesland",
+    "statePlaceholder": "z.B. Wien",
+    "travelRadius": "Aktionsradius (km)",
+    "travelRadiusPlaceholder": "z.B. 30",
+    "hourlyRate": "Stundensatz (€)",
+    "hourlyRatePlaceholder": "z.B. 18",
+    "availability": "Verfügbarkeit",
+    "sectionAddress": "Wohnadresse",
+    "addressStreet": "Straße & Hausnummer",
+    "addressStreetPlaceholder": "Musterstraße 1",
+    "addressPostal": "PLZ",
+    "addressCity": "Ort",
+    "addressCountry": "Land",
+    "referredBy": "Empfohlen durch (optional)",
+    "referredByPlaceholder": "Name der Person oder Organisation",
+    "next": "Weiter",
+    "back": "Zurück",
+    "submit": "Profil erstellen",
+    "alreadyAccount": "Bereits ein Konto?",
+    "loginLink": "Jetzt anmelden",
+    "submitting": "Wird erstellt...",
+    "success": "Registrierung erfolgreich! Sie werden weitergeleitet...",
+    "errors": {
+      "emailTaken": "Diese E-Mail-Adresse ist bereits vergeben.",
+      "passwordMismatch": "Die Passwörter stimmen nicht überein.",
+      "minPassword": "Mindestens 8 Zeichen erforderlich.",
+      "general": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    }
+  },
+  "publicProfile": {
+    "requestDirect": "Direkt anfragen",
+    "availability": "Verfügbarkeit",
+    "skills": "Fähigkeiten",
+    "languages": "Sprachen",
+    "qualifications": "Qualifikationen",
+    "reviews": "Bewertungen",
+    "noReviews": "Noch keine Bewertungen vorhanden.",
+    "rating": "Bewertung",
+    "hourlyRate": "Stundensatz",
+    "hourlyRateSuffix": "€/Std.",
+    "location": "Standort",
+    "travelRadius": "Aktionsradius",
+    "travelRadiusSuffix": "km",
+    "experience": "Jahre Erfahrung",
+    "availabilityTypes": {
+      "FULL_TIME": "Vollzeit",
+      "PART_TIME": "Teilzeit",
+      "HOURLY": "Stundenweise",
+      "LIVE_IN": "24h / Live-in"
+    },
+    "availabilityStatus": {
+      "AVAILABLE": "Verfügbar",
+      "ON_ASSIGNMENT": "Im Einsatz",
+      "VACATION": "Urlaub",
+      "BLOCKED": "Nicht verfügbar"
+    },
+    "notVisible": "Dieses Profil ist momentan nicht öffentlich sichtbar.",
+    "backToSearch": "Zurück zur Übersicht"
+  },
+  "directRequest": {
+    "title": "Direkte Anfrage senden",
+    "subtitle": "Anfrage an {name}",
+    "contactName": "Ihr Name",
+    "contactNamePlaceholder": "Vorname Nachname",
+    "contactEmail": "Ihre E-Mail",
+    "contactEmailPlaceholder": "name@example.at",
+    "contactPhone": "Ihre Telefonnummer",
+    "contactPhonePlaceholder": "+43 ...",
+    "careNeeds": "Pflegebedarf beschreiben",
+    "careNeedsPlaceholder": "Bitte beschreiben Sie kurz die benötigte Pflege und Unterstützung...",
+    "preferredStart": "Gewünschter Starttermin",
+    "submit": "Anfrage senden",
+    "submitting": "Wird gesendet...",
+    "success": "Ihre Anfrage wurde erfolgreich gesendet. Die Pflegekraft wird sich bei Ihnen melden.",
+    "backToProfile": "Zurück zum Profil",
+    "errors": {
+      "general": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    }
+  },
+  "dashboard": {
+    "pfleger": {
+      "welcome": "Willkommen, {name}",
+      "subtitle": "Ihre Einsätze und Anfragen im Überblick.",
+      "noMatches": "Noch keine Matches. Vervollständigen Sie Ihr Profil und aktivieren Sie die Plattformsichtbarkeit, um gefunden zu werden.",
+      "nav": {
+        "overview": "Übersicht",
+        "profile": "Mein Profil",
+        "availability": "Verfügbarkeit",
+        "requests": "Anfragen"
+      },
+      "profile": {
+        "title": "Mein Profil",
+        "personalData": "Persönliche Daten",
+        "publicProfile": "Öffentliches Profil ansehen",
+        "visibilityLabel": "Auf Plattform sichtbar",
+        "visibilityHint": "Wenn aktiviert, ist Ihr Profil für Klienten öffentlich sichtbar und Sie können direkte Anfragen erhalten.",
+        "save": "Änderungen speichern",
+        "saving": "Wird gespeichert...",
+        "saved": "Gespeichert!"
+      },
+      "availability": {
+        "title": "Meine Verfügbarkeit",
+        "addEntry": "Eintrag hinzufügen",
+        "addEntryTitle": "Neuer Eintrag",
+        "status": "Status",
+        "from": "Von",
+        "to": "Bis (optional)",
+        "notes": "Notizen",
+        "notesPlaceholder": "Optionale Anmerkungen...",
+        "save": "Speichern",
+        "cancel": "Abbrechen",
+        "delete": "Löschen",
+        "noEntries": "Noch keine Verfügbarkeitseinträge. Fügen Sie Ihren ersten Eintrag hinzu.",
+        "statuses": {
+          "AVAILABLE": "Verfügbar",
+          "VACATION": "Urlaub",
+          "BLOCKED": "Nicht verfügbar"
+        }
+      },
+      "requests": {
+        "title": "Direkte Anfragen",
+        "noRequests": "Noch keine direkten Anfragen eingegangen.",
+        "from": "Von",
+        "careNeeds": "Pflegebedarf",
+        "preferredStart": "Gewünschter Start",
+        "receivedAt": "Eingegangen",
+        "markProcessed": "Als erledigt markieren",
+        "processed": "Erledigt"
+      }
+    }
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Ein Fehler ist aufgetreten.",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "back": "Zurück",
+    "notFound": "Nicht gefunden.",
+    "signOut": "Abmelden"
+  }
+}

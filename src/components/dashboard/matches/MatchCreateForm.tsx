@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { Loader2, Check, Zap } from "lucide-react";
 import { createMatch } from "@/app/(dashboard)/vermittler/matches/actions";
@@ -76,7 +76,7 @@ export default function MatchCreateForm({
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema) as any,
+    resolver: standardSchemaResolver(schema) as any,
   });
 
   // Auto-compute score whenever both are selected

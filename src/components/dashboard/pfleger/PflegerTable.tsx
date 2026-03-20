@@ -16,7 +16,20 @@ const AVAILABILITY_LABELS: Record<string, string> = {
   LIVE_IN:   "24h",
 };
 
-export default function PflegerTable({ data }: { data: PflegerWithUser[] }) {
+const AVAIL_STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+  AVAILABLE:     { label: "Verfügbar",       className: "bg-[#EAF3EA] text-[#5A7A5A] border-[#C2D9C2]" },
+  ON_ASSIGNMENT: { label: "Im Einsatz",      className: "bg-[#F5EDE3] text-[#C06B4A] border-[#E8C9B0]" },
+  VACATION:      { label: "Urlaub",          className: "bg-blue-50 text-blue-600 border-blue-200" },
+  BLOCKED:       { label: "Nicht verfügbar", className: "bg-gray-100 text-gray-500 border-gray-200" },
+};
+
+interface Props {
+  data: PflegerWithUser[];
+  matchInfo: Record<string, { active: number; pending: number }>;
+  availInfo: Record<string, string>;
+}
+
+export default function PflegerTable({ data, matchInfo, availInfo }: Props) {
   const [tab, setTab]               = useState<Tab>("aktiv");
   const [search, setSearch]         = useState("");
   const [verfFilter, setVerfFilter] = useState("");
@@ -107,6 +120,8 @@ export default function PflegerTable({ data }: { data: PflegerWithUser[] }) {
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden md:table-cell">Stadt</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">Verfügbarkeit</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">Skills</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden xl:table-cell">Auslastung</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden xl:table-cell">Planung</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide">Status</th>
               <th className="px-4 py-3" />
             </tr>
@@ -114,63 +129,99 @@ export default function PflegerTable({ data }: { data: PflegerWithUser[] }) {
           <tbody className="divide-y divide-[#EAD9C8]">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-[#2D2D2D]/35 text-sm">
+                <td colSpan={8} className="px-4 py-10 text-center text-[#2D2D2D]/35 text-sm">
                   {search || verfFilter ? "Keine Treffer für diese Filtereinstellungen." : "Keine Pflegekräfte vorhanden."}
                 </td>
               </tr>
             ) : (
-              filtered.map((p) => (
-                <tr key={p.id} className="hover:bg-[#FAF6F1] transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="font-semibold text-[#2D2D2D]">{p.user.name}</div>
-                    <div className="text-xs text-[#2D2D2D]/45">{p.user.email}</div>
-                  </td>
-                  <td className="px-4 py-3 text-[#2D2D2D]/70 hidden md:table-cell">
-                    {p.locationCity ?? "–"}
-                  </td>
-                  <td className="px-4 py-3 hidden lg:table-cell">
-                    <span className="bg-[#F5EDE3] text-[#C06B4A] text-xs font-medium px-2 py-0.5 rounded-full">
-                      {AVAILABILITY_LABELS[p.availability] ?? p.availability}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 hidden lg:table-cell">
-                    <div className="flex flex-wrap gap-1">
-                      {p.skills.slice(0, 2).map((s) => (
-                        <span key={s} className="bg-[#F0F7F0] text-[#5A7A5A] text-xs px-2 py-0.5 rounded-full">
-                          {s}
-                        </span>
-                      ))}
-                      {p.skills.length > 2 && (
-                        <span className="text-xs text-[#2D2D2D]/40">+{p.skills.length - 2}</span>
+              filtered.map((p) => {
+                const mi = matchInfo[p.id];
+                const avStatus = availInfo[p.id];
+                const avCfg = avStatus ? AVAIL_STATUS_CONFIG[avStatus] : null;
+                return (
+                  <tr key={p.id} className="hover:bg-[#FAF6F1] transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-[#2D2D2D]">{p.user.name}</div>
+                      <div className="text-xs text-[#2D2D2D]/45">{p.user.email}</div>
+                    </td>
+                    <td className="px-4 py-3 text-[#2D2D2D]/70 hidden md:table-cell">
+                      {p.locationCity ?? "–"}
+                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell">
+                      <span className="bg-[#F5EDE3] text-[#C06B4A] text-xs font-medium px-2 py-0.5 rounded-full">
+                        {AVAILABILITY_LABELS[p.availability] ?? p.availability}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell">
+                      <div className="flex flex-wrap gap-1">
+                        {p.skills.slice(0, 2).map((s) => (
+                          <span key={s} className="bg-[#F0F7F0] text-[#5A7A5A] text-xs px-2 py-0.5 rounded-full">
+                            {s}
+                          </span>
+                        ))}
+                        {p.skills.length > 2 && (
+                          <span className="text-xs text-[#2D2D2D]/40">+{p.skills.length - 2}</span>
+                        )}
+                      </div>
+                    </td>
+                    {/* Auslastung */}
+                    <td className="px-4 py-3 hidden xl:table-cell">
+                      {mi && (mi.active > 0 || mi.pending > 0) ? (
+                        <div className="flex flex-col gap-0.5">
+                          {mi.active > 0 && (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-[#5A7A5A]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#7B9E7B]" />
+                              {mi.active} aktiv
+                            </span>
+                          )}
+                          {mi.pending > 0 && (
+                            <span className="inline-flex items-center gap-1 text-xs text-[#2D2D2D]/50">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#D4B896]" />
+                              {mi.pending} offen
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-[#2D2D2D]/30">–</span>
                       )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-                      p.isActive ? "text-[#5A7A5A]" : "text-[#2D2D2D]/40"
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${p.isActive ? "bg-[#7B9E7B]" : "bg-[#D4B896]"}`} />
-                      {p.isActive ? "Aktiv" : "Inaktiv"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1 justify-end">
-                      <Link
-                        href={`/vermittler/pfleger/${p.id}/bearbeiten`}
-                        className="p-1.5 text-[#2D2D2D]/40 hover:text-[#C06B4A] hover:bg-[#F5EDE3] rounded-lg transition-colors"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(p.id)}
-                        className="p-1.5 text-[#2D2D2D]/40 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    {/* Planung (Kalender-Verfügbarkeit) */}
+                    <td className="px-4 py-3 hidden xl:table-cell">
+                      {avCfg ? (
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${avCfg.className}`}>
+                          {avCfg.label}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-[#2D2D2D]/30">–</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${
+                        p.isActive ? "text-[#5A7A5A]" : "text-[#2D2D2D]/40"
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${p.isActive ? "bg-[#7B9E7B]" : "bg-[#D4B896]"}`} />
+                        {p.isActive ? "Aktiv" : "Inaktiv"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1 justify-end">
+                        <Link
+                          href={`/vermittler/pfleger/${p.id}/bearbeiten`}
+                          className="p-1.5 text-[#2D2D2D]/40 hover:text-[#C06B4A] hover:bg-[#F5EDE3] rounded-lg transition-colors"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          className="p-1.5 text-[#2D2D2D]/40 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

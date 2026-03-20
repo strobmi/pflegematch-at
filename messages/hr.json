@@ -1,0 +1,172 @@
+{
+  "nav": {
+    "home": "Početna",
+    "login": "Prijava",
+    "register": "Registracija njegovatelja"
+  },
+  "register": {
+    "title": "Registracija kao njegovatelj",
+    "subtitle": "Kreirajte profil na pflegematch.at i primajte izravne upite od klijenata.",
+    "step1Title": "Podaci računa",
+    "step2Title": "Kvalifikacije",
+    "step3Title": "Lokacija i dostupnost",
+    "name": "Puno ime",
+    "namePlaceholder": "Ime Prezime",
+    "email": "E-mail adresa",
+    "emailPlaceholder": "ime@primjer.at",
+    "password": "Lozinka",
+    "passwordPlaceholder": "Min. 8 znakova",
+    "passwordConfirm": "Potvrdi lozinku",
+    "passwordConfirmPlaceholder": "Ponovite lozinku",
+    "bio": "O meni",
+    "bioPlaceholder": "Kratko predstavljanje – što vas čini dobrim njegovateljem?",
+    "skills": "Vještine",
+    "languages": "Jezici",
+    "qualifications": "Kvalifikacije",
+    "qualificationsPlaceholder": "npr. medicinska sestra, kućni pomoćnik, ...",
+    "sectionEinsatzregion": "Preferirana regija",
+    "city": "Preferirana radna regija",
+    "cityPlaceholder": "npr. Beč, Graz",
+    "state": "Savezna zemlja",
+    "statePlaceholder": "npr. Beč",
+    "travelRadius": "Radius putovanja (km)",
+    "travelRadiusPlaceholder": "npr. 30",
+    "hourlyRate": "Satnica (€)",
+    "hourlyRatePlaceholder": "npr. 18",
+    "availability": "Dostupnost",
+    "sectionAddress": "Kućna adresa",
+    "addressStreet": "Ulica i kućni broj",
+    "addressStreetPlaceholder": "Primjerna ulica 1",
+    "addressPostal": "Poštanski broj",
+    "addressCity": "Mjesto",
+    "addressCountry": "Država",
+    "referredBy": "Preporučio/la (neobavezno)",
+    "referredByPlaceholder": "Ime osobe ili organizacije",
+    "next": "Dalje",
+    "back": "Natrag",
+    "submit": "Kreiraj profil",
+    "alreadyAccount": "Već imate račun?",
+    "loginLink": "Prijavite se",
+    "submitting": "Kreiranje...",
+    "success": "Registracija uspješna! Bit ćete preusmjereni...",
+    "errors": {
+      "emailTaken": "Ova e-mail adresa je već zauzeta.",
+      "passwordMismatch": "Lozinke se ne podudaraju.",
+      "minPassword": "Potrebno je najmanje 8 znakova.",
+      "general": "Došlo je do pogreške. Pokušajte ponovo."
+    }
+  },
+  "publicProfile": {
+    "requestDirect": "Pošalji upit",
+    "availability": "Dostupnost",
+    "skills": "Vještine",
+    "languages": "Jezici",
+    "qualifications": "Kvalifikacije",
+    "reviews": "Recenzije",
+    "noReviews": "Još nema recenzija.",
+    "rating": "Ocjena",
+    "hourlyRate": "Satnica",
+    "hourlyRateSuffix": "€/sat",
+    "location": "Lokacija",
+    "travelRadius": "Radius putovanja",
+    "travelRadiusSuffix": "km",
+    "experience": "Godine iskustva",
+    "availabilityTypes": {
+      "FULL_TIME": "Puno radno vrijeme",
+      "PART_TIME": "Pola radnog vremena",
+      "HOURLY": "Po satu",
+      "LIVE_IN": "24h / Live-in"
+    },
+    "availabilityStatus": {
+      "AVAILABLE": "Dostupan",
+      "ON_ASSIGNMENT": "Na zadatku",
+      "VACATION": "Na godišnjem",
+      "BLOCKED": "Nedostupan"
+    },
+    "notVisible": "Ovaj profil trenutno nije javno vidljiv.",
+    "backToSearch": "Natrag na pregled"
+  },
+  "directRequest": {
+    "title": "Pošalji izravni upit",
+    "subtitle": "Upit za {name}",
+    "contactName": "Vaše ime",
+    "contactNamePlaceholder": "Ime Prezime",
+    "contactEmail": "Vaš e-mail",
+    "contactEmailPlaceholder": "ime@primjer.at",
+    "contactPhone": "Vaš broj telefona",
+    "contactPhonePlaceholder": "+43 ...",
+    "careNeeds": "Opišite potrebe njege",
+    "careNeedsPlaceholder": "Molimo kratko opišite potrebnu njegu i podršku...",
+    "preferredStart": "Željeni datum početka",
+    "submit": "Pošalji upit",
+    "submitting": "Slanje...",
+    "success": "Vaš upit je uspješno poslan. Njegovatelj će vas kontaktirati.",
+    "backToProfile": "Natrag na profil",
+    "errors": {
+      "general": "Došlo je do pogreške. Pokušajte ponovo."
+    }
+  },
+  "dashboard": {
+    "pfleger": {
+      "welcome": "Dobrodošli, {name}",
+      "subtitle": "Vaši zadaci i upiti na jednom mjestu.",
+      "noMatches": "Još nema podudaranja. Ispunite profil i aktivirajte vidljivost na platformi da vas pronađu.",
+      "nav": {
+        "overview": "Pregled",
+        "profile": "Moj profil",
+        "availability": "Dostupnost",
+        "requests": "Upiti"
+      },
+      "profile": {
+        "title": "Moj profil",
+        "personalData": "Osobni podaci",
+        "publicProfile": "Pogledaj javni profil",
+        "visibilityLabel": "Vidljivo na platformi",
+        "visibilityHint": "Kada je aktivirano, vaš profil je javno vidljiv klijentima i možete primati izravne upite.",
+        "save": "Spremi promjene",
+        "saving": "Spremanje...",
+        "saved": "Spremljeno!"
+      },
+      "availability": {
+        "title": "Moja dostupnost",
+        "addEntry": "Dodaj unos",
+        "addEntryTitle": "Novi unos",
+        "status": "Status",
+        "from": "Od",
+        "to": "Do (neobavezno)",
+        "notes": "Napomene",
+        "notesPlaceholder": "Neobavezne napomene...",
+        "save": "Spremi",
+        "cancel": "Odustani",
+        "delete": "Izbriši",
+        "noEntries": "Još nema unosa dostupnosti. Dodajte prvi unos.",
+        "statuses": {
+          "AVAILABLE": "Dostupan",
+          "VACATION": "Na godišnjem",
+          "BLOCKED": "Nedostupan"
+        }
+      },
+      "requests": {
+        "title": "Izravni upiti",
+        "noRequests": "Još nema primljenih izravnih upita.",
+        "from": "Od",
+        "careNeeds": "Potrebe njege",
+        "preferredStart": "Željeni početak",
+        "receivedAt": "Primljeno",
+        "markProcessed": "Označi kao riješeno",
+        "processed": "Riješeno"
+      }
+    }
+  },
+  "common": {
+    "loading": "Učitavanje...",
+    "error": "Došlo je do pogreške.",
+    "cancel": "Odustani",
+    "save": "Spremi",
+    "delete": "Izbriši",
+    "edit": "Uredi",
+    "back": "Natrag",
+    "notFound": "Nije pronađeno.",
+    "signOut": "Odjava"
+  }
+}

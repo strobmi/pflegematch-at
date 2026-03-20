@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { useState } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
@@ -33,7 +33,7 @@ export default function VermittlerForm({ onSubmit }: Props) {
     handleSubmit,
     formState: { errors, isSubmitting },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } = useForm<FormData>({ resolver: zodResolver(schema) as any });
+  } = useForm<FormData>({ resolver: standardSchemaResolver(schema) as any });
 
   async function submit(data: FormData) {
     setServerError(null);

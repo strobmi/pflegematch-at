@@ -1,0 +1,172 @@
+{
+  "nav": {
+    "home": "Home",
+    "login": "Sign in",
+    "register": "Register as caregiver"
+  },
+  "register": {
+    "title": "Register as a caregiver",
+    "subtitle": "Create your profile on pflegematch.at and receive direct enquiries from clients.",
+    "step1Title": "Account details",
+    "step2Title": "Qualifications",
+    "step3Title": "Location & Availability",
+    "name": "Full name",
+    "namePlaceholder": "First Last",
+    "email": "Email address",
+    "emailPlaceholder": "name@example.at",
+    "password": "Password",
+    "passwordPlaceholder": "Min. 8 characters",
+    "passwordConfirm": "Confirm password",
+    "passwordConfirmPlaceholder": "Repeat password",
+    "bio": "About me",
+    "bioPlaceholder": "Short introduction – what makes you a great caregiver?",
+    "skills": "Skills",
+    "languages": "Languages",
+    "qualifications": "Qualifications",
+    "qualificationsPlaceholder": "e.g. RN, home care assistant, ...",
+    "sectionEinsatzregion": "Preferred region",
+    "city": "Preferred work region",
+    "cityPlaceholder": "e.g. Vienna, Graz",
+    "state": "State",
+    "statePlaceholder": "e.g. Vienna",
+    "travelRadius": "Travel radius (km)",
+    "travelRadiusPlaceholder": "e.g. 30",
+    "hourlyRate": "Hourly rate (€)",
+    "hourlyRatePlaceholder": "e.g. 18",
+    "availability": "Availability",
+    "sectionAddress": "Home address",
+    "addressStreet": "Street & number",
+    "addressStreetPlaceholder": "Sample Street 1",
+    "addressPostal": "Postal code",
+    "addressCity": "City",
+    "addressCountry": "Country",
+    "referredBy": "Referred by (optional)",
+    "referredByPlaceholder": "Name of person or organisation",
+    "next": "Next",
+    "back": "Back",
+    "submit": "Create profile",
+    "alreadyAccount": "Already have an account?",
+    "loginLink": "Sign in",
+    "submitting": "Creating...",
+    "success": "Registration successful! You will be redirected...",
+    "errors": {
+      "emailTaken": "This email address is already in use.",
+      "passwordMismatch": "Passwords do not match.",
+      "minPassword": "At least 8 characters required.",
+      "general": "An error occurred. Please try again."
+    }
+  },
+  "publicProfile": {
+    "requestDirect": "Send enquiry",
+    "availability": "Availability",
+    "skills": "Skills",
+    "languages": "Languages",
+    "qualifications": "Qualifications",
+    "reviews": "Reviews",
+    "noReviews": "No reviews yet.",
+    "rating": "Rating",
+    "hourlyRate": "Hourly rate",
+    "hourlyRateSuffix": "€/hr",
+    "location": "Location",
+    "travelRadius": "Travel radius",
+    "travelRadiusSuffix": "km",
+    "experience": "Years of experience",
+    "availabilityTypes": {
+      "FULL_TIME": "Full-time",
+      "PART_TIME": "Part-time",
+      "HOURLY": "Hourly",
+      "LIVE_IN": "24h / Live-in"
+    },
+    "availabilityStatus": {
+      "AVAILABLE": "Available",
+      "ON_ASSIGNMENT": "On assignment",
+      "VACATION": "On vacation",
+      "BLOCKED": "Unavailable"
+    },
+    "notVisible": "This profile is currently not publicly visible.",
+    "backToSearch": "Back to overview"
+  },
+  "directRequest": {
+    "title": "Send direct enquiry",
+    "subtitle": "Enquiry to {name}",
+    "contactName": "Your name",
+    "contactNamePlaceholder": "First Last",
+    "contactEmail": "Your email",
+    "contactEmailPlaceholder": "name@example.at",
+    "contactPhone": "Your phone number",
+    "contactPhonePlaceholder": "+43 ...",
+    "careNeeds": "Describe care needs",
+    "careNeedsPlaceholder": "Please briefly describe the required care and support...",
+    "preferredStart": "Preferred start date",
+    "submit": "Send enquiry",
+    "submitting": "Sending...",
+    "success": "Your enquiry was sent successfully. The caregiver will get back to you.",
+    "backToProfile": "Back to profile",
+    "errors": {
+      "general": "An error occurred. Please try again."
+    }
+  },
+  "dashboard": {
+    "pfleger": {
+      "welcome": "Welcome, {name}",
+      "subtitle": "Your assignments and enquiries at a glance.",
+      "noMatches": "No matches yet. Complete your profile and enable platform visibility to be found.",
+      "nav": {
+        "overview": "Overview",
+        "profile": "My profile",
+        "availability": "Availability",
+        "requests": "Enquiries"
+      },
+      "profile": {
+        "title": "My profile",
+        "personalData": "Personal data",
+        "publicProfile": "View public profile",
+        "visibilityLabel": "Visible on platform",
+        "visibilityHint": "When enabled, your profile is publicly visible to clients and you can receive direct enquiries.",
+        "save": "Save changes",
+        "saving": "Saving...",
+        "saved": "Saved!"
+      },
+      "availability": {
+        "title": "My availability",
+        "addEntry": "Add entry",
+        "addEntryTitle": "New entry",
+        "status": "Status",
+        "from": "From",
+        "to": "To (optional)",
+        "notes": "Notes",
+        "notesPlaceholder": "Optional remarks...",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "noEntries": "No availability entries yet. Add your first entry.",
+        "statuses": {
+          "AVAILABLE": "Available",
+          "VACATION": "On vacation",
+          "BLOCKED": "Unavailable"
+        }
+      },
+      "requests": {
+        "title": "Direct enquiries",
+        "noRequests": "No direct enquiries received yet.",
+        "from": "From",
+        "careNeeds": "Care needs",
+        "preferredStart": "Preferred start",
+        "receivedAt": "Received",
+        "markProcessed": "Mark as done",
+        "processed": "Done"
+      }
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "notFound": "Not found.",
+    "signOut": "Sign out"
+  }
+}
