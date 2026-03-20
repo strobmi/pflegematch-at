@@ -34,12 +34,14 @@ export default async function PflegerMeetingsPage({
     orderBy: { scheduledAt: "asc" },
   });
 
+  const t = await getTranslations({ locale, namespace: "dashboard.pfleger.meetings" });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Video className="w-5 h-5 text-[#C06B4A]" />
         <h1 className="text-xl font-semibold text-[#2D2D2D]">
-          Meine Videotermine
+          {t("title")}
         </h1>
       </div>
 

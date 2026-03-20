@@ -167,6 +167,9 @@
         "receivedAt": "Primit",
         "markProcessed": "Marchează ca rezolvat",
         "processed": "Rezolvat"
+      },
+      "meetings": {
+        "title": "Programările mele video"
       }
     }
   },

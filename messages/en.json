@@ -167,6 +167,9 @@
         "receivedAt": "Received",
         "markProcessed": "Mark as done",
         "processed": "Done"
+      },
+      "meetings": {
+        "title": "My Video Appointments"
       }
     }
   },

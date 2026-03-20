@@ -167,6 +167,9 @@
         "receivedAt": "Eingegangen",
         "markProcessed": "Als erledigt markieren",
         "processed": "Erledigt"
+      },
+      "meetings": {
+        "title": "Meine Videotermine"
       }
     }
   },

@@ -167,6 +167,9 @@
         "receivedAt": "Primljeno",
         "markProcessed": "Označi kao riješeno",
         "processed": "Riješeno"
+      },
+      "meetings": {
+        "title": "Moji video termini"
       }
     }
   },
