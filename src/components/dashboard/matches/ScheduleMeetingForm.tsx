@@ -8,7 +8,7 @@ import { scheduleVideoMeeting } from "@/app/(dashboard)/vermittler/matches/video
 
 const schema = z.object({
   scheduledAt: z.string().min(1, "Bitte Datum und Uhrzeit wählen"),
-  durationMin: z.union([z.literal(30), z.literal(60)]),
+  durationMin: z.coerce.number().refine((v) => v === 30 || v === 60, "Bitte Dauer wählen"),
   notes: z.string().optional(),
 });
 
