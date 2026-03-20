@@ -45,8 +45,9 @@ export async function scheduleVideoMeeting(
   try {
     wherebyData = await createWherebyMeeting(scheduledAt, parsed.durationMin);
   } catch (err) {
-    console.error("Whereby error:", err);
-    return { error: "Videoraum konnte nicht erstellt werden. Bitte erneut versuchen." };
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("Whereby error:", msg);
+    return { error: `Videoraum konnte nicht erstellt werden: ${msg}` };
   }
 
   // Save to DB
