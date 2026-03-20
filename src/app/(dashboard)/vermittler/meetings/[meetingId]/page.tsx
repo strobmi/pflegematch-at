@@ -29,7 +29,7 @@ export default async function VermittlerVideoRoomPage({
 
   return (
     <div className="h-full">
-      <VideoRoom url={meeting.hostRoomUrl} displayName={hostName} />
+      <VideoRoom url={meeting.hostRoomUrl ?? meeting.roomUrl} displayName={hostName} />
     </div>
   );
 }
