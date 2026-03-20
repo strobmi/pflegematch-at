@@ -118,12 +118,17 @@ export async function updateKlient(profileId: string, data: KlientFormData) {
   redirect("/vermittler/klienten");
 }
 
-export async function deleteKlient(profileId: string) {
+export async function setKlientActive(profileId: string, isActive: boolean) {
   const session = await requireTenantSession();
   const profile = await prisma.clientProfile.findFirst({
     where: { id: profileId, tenantId: session.tenantId },
   });
   if (!profile) return { error: "Nicht gefunden." };
-  await prisma.clientProfile.delete({ where: { id: profileId } });
+
+  await prisma.clientProfile.update({
+    where: { id: profileId },
+    data: { isActive },
+  });
+
   revalidatePath("/vermittler/klienten");
 }

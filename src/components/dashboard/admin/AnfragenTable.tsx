@@ -8,6 +8,14 @@ import { assignMatchRequest, markProcessed } from "@/app/(dashboard)/admin/anfra
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+const CLOSED_REASON_LABELS: Record<string, string> = {
+  KEIN_INTERESSE:       "Kein Interesse / Absage durch Lead",
+  ANDERWEITIG_VERSORGT: "Anderweitig versorgt",
+  KEIN_PFLEGER:         "Kein passender Pfleger verfügbar",
+  NICHT_ERREICHBAR:     "Lead nicht erreichbar",
+  SONSTIGES:            "Sonstiges",
+};
+
 interface Request {
   id: string;
   contactName: string | null;
@@ -16,9 +24,13 @@ interface Request {
   careNeedsRaw: string | null;
   notes: string | null;
   isProcessed: boolean;
+  clientProfileId: string | null;
+  closedReason: string | null;
+  closedNote: string | null;
   createdAt: Date;
   tenant: { id: string; name: string; isPlatform: boolean } | null;
-  assignedTo: { name: string | null } | null;
+  assignedTo:  { name: string | null } | null;
+  processedBy: { name: string | null } | null;
 }
 
 interface Tenant {
@@ -125,6 +137,24 @@ function AnfrageRow({ req, tenants, showBadge }: { req: Request; tenants: Tenant
             </div>
           )}
         </td>
+        <td className="px-4 py-3 hidden xl:table-cell">
+          {req.isProcessed && req.processedBy?.name
+            ? <span className="text-xs text-white/50">{req.processedBy.name}</span>
+            : <span className="text-xs text-white/20">–</span>}
+        </td>
+        <td className="px-4 py-3 hidden xl:table-cell">
+          {req.isProcessed && !req.clientProfileId && req.closedReason ? (
+            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/50 whitespace-nowrap">
+              {CLOSED_REASON_LABELS[req.closedReason]}
+            </span>
+          ) : req.isProcessed && req.clientProfileId ? (
+            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-[#7B9E7B]/20 text-[#A8C5A8] whitespace-nowrap">
+              Kunde angelegt
+            </span>
+          ) : (
+            <span className="text-xs text-white/20">–</span>
+          )}
+        </td>
         <td className="px-4 py-3 text-right">
           {expanded
             ? <ChevronUp className="w-4 h-4 text-white/30 ml-auto" />
@@ -134,7 +164,7 @@ function AnfrageRow({ req, tenants, showBadge }: { req: Request; tenants: Tenant
 
       {expanded && (
         <tr className="bg-white/[0.03]">
-          <td colSpan={6} className="px-4 pb-5 pt-2">
+          <td colSpan={8} className="px-4 pb-5 pt-2">
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div className="bg-white/5 rounded-xl p-4 space-y-1.5">
                 <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-2">Kontakt</p>
@@ -170,6 +200,21 @@ function AnfrageRow({ req, tenants, showBadge }: { req: Request; tenants: Tenant
               <div className="bg-white/5 rounded-xl p-4 mb-4">
                 <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-1.5">Persönliche Nachricht</p>
                 <p className="text-sm text-white/70 leading-relaxed">{req.notes}</p>
+              </div>
+            )}
+
+            {req.isProcessed && (req.closedReason || req.closedNote) && (
+              <div className="bg-white/5 rounded-xl p-4 mb-4">
+                <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-1.5">Abschluss</p>
+                {req.closedReason && (
+                  <p className="text-sm text-white/70">{CLOSED_REASON_LABELS[req.closedReason] ?? req.closedReason}</p>
+                )}
+                {req.closedNote && (
+                  <p className="text-sm text-white/50 mt-1">{req.closedNote}</p>
+                )}
+                {req.processedBy?.name && (
+                  <p className="text-xs text-white/30 mt-1.5">Bearbeitet von {req.processedBy.name}</p>
+                )}
               </div>
             )}
 
@@ -221,6 +266,7 @@ export default function AnfragenTable({ requests, tenants }: { requests: Request
   const [tab, setTab]                   = useState<Tab>("unassigned");
   const [search, setSearch]             = useState("");
   const [betreuungsFilter, setBetreuungsFilter] = useState("");
+  const [reasonFilter, setReasonFilter] = useState("");
 
   const counts = {
     unassigned: requests.filter((r) => !r.isProcessed && r.tenant?.isPlatform).length,
@@ -239,10 +285,15 @@ export default function AnfragenTable({ requests, tenants }: { requests: Request
       if ((raw.betreuungsart as string) !== betreuungsFilter) return false;
     }
 
+    if (reasonFilter) {
+      if (r.closedReason !== reasonFilter) return false;
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase();
       const raw = parseRaw(r.careNeedsRaw);
-      const haystack = [r.contactName, r.contactEmail, raw.ort as string].join(" ").toLowerCase();
+      const reasonLabel = r.closedReason ? (CLOSED_REASON_LABELS[r.closedReason] ?? "") : "";
+      const haystack = [r.contactName, r.contactEmail, raw.ort as string, reasonLabel, r.closedNote].join(" ").toLowerCase();
       if (!haystack.includes(q)) return false;
     }
 
@@ -281,6 +332,18 @@ export default function AnfragenTable({ requests, tenants }: { requests: Request
             <option value="tagesbetreuung" className="bg-[#2D2D2D]">Tagesbetreuung</option>
             <option value="nachtsitzung" className="bg-[#2D2D2D]">Nachtsitzung</option>
           </select>
+          {(tab === "erledigt" || tab === "alle") && (
+            <select
+              value={reasonFilter}
+              onChange={(e) => setReasonFilter(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-sm text-white/60 focus:outline-none focus:border-[#C06B4A] transition-colors cursor-pointer"
+            >
+              <option value="" className="bg-[#2D2D2D]">Alle Abschlussgründe</option>
+              {Object.entries(CLOSED_REASON_LABELS).map(([value, label]) => (
+                <option key={value} value={value} className="bg-[#2D2D2D]">{label}</option>
+              ))}
+            </select>
+          )}
         </div>
         <div className="flex gap-1">
           {tabs.map(({ key, label }) => (
@@ -313,13 +376,15 @@ export default function AnfragenTable({ requests, tenants }: { requests: Request
             <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden lg:table-cell">
               {tab === "alle" ? "Status" : tab === "assigned" ? "Zugewiesen an" : ""}
             </th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden xl:table-cell">Bearbeiter</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden xl:table-cell">Erledigungsgrund</th>
             <th className="px-4 py-3 w-8" />
           </tr>
         </thead>
         <tbody className="divide-y divide-white/10">
           {filtered.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-4 py-10 text-center text-white/25 text-sm">
+              <td colSpan={8} className="px-4 py-10 text-center text-white/25 text-sm">
                 {search || betreuungsFilter ? "Keine Treffer für diese Filtereinstellungen." : "Keine Anfragen vorhanden."}
               </td>
             </tr>

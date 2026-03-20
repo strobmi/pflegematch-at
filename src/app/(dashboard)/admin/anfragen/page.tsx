@@ -14,7 +14,8 @@ export default async function AdminAnfragenPage() {
       orderBy: { createdAt: "desc" },
       include: {
         tenant: { select: { id: true, name: true, isPlatform: true } },
-        assignedTo: { select: { name: true } },
+        assignedTo:  { select: { name: true } },
+        processedBy: { select: { name: true } },
       },
     }),
     prisma.tenant.findMany({

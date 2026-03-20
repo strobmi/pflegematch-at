@@ -135,7 +135,7 @@ export async function updatePfleger(profileId: string, data: PflegerFormData) {
   redirect("/vermittler/pfleger");
 }
 
-export async function deletePfleger(profileId: string) {
+export async function setPflegerActive(profileId: string, isActive: boolean) {
   const session = await requireTenantSession();
 
   const profile = await prisma.caregiverProfile.findFirst({
@@ -143,7 +143,10 @@ export async function deletePfleger(profileId: string) {
   });
   if (!profile) return { error: "Nicht gefunden." };
 
-  await prisma.caregiverProfile.delete({ where: { id: profileId } });
+  await prisma.caregiverProfile.update({
+    where: { id: profileId },
+    data: { isActive },
+  });
 
   revalidatePath("/vermittler/pfleger");
 }

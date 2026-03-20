@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Pencil, Trash2, Search } from "lucide-react";
-import { deleteKlient } from "@/app/(dashboard)/vermittler/klienten/actions";
+import { Pencil, ArchiveX, ArchiveRestore, Search } from "lucide-react";
+import { setKlientActive } from "@/app/(dashboard)/vermittler/klienten/actions";
 import type { ClientProfile, User } from "@prisma/client";
 
 type KlientWithUser = ClientProfile & { user: Pick<User, "id" | "name" | "email"> };
@@ -19,9 +19,10 @@ export default function KlientenTable({ data }: { data: KlientWithUser[] }) {
   const [search, setSearch]         = useState("");
   const [stufeFilter, setStufeFilter] = useState("");
 
-  async function handleDelete(id: string) {
-    if (!confirm("Klient wirklich löschen?")) return;
-    await deleteKlient(id);
+  async function handleToggleActive(id: string, currentlyActive: boolean) {
+    const msg = currentlyActive ? "Klient archivieren?" : "Klient reaktivieren?";
+    if (!confirm(msg)) return;
+    await setKlientActive(id, !currentlyActive);
   }
 
   const counts = {
@@ -159,10 +160,11 @@ export default function KlientenTable({ data }: { data: KlientWithUser[] }) {
                         <Pencil className="w-3.5 h-3.5" />
                       </Link>
                       <button
-                        onClick={() => handleDelete(k.id)}
-                        className="p-1.5 text-[#2D2D2D]/40 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        onClick={() => handleToggleActive(k.id, k.isActive)}
+                        title={k.isActive ? "Archivieren" : "Reaktivieren"}
+                        className={`p-1.5 rounded-lg transition-colors ${k.isActive ? "text-[#2D2D2D]/40 hover:text-amber-600 hover:bg-amber-50" : "text-[#2D2D2D]/40 hover:text-[#5A7A5A] hover:bg-[#F0F7F0]"}`}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        {k.isActive ? <ArchiveX className="w-3.5 h-3.5" /> : <ArchiveRestore className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                   </td>

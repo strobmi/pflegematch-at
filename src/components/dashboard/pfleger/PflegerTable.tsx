@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Pencil, Trash2, Search } from "lucide-react";
-import { deletePfleger } from "@/app/(dashboard)/vermittler/pfleger/actions";
+import { Pencil, ArchiveX, ArchiveRestore, Search } from "lucide-react";
+import { setPflegerActive } from "@/app/(dashboard)/vermittler/pfleger/actions";
 import type { CaregiverProfile, User } from "@prisma/client";
 
 type PflegerWithUser = CaregiverProfile & { user: Pick<User, "id" | "name" | "email"> };
@@ -34,9 +34,10 @@ export default function PflegerTable({ data, matchInfo, availInfo }: Props) {
   const [search, setSearch]         = useState("");
   const [verfFilter, setVerfFilter] = useState("");
 
-  async function handleDelete(id: string) {
-    if (!confirm("Pflegekraft wirklich löschen?")) return;
-    await deletePfleger(id);
+  async function handleToggleActive(id: string, currentlyActive: boolean) {
+    const msg = currentlyActive ? "Pflegekraft archivieren?" : "Pflegekraft reaktivieren?";
+    if (!confirm(msg)) return;
+    await setPflegerActive(id, !currentlyActive);
   }
 
   const counts = {
@@ -212,10 +213,11 @@ export default function PflegerTable({ data, matchInfo, availInfo }: Props) {
                           <Pencil className="w-3.5 h-3.5" />
                         </Link>
                         <button
-                          onClick={() => handleDelete(p.id)}
-                          className="p-1.5 text-[#2D2D2D]/40 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          onClick={() => handleToggleActive(p.id, p.isActive)}
+                          title={p.isActive ? "Archivieren" : "Reaktivieren"}
+                          className={`p-1.5 rounded-lg transition-colors ${p.isActive ? "text-[#2D2D2D]/40 hover:text-amber-600 hover:bg-amber-50" : "text-[#2D2D2D]/40 hover:text-[#5A7A5A] hover:bg-[#F0F7F0]"}`}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          {p.isActive ? <ArchiveX className="w-3.5 h-3.5" /> : <ArchiveRestore className="w-3.5 h-3.5" />}
                         </button>
                       </div>
                     </td>
