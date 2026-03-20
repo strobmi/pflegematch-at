@@ -49,7 +49,6 @@ function buildCareNeedsRaw(client: KlientItem): string | null {
 const schema = z.object({
   caregiverProfileId: z.string().min(1, "Pflegekraft wählen"),
   clientProfileId:    z.string().min(1, "Klient wählen"),
-  score:    z.coerce.number().min(0).max(100).optional(),
   notes:    z.string().optional(),
   startDate: z.string().optional(),
 });
@@ -94,8 +93,6 @@ export default function MatchCreateForm({
       careNeedsRaw: buildCareNeedsRaw(klient),
     });
     setAutoScore(result.score);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("score" as any, result.score);
   }, [selectedPfleger, selectedKlient, pflegekraefte, klienten, setValue]);
 
   function selectPfleger(id: string) {
@@ -124,6 +121,7 @@ export default function MatchCreateForm({
     : autoScore >= 70  ? "#5A7A5A"
     : autoScore >= 40  ? "#D97706"
     : "#9CA3AF";
+
 
   return (
     <form onSubmit={handleSubmit(createMatch)} className="space-y-6">
@@ -221,27 +219,16 @@ export default function MatchCreateForm({
 
       {/* Details */}
       <div className="bg-white rounded-2xl border border-[#EAD9C8] p-5">
-        <h3 className="font-semibold text-[#2D2D2D] mb-4">Match-Details</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-[#2D2D2D]">Match-Details</h3>
+          {autoScore != null && (
+            <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: scoreColor }}>
+              <Zap className="w-3.5 h-3.5" />
+              Score: {autoScore}%
+            </div>
+          )}
+        </div>
         <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">
-              Matching-Score (0–100)
-              {autoScore != null && (
-                <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[#EAD9C8] text-[#2D2D2D]/60">
-                  <Zap className="w-2.5 h-2.5" />
-                  auto
-                </span>
-              )}
-            </label>
-            <input
-              type="number"
-              min={0} max={100}
-              {...register("score")}
-              placeholder="z.B. 85"
-              className={inputClass}
-              style={{ color: scoreColor, fontWeight: autoScore != null ? 600 : undefined }}
-            />
-          </div>
           <div>
             <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">
               Geplanter Starttermin

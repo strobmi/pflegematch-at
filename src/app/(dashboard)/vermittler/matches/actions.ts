@@ -6,11 +6,18 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { MatchStatus } from "@prisma/client";
+import { computeScore } from "@/lib/scoring";
+
+// Reverse-map AvailabilityType → betreuungsart key for careNeedsRaw JSON
+const AVAIL_REVERSE: Partial<Record<string, string>> = {
+  LIVE_IN:   "24h",
+  HOURLY:    "stundenweise",
+  PART_TIME: "tagesbetreuung",
+};
 
 const CreateMatchSchema = z.object({
   caregiverProfileId: z.string().min(1, "Pflegekraft wählen"),
   clientProfileId: z.string().min(1, "Klient wählen"),
-  score: z.coerce.number().min(0).max(100).optional(),
   notes: z.string().optional(),
   startDate: z.string().optional(),
 });
@@ -21,24 +28,59 @@ export async function createMatch(data: CreateMatchData) {
   const session = await requireTenantSession();
   const parsed = CreateMatchSchema.parse(data);
 
-  // Verify both profiles belong to this tenant
   const [caregiver, client] = await Promise.all([
     prisma.caregiverProfile.findFirst({
       where: { id: parsed.caregiverProfileId, tenantId: session.tenantId },
+      select: {
+        id: true,
+        pflegestufe: true,
+        languages: true,
+        availability: true,
+        averageRating: true,
+      },
     }),
     prisma.clientProfile.findFirst({
       where: { id: parsed.clientProfileId, tenantId: session.tenantId },
+      select: {
+        id: true,
+        pflegegeldStufe: true,
+        preferredSchedule: true,
+        preferredLanguages: true,
+      },
     }),
   ]);
 
   if (!caregiver || !client) return { error: "Ungültige Auswahl." };
+
+  // Compute score from profile data
+  const careNeedsRaw = (() => {
+    const obj: Record<string, unknown> = {};
+    if (client.preferredSchedule) {
+      const betreuungsart = AVAIL_REVERSE[client.preferredSchedule];
+      if (betreuungsart) obj.betreuungsart = betreuungsart;
+    }
+    if (client.preferredLanguages.length > 0) {
+      obj.sprachen = client.preferredLanguages.map((lang) => ({ lang }));
+    }
+    return Object.keys(obj).length > 0 ? JSON.stringify(obj) : null;
+  })();
+
+  const { score } = computeScore(
+    {
+      pflegestufe: caregiver.pflegestufe,
+      languages: caregiver.languages,
+      availability: caregiver.availability,
+      averageRating: caregiver.averageRating,
+    },
+    { pflegegeldStufe: client.pflegegeldStufe ?? null, careNeedsRaw }
+  );
 
   await prisma.match.create({
     data: {
       tenantId: session.tenantId,
       caregiverProfileId: parsed.caregiverProfileId,
       clientProfileId: parsed.clientProfileId,
-      score: parsed.score,
+      score,
       notes: parsed.notes,
       startDate: parsed.startDate ? new Date(parsed.startDate) : undefined,
       status: "PROPOSED",
@@ -71,7 +113,6 @@ export async function deleteMatch(matchId: string) {
   await prisma.$transaction(async (tx) => {
     await tx.match.delete({ where: { id: matchId } });
 
-    // Zugehörige Anfrage zurücksetzen, falls dieser Match aus einer Anfrage entstanden ist
     await tx.matchRequest.updateMany({
       where: {
         tenantId: session.tenantId,
