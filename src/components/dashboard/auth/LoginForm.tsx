@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
+import { notifyKeinKonto, requestPasswordReset } from "@/app/(auth)/login/actions";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -12,6 +13,16 @@ export default function LoginForm() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Passwort vergessen
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotPending, startForgotTransition] = useTransition();
+
+  // Kein Konto
+  const [keinKontoSent, setKeinKontoSent] = useState(false);
+  const [keinKontoPending, startKeinKontoTransition] = useTransition();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,6 +56,21 @@ export default function LoginForm() {
     router.push(redirectMap[role] ?? "/");
   }
 
+  function handleForgotSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    startForgotTransition(async () => {
+      await requestPasswordReset(forgotEmail);
+      setForgotSent(true);
+    });
+  }
+
+  function handleKeinKonto() {
+    startKeinKontoTransition(async () => {
+      await notifyKeinKonto();
+      setKeinKontoSent(true);
+    });
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
@@ -62,9 +88,18 @@ export default function LoginForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[#2D2D2D] mb-1.5">
-          Passwort
-        </label>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="block text-sm font-medium text-[#2D2D2D]">
+            Passwort
+          </label>
+          <button
+            type="button"
+            onClick={() => { setShowForgot(!showForgot); setForgotSent(false); }}
+            className="text-xs text-[#C06B4A] hover:underline"
+          >
+            Passwort vergessen?
+          </button>
+        </div>
         <div className="relative">
           <input
             type={showPw ? "text" : "password"}
@@ -84,6 +119,44 @@ export default function LoginForm() {
         </div>
       </div>
 
+      {/* Passwort vergessen – inline */}
+      {showForgot && (
+        <div className="bg-[#FAF6F1] border border-[#EAD9C8] rounded-xl p-4 space-y-3">
+          {forgotSent ? (
+            <div className="flex items-center gap-2 text-sm text-[#7B9E7B]">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+              <span>Falls ein Konto existiert, erhältst du eine E-Mail mit dem Reset-Link.</span>
+            </div>
+          ) : (
+            <>
+              <p className="text-xs text-[#2D2D2D]/60">
+                Gib deine E-Mail-Adresse ein – wir schicken dir einen Link zum Zurücksetzen.
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  required
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  placeholder="name@firma.at"
+                  className="flex-1 px-3 py-2 rounded-lg border border-[#EAD9C8] bg-white text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20"
+                  onKeyDown={(e) => e.key === "Enter" && handleForgotSubmit(e)}
+                />
+                <button
+                  type="button"
+                  onClick={handleForgotSubmit}
+                  disabled={forgotPending || !forgotEmail}
+                  className="px-4 py-2 bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5"
+                >
+                  {forgotPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  Senden
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {error && (
         <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
           {error}
@@ -99,11 +172,21 @@ export default function LoginForm() {
         {loading ? "Anmeldung..." : "Anmelden"}
       </button>
 
+      {/* Kein Konto */}
       <p className="text-xs text-center text-[#2D2D2D]/40 mt-4">
-        Kein Konto? Kontaktieren Sie{" "}
-        <a href="mailto:hallo@pflegematch.at" className="text-[#C06B4A] hover:underline">
-          hallo@pflegematch.at
-        </a>
+        Kein Konto?{" "}
+        {keinKontoSent ? (
+          <span className="text-[#7B9E7B] font-medium">Nachricht gesendet – wir melden uns!</span>
+        ) : (
+          <button
+            type="button"
+            onClick={handleKeinKonto}
+            disabled={keinKontoPending}
+            className="text-[#C06B4A] hover:underline disabled:opacity-60"
+          >
+            {keinKontoPending ? "Senden..." : "Kontakt aufnehmen"}
+          </button>
+        )}
       </p>
     </form>
   );
