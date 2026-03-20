@@ -9,6 +9,14 @@ import { computeScore, type ScoreResult } from "@/lib/scoring";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+const CLOSED_REASON_LABELS: Record<string, string> = {
+  KEIN_INTERESSE:       "Kein Interesse / Absage durch Lead",
+  ANDERWEITIG_VERSORGT: "Anderweitig versorgt",
+  KEIN_PFLEGER:         "Kein passender Pfleger verfügbar",
+  NICHT_ERREICHBAR:     "Lead nicht erreichbar",
+  SONSTIGES:            "Sonstiges",
+};
+
 interface Anfrage {
   id: string;
   contactName: string | null;
@@ -19,6 +27,8 @@ interface Anfrage {
   notes: string | null;
   isProcessed: boolean;
   clientProfileId: string | null;
+  closedReason: string | null;
+  closedNote: string | null;
   createdAt: Date;
   assignedTo:  { name: string | null } | null;
   processedBy: { name: string | null } | null;
@@ -171,6 +181,9 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
   const [matching, setMatching]   = useState(false);
   const [matchError, setMatchError] = useState<string | null>(null);
   const [selectedPfleger, setSelectedPfleger] = useState("");
+  const [showCloseForm, setShowCloseForm] = useState(false);
+  const [closedReason, setClosedReason] = useState<string>("");
+  const [closedNote, setClosedNote] = useState("");
   const raw = parseRaw(req.careNeedsRaw);
 
   // Scores berechnen und nach Score DESC sortieren
@@ -185,9 +198,16 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
         : (a.pfleger.user.name ?? "").localeCompare(b.pfleger.user.name ?? "")
     );
 
-  async function handleMarkProcessed() {
+  async function handleMarkProcessed(e: React.FormEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!closedReason) return;
     setProcessing(true);
-    await markAnfrageProcessed(req.id);
+    await markAnfrageProcessed(
+      req.id,
+      closedReason as "KEIN_INTERESSE" | "ANDERWEITIG_VERSORGT" | "KEIN_PFLEGER" | "NICHT_ERREICHBAR" | "SONSTIGES",
+      closedNote,
+    );
     setProcessing(false);
   }
 
@@ -283,19 +303,31 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
             )}
 
             {req.isProcessed && !req.clientProfileId && (
-              <div className="flex items-center justify-between gap-3 mt-1 pt-3 border-t border-[#EAD9C8]">
-                <div>
-                  <p className="text-sm font-medium text-[#2D2D2D]/70">Ohne Match abgeschlossen</p>
-                  <p className="text-xs text-[#2D2D2D]/40 mt-0.5">Kein Kundenprofil angelegt · Anfrage kann wieder geöffnet werden</p>
+              <div className="mt-1 pt-3 border-t border-[#EAD9C8] space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-[#2D2D2D]/70">Ohne Match abgeschlossen</p>
+                    {req.closedReason && (
+                      <p className="text-xs text-[#2D2D2D]/55 mt-0.5">
+                        Grund: {CLOSED_REASON_LABELS[req.closedReason] ?? req.closedReason}
+                      </p>
+                    )}
+                    {req.closedNote && (
+                      <p className="text-xs text-[#2D2D2D]/45 mt-0.5 italic">{req.closedNote}</p>
+                    )}
+                    {!req.closedReason && (
+                      <p className="text-xs text-[#2D2D2D]/40 mt-0.5">Kein Kundenprofil angelegt · Anfrage kann wieder geöffnet werden</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleReopen}
+                    disabled={reopening}
+                    className="inline-flex items-center gap-2 shrink-0 border border-[#C06B4A] text-[#C06B4A] hover:bg-[#C06B4A] hover:text-white disabled:opacity-40 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                  >
+                    {reopening ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                    Wieder öffnen
+                  </button>
                 </div>
-                <button
-                  onClick={handleReopen}
-                  disabled={reopening}
-                  className="inline-flex items-center gap-2 shrink-0 border border-[#C06B4A] text-[#C06B4A] hover:bg-[#C06B4A] hover:text-white disabled:opacity-40 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
-                >
-                  {reopening ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
-                  Wieder öffnen
-                </button>
               </div>
             )}
 
@@ -355,19 +387,67 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
                 )}
 
                 {/* Ohne Match abschließen */}
-                <div className="flex items-center justify-between gap-3 pt-3 border-t border-[#EAD9C8]">
-                  <div>
-                    <p className="text-sm font-medium text-[#2D2D2D]/70">Ohne Match abschließen</p>
-                    <p className="text-xs text-[#2D2D2D]/40 mt-0.5">Anfrage als erledigt markieren ohne eine Pflegekraft zuzuweisen</p>
-                  </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleMarkProcessed(); }}
-                    disabled={processing}
-                    className="inline-flex items-center gap-2 shrink-0 border border-[#2D2D2D]/20 text-[#2D2D2D]/50 hover:border-[#2D2D2D]/40 hover:text-[#2D2D2D] disabled:opacity-40 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
-                  >
-                    {processing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                    Als erledigt markieren
-                  </button>
+                <div className="pt-3 border-t border-[#EAD9C8]">
+                  {!showCloseForm ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-[#2D2D2D]/70">Ohne Match abschließen</p>
+                        <p className="text-xs text-[#2D2D2D]/40 mt-0.5">Anfrage als erledigt markieren ohne eine Pflegekraft zuzuweisen</p>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShowCloseForm(true); }}
+                        className="inline-flex items-center gap-2 shrink-0 border border-[#2D2D2D]/20 text-[#2D2D2D]/50 hover:border-[#2D2D2D]/40 hover:text-[#2D2D2D] px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        Als erledigt markieren
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleMarkProcessed} onClick={(e) => e.stopPropagation()} className="space-y-3">
+                      <p className="text-sm font-medium text-[#2D2D2D]/70">Ohne Match abschließen</p>
+                      <div>
+                        <label className="block text-xs font-medium text-[#2D2D2D]/60 mb-1">Grund *</label>
+                        <select
+                          required
+                          value={closedReason}
+                          onChange={(e) => setClosedReason(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20 transition-colors"
+                        >
+                          <option value="">– Bitte wählen –</option>
+                          {Object.entries(CLOSED_REASON_LABELS).map(([value, label]) => (
+                            <option key={value} value={value}>{label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-[#2D2D2D]/60 mb-1">Notiz (optional)</label>
+                        <textarea
+                          value={closedNote}
+                          onChange={(e) => setClosedNote(e.target.value)}
+                          rows={2}
+                          placeholder="Zusätzliche Informationen..."
+                          className="w-full px-3 py-2 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20 transition-colors resize-none placeholder:text-[#2D2D2D]/30"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setShowCloseForm(false)}
+                          className="px-3.5 py-2 rounded-xl text-sm text-[#2D2D2D]/50 hover:text-[#2D2D2D] transition-colors"
+                        >
+                          Abbrechen
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={processing || !closedReason}
+                          className="inline-flex items-center gap-2 bg-[#2D2D2D]/80 hover:bg-[#2D2D2D] disabled:opacity-40 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                        >
+                          {processing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                          Abschließen
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </div>
               </div>
             )}

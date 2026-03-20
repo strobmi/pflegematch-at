@@ -67,7 +67,11 @@ export async function createAnfrage(data: CreateAnfrageData) {
   redirect("/vermittler/anfragen");
 }
 
-export async function markAnfrageProcessed(requestId: string) {
+export async function markAnfrageProcessed(
+  requestId: string,
+  closedReason: "KEIN_INTERESSE" | "ANDERWEITIG_VERSORGT" | "KEIN_PFLEGER" | "NICHT_ERREICHBAR" | "SONSTIGES",
+  closedNote?: string,
+) {
   const session = await requireTenantSession();
 
   const req = await prisma.matchRequest.findFirst({
@@ -77,7 +81,12 @@ export async function markAnfrageProcessed(requestId: string) {
 
   await prisma.matchRequest.update({
     where: { id: requestId },
-    data: { isProcessed: true, processedByUserId: session.id },
+    data: {
+      isProcessed: true,
+      processedByUserId: session.id,
+      closedReason,
+      closedNote: closedNote?.trim() || null,
+    },
   });
 
   revalidatePath("/vermittler/anfragen");
@@ -94,7 +103,7 @@ export async function reopenAnfrage(requestId: string) {
 
   await prisma.matchRequest.update({
     where: { id: requestId },
-    data: { isProcessed: false, processedByUserId: null },
+    data: { isProcessed: false, processedByUserId: null, closedReason: null, closedNote: null },
   });
 
   revalidatePath("/vermittler/anfragen");

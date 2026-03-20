@@ -76,6 +76,14 @@ enum MeetingStatus {
   COMPLETED
 }
 
+enum ClosedReason {
+  KEIN_INTERESSE
+  ANDERWEITIG_VERSORGT
+  KEIN_PFLEGER
+  NICHT_ERREICHBAR
+  SONSTIGES
+}
+
 // ─────────────────────────────────────────────
 // TENANT (Vermittler-Firma)
 // ─────────────────────────────────────────────
@@ -353,6 +361,8 @@ model MatchRequest {
   preferredStart  DateTime?
   notes           String?           @db.Text
   isProcessed     Boolean           @default(false)
+  closedReason    ClosedReason?
+  closedNote      String?           @db.Text
   createdAt       DateTime          @default(now())
 
   assignedToUserId   String? // Round-Robin: zugewiesener Vermittler-Admin
