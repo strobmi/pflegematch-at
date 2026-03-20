@@ -16,7 +16,7 @@ const FUNNEL_STAGES = [
 export default async function MatchesPage() {
   const session = await requireTenantSession();
 
-  const matches = await prisma.match.findMany({
+  const rawMatches = await prisma.match.findMany({
     where: { tenantId: session.tenantId },
     include: {
       caregiverProfile: { include: { user: { select: { name: true } } } },
@@ -24,6 +24,14 @@ export default async function MatchesPage() {
     },
     orderBy: { createdAt: "desc" },
   });
+
+  // Decimal → number serialisieren (Client Components akzeptieren keine Prisma Decimal-Objekte)
+  const matches = rawMatches.map((m) => ({
+    ...m,
+    caregiverProfile: m.caregiverProfile
+      ? { ...m.caregiverProfile, hourlyRate: m.caregiverProfile.hourlyRate ? Number(m.caregiverProfile.hourlyRate) : null }
+      : null,
+  }));
 
   // ── KPI calculations ──────────────────────────────────────
   const activeCount    = matches.filter((m) => m.status === "ACTIVE").length;
