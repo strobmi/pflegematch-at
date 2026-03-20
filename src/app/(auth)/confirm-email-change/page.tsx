@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { confirmEmailChange } from "@/lib/email-change-actions";
 
-export default function ConfirmEmailChangePage() {
+function ConfirmEmailChangeContent() {
   const params = useSearchParams();
   const router = useRouter();
   const token = params.get("token") ?? "";
@@ -73,5 +73,20 @@ export default function ConfirmEmailChangePage() {
         Zur Anmeldung
       </a>
     </div>
+  );
+}
+
+export default function ConfirmEmailChangePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full max-w-sm bg-white rounded-2xl border border-[#EAD9C8] shadow-sm p-8 text-center">
+          <Loader2 className="w-10 h-10 text-[#C06B4A] mx-auto mb-3 animate-spin" />
+          <p className="text-sm text-[#2D2D2D]">Wird geladen...</p>
+        </div>
+      }
+    >
+      <ConfirmEmailChangeContent />
+    </Suspense>
   );
 }
