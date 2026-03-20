@@ -441,7 +441,7 @@ model VideoMeeting {
   matchId          String
   wherebyMeetingId String        @unique
   roomUrl          String        // Teilnehmer-Link (Kunde + Pfleger)
-  hostRoomUrl      String        // Host-Link (NUR Vermittler)
+  hostRoomUrl      String?       // Host-Link (NUR Vermittler, falls verfügbar)
   scheduledAt      DateTime
   durationMin      Int           @default(30)
   status           MeetingStatus @default(SCHEDULED)

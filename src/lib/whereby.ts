@@ -3,7 +3,7 @@ const WHEREBY_API_URL = "https://api.whereby.dev/v1";
 interface WherebyMeetingResponse {
   meetingId: string;
   roomUrl: string;
-  hostRoomUrl: string;
+  hostRoomUrl: string | null;
 }
 
 export async function createWherebyMeeting(
@@ -39,7 +39,7 @@ export async function createWherebyMeeting(
   return {
     meetingId: data.meetingId,
     roomUrl: data.roomUrl,
-    hostRoomUrl: data.hostRoomUrl,
+    hostRoomUrl: data.hostRoomUrl ?? null,
   };
 }
 
