@@ -1,7 +1,13 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --include=optional && npm install @parcel/watcher-linux-x64-musl lightningcss-linux-x64-musl --no-save
+RUN npm ci --include=optional && npm install \
+  @parcel/watcher-linux-x64-musl \
+  lightningcss-linux-x64-musl \
+  @tailwindcss/oxide-linux-x64-musl \
+  @unrs/resolver-binding-linux-x64-musl \
+  @esbuild/linux-x64 \
+  --no-save
 
 FROM node:20-alpine AS builder
 WORKDIR /app
