@@ -126,7 +126,7 @@ export default async function MatchVideoPage({
                         Beitreten
                       </Link>
                       <a
-                        href={meeting.hostRoomUrl}
+                        href={meeting.hostRoomUrl ?? meeting.roomUrl}
                         target="_blank"
                         rel="noreferrer"
                         className="p-1.5 text-[#2D2D2D]/40 hover:text-[#2D2D2D] rounded-lg transition"
