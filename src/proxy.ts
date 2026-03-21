@@ -6,6 +6,23 @@ import { routing } from "@/i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
+// Rate Limiting: 5 Login-Versuche pro IP pro 15 Minuten
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+const WINDOW_MS    = 15 * 60 * 1000;
+const MAX_ATTEMPTS = 5;
+
+function isRateLimited(ip: string): boolean {
+  const now   = Date.now();
+  const entry = loginAttempts.get(ip);
+  if (!entry || now > entry.resetAt) {
+    loginAttempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+    return false;
+  }
+  if (entry.count >= MAX_ATTEMPTS) return true;
+  entry.count++;
+  return false;
+}
+
 // Locale-prefixed paths handled by next-intl (de/en/ro/hr)
 const LOCALE_PREFIX_RE = /^\/(de|en|ro|hr)(\/|$)/;
 
@@ -39,6 +56,20 @@ function getRoleDashboard(role: string): string {
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
+
+  // Rate Limiting auf Login-Endpoint
+  if (req.method === "POST" && pathname === "/api/auth/callback/credentials") {
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      req.headers.get("x-real-ip") ??
+      "unknown";
+    if (isRateLimited(ip)) {
+      return NextResponse.json(
+        { error: "Zu viele Anmeldeversuche. Bitte warte 15 Minuten." },
+        { status: 429 }
+      );
+    }
+  }
 
   // Static assets — always allowed
   if (STATIC_PREFIXES.some((p) => pathname.startsWith(p))) {
