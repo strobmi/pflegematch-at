@@ -9,7 +9,7 @@ const intlMiddleware = createIntlMiddleware(routing);
 // Rate Limiting: 5 Login-Versuche pro IP pro 15 Minuten
 const loginAttempts = new Map<string, { count: number; resetAt: number }>();
 const WINDOW_MS    = 15 * 60 * 1000;
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS = 50; // TODO: auf 5 reduzieren nach Testphase
 
 function isRateLimited(ip: string): boolean {
   const now   = Date.now();
