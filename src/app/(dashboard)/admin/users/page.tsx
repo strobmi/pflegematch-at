@@ -25,7 +25,7 @@ export default async function AdminUsersPage() {
     role:        u.role,
     createdAt:   u.createdAt.toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" }),
     lastLoginAt: u.lastLoginAt
-      ? u.lastLoginAt.toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" })
+      ? u.lastLoginAt.toLocaleString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
       : null,
     isActive:    u.caregiverProfile?.isActive ?? u.clientProfile?.isActive ?? null,
     tenant:      u.memberships[0]?.tenant.name ?? null,
