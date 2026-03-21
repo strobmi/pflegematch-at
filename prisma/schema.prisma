@@ -146,14 +146,15 @@ model User {
 
   lastAssignedAt  DateTime? // Round-Robin: wann zuletzt eine Anfrage zugewiesen wurde
 
-  memberships       TenantMembership[]
-  sessions          Session[]
-  accounts          Account[]
-  caregiverProfile  CaregiverProfile?
-  clientProfile     ClientProfile?
-  reviewsWritten    Review[]       @relation("ReviewsWritten")
-  assignedRequests  MatchRequest[] @relation("AssignedRequests")
-  processedRequests MatchRequest[] @relation("ProcessedRequests")
+  memberships        TenantMembership[]
+  sessions           Session[]
+  accounts           Account[]
+  caregiverProfile   CaregiverProfile?
+  clientProfile      ClientProfile?
+  reviewsWritten     Review[]            @relation("ReviewsWritten")
+  assignedRequests   MatchRequest[]      @relation("AssignedRequests")
+  processedRequests  MatchRequest[]      @relation("ProcessedRequests")
+  emailChangeTokens  EmailChangeToken[]
 
   @@index([email])
 }
@@ -218,6 +219,8 @@ model EmailChangeToken {
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
@@ -347,8 +350,8 @@ model Match {
   provisionStatus  ProvisionStatus @default(PENDING)
 
   tenant           Tenant           @relation(fields: [tenantId], references: [id])
-  caregiverProfile CaregiverProfile @relation("PflegerMatches", fields: [caregiverProfileId], references: [id])
-  clientProfile    ClientProfile    @relation("ClientMatches", fields: [clientProfileId], references: [id])
+  caregiverProfile CaregiverProfile @relation("PflegerMatches", fields: [caregiverProfileId], references: [id], onDelete: Cascade)
+  clientProfile    ClientProfile    @relation("ClientMatches", fields: [clientProfileId], references: [id], onDelete: Cascade)
   availabilities    CaregiverAvailability[]
   reviews           Review[]
   videoMeetings     VideoMeeting[]
@@ -455,7 +458,7 @@ model Review {
   createdAt  DateTime     @default(now())
 
   match  Match @relation(fields: [matchId], references: [id])
-  author User  @relation("ReviewsWritten", fields: [authorId], references: [id])
+  author User  @relation("ReviewsWritten", fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([matchId])
   @@index([targetId])

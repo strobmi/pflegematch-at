@@ -49,11 +49,25 @@ export async function updateUser(userId: string, data: UserEditFormData) {
     await prisma.tenantMembership.deleteMany({
       where: { userId, NOT: { tenantId: parsed.tenantId } },
     });
-    // Keep caregiverProfile.tenantId in sync (Vermittler page filters by this)
+    // Keep role-specific profiles in sync (Vermittler page filters by tenantId)
     if (parsed.role === "PFLEGER") {
-      await prisma.caregiverProfile.updateMany({
-        where: { userId },
-        data:  { tenantId: parsed.tenantId },
+      await prisma.caregiverProfile.upsert({
+        where:  { userId },
+        update: { tenantId: parsed.tenantId },
+        create: {
+          userId,
+          tenantId: parsed.tenantId,
+          availability: "FULL_TIME",
+        },
+      });
+    } else if (parsed.role === "KUNDE") {
+      await prisma.clientProfile.upsert({
+        where:  { userId },
+        update: { tenantId: parsed.tenantId },
+        create: {
+          userId,
+          tenantId: parsed.tenantId,
+        },
       });
     }
   } else {
@@ -69,7 +83,44 @@ export async function deleteUser(userId: string) {
   if (session.role !== "SUPERADMIN") return { error: "Keine Berechtigung." };
   if (session.id === userId) return { error: "Du kannst dich nicht selbst löschen." };
 
+  const [matchCount, reviewCount] = await Promise.all([
+    prisma.match.count({
+      where: {
+        OR: [
+          { caregiverProfile: { userId } },
+          { clientProfile:    { userId } },
+        ],
+      },
+    }),
+    prisma.review.count({ where: { authorId: userId } }),
+  ]);
+
+  if (matchCount > 0 || reviewCount > 0) {
+    return {
+      error: `Dieser User hat ${matchCount} Match(es) und ${reviewCount} Bewertung(en) und kann nicht gelöscht werden. Bitte archivieren statt löschen.`,
+    };
+  }
+
   await prisma.user.delete({ where: { id: userId } });
+  revalidatePath("/admin/users");
+}
+
+export async function archiveUser(userId: string) {
+  const session = await requireSession();
+  if (session.role !== "SUPERADMIN") return { error: "Keine Berechtigung." };
+
+  await prisma.caregiverProfile.updateMany({ where: { userId }, data: { isActive: false } });
+  await prisma.clientProfile.updateMany({   where: { userId }, data: { isActive: false } });
+
+  revalidatePath("/admin/users");
+}
+
+export async function unarchiveUser(userId: string) {
+  const session = await requireSession();
+  if (session.role !== "SUPERADMIN") return { error: "Keine Berechtigung." };
+
+  await prisma.caregiverProfile.updateMany({ where: { userId }, data: { isActive: true } });
+  await prisma.clientProfile.updateMany({   where: { userId }, data: { isActive: true } });
 
   revalidatePath("/admin/users");
 }

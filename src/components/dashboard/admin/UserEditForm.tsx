@@ -5,7 +5,7 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Loader2, Eye, EyeOff, Trash2, Archive, ArchiveRestore } from "lucide-react";
 
 const schema = z.object({
   name:     z.string().min(2, "Min. 2 Zeichen"),
@@ -31,17 +31,25 @@ interface Props {
   tenants: Tenant[];
   userId: string;
   isSelf: boolean;
+  hasProfile: boolean;
+  isArchived: boolean;
+  hasBusinessData: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSubmit: (userId: string, data: FormData) => Promise<any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDelete: (userId: string) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onArchive: (userId: string) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onUnarchive: (userId: string) => Promise<any>;
 }
 
-export default function UserEditForm({ defaultValues, tenants, userId, isSelf, onSubmit, onDelete }: Props) {
+export default function UserEditForm({ defaultValues, tenants, userId, isSelf, hasProfile, isArchived, hasBusinessData, onSubmit, onDelete, onArchive, onUnarchive }: Props) {
   const [showPw, setShowPw] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const router = useRouter();
 
   const {
@@ -62,6 +70,14 @@ export default function UserEditForm({ defaultValues, tenants, userId, isSelf, o
     const result = await onDelete(userId);
     if (result?.error) { setServerError(result.error); setDeleting(false); return; }
     router.push("/admin/users");
+  }
+
+  async function handleArchive() {
+    setArchiving(true);
+    const result = await (isArchived ? onUnarchive(userId) : onArchive(userId));
+    if (result?.error) { setServerError(result.error); }
+    setArchiving(false);
+    router.refresh();
   }
 
   const inputClass =
@@ -151,36 +167,64 @@ export default function UserEditForm({ defaultValues, tenants, userId, isSelf, o
         </button>
 
         {!isSelf && (
-          confirmDelete ? (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-red-400">Wirklich löschen?</span>
+          <div className="flex items-center gap-2">
+            {/* Archivieren — nur wenn Profil vorhanden */}
+            {hasProfile && (
               <button
                 type="button"
-                onClick={handleDelete}
-                disabled={deleting}
-                className="inline-flex items-center gap-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60"
+                onClick={handleArchive}
+                disabled={archiving}
+                className={`inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl transition-colors disabled:opacity-60 ${
+                  isArchived
+                    ? "text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                    : "text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+                }`}
               >
-                {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
-                Ja, löschen
+                {archiving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : isArchived ? (
+                  <ArchiveRestore className="w-4 h-4" />
+                ) : (
+                  <Archive className="w-4 h-4" />
+                )}
+                {isArchived ? "Reaktivieren" : "Archivieren"}
               </button>
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(false)}
-                className="text-white/40 hover:text-white text-sm px-3 py-2.5"
-              >
-                Abbrechen
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setConfirmDelete(true)}
-              className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 text-sm px-4 py-2.5 rounded-xl hover:bg-red-500/10 transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-              User löschen
-            </button>
-          )
+            )}
+
+            {/* Löschen — nur wenn keine Matches/Reviews */}
+            {!hasBusinessData && (
+              confirmDelete ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-red-400">Wirklich löschen?</span>
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="inline-flex items-center gap-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60"
+                  >
+                    {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    Ja, löschen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(false)}
+                    className="text-white/40 hover:text-white text-sm px-3 py-2.5"
+                  >
+                    Abbrechen
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(true)}
+                  className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 text-sm px-4 py-2.5 rounded-xl hover:bg-red-500/10 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Löschen
+                </button>
+              )
+            )}
+          </div>
         )}
       </div>
     </form>
