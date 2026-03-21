@@ -23,10 +23,10 @@ export default async function MatchesPage() {
     where: { tenantId: session.tenantId },
     include: {
       caregiverProfile: {
-        include: { user: { select: { name: true } } },
+        include: { user: { select: { name: true, email: true } } },
       },
       clientProfile: {
-        include: { user: { select: { name: true } } },
+        include: { user: { select: { name: true, email: true } } },
       },
       videoMeetings: {
         select: { scheduledAt: true, status: true },
