@@ -27,7 +27,7 @@ export default async function DashboardLayout({
   const isAdmin = role === "SUPERADMIN";
 
   return (
-    <div className={`flex h-screen overflow-hidden ${isAdmin ? "bg-[#1E1E1E]" : "bg-[#FAF6F1]"}`}>
+    <div className={`flex h-dvh overflow-hidden ${isAdmin ? "bg-[#1E1E1E]" : "bg-[#FAF6F1]"}`}>
       {sidebar}
       <div className="flex-1 flex flex-col overflow-hidden">
         {!isAdmin && role !== "KUNDE" && role !== "VERMITTLER_ADMIN" && (
