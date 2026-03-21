@@ -19,9 +19,9 @@ export default async function DashboardLayout({
     role === "SUPERADMIN" ? (
       <AdminSidebar />
     ) : role === "VERMITTLER_ADMIN" ? (
-      <VermittlerSidebar tenantName={tenantName ?? ""} />
+      <VermittlerSidebar tenantName={tenantName ?? ""} userName={name} />
     ) : role === "KUNDE" ? (
-      <KundeSidebar />
+      <KundeSidebar userName={name} />
     ) : null;
 
   const isAdmin = role === "SUPERADMIN";
@@ -30,7 +30,7 @@ export default async function DashboardLayout({
     <div className={`flex h-screen overflow-hidden ${isAdmin ? "bg-[#1E1E1E]" : "bg-[#FAF6F1]"}`}>
       {sidebar}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {!isAdmin && role !== "KUNDE" && (
+        {!isAdmin && role !== "KUNDE" && role !== "VERMITTLER_ADMIN" && (
           <DashboardHeader
             userName={name ?? null}
             tenantName={tenantName}

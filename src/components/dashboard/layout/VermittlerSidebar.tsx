@@ -3,10 +3,11 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { Heart, LayoutGrid, Users, HeartHandshake, Link2, LogOut, Inbox } from "lucide-react";
+import { Heart, LayoutGrid, Users, HeartHandshake, Link2, LogOut, Inbox, User } from "lucide-react";
 
 const navItems = [
   { href: "/vermittler",           label: "Übersicht",    icon: LayoutGrid },
+  { href: "/vermittler/profil",    label: "Profil",       icon: User },
   { href: "/vermittler/pfleger",   label: "Pflegekräfte", icon: Users },
   { href: "/vermittler/klienten",  label: "Klienten",     icon: HeartHandshake },
   { href: "/vermittler/anfragen",  label: "Anfragen",     icon: Inbox },
@@ -14,8 +15,17 @@ const navItems = [
   { href: "/vermittler/team",      label: "Team",         icon: Users },
 ];
 
-export default function VermittlerSidebar({ tenantName }: { tenantName: string }) {
+export default function VermittlerSidebar({
+  tenantName,
+  userName,
+}: {
+  tenantName: string;
+  userName?: string | null;
+}) {
   const pathname = usePathname();
+  const initials = userName
+    ? userName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "?";
 
   function isActive(href: string) {
     if (href === "/vermittler") return pathname === "/vermittler";
@@ -35,7 +45,10 @@ export default function VermittlerSidebar({ tenantName }: { tenantName: string }
             <span className="text-[10px] align-super text-[#7B9E7B] font-semibold ml-0.5">AT</span>
           </span>
         </Link>
-        <p className="text-xs text-[#2D2D2D]/45 pl-9 truncate">{tenantName}</p>
+        <div className="pl-9 flex items-center gap-2">
+          <span className="text-xs text-[#2D2D2D]/45 truncate">{tenantName}</span>
+          <span className="text-[10px] font-semibold text-[#C06B4A] bg-[#C06B4A]/10 px-1.5 py-0.5 rounded-full shrink-0">Vermittler</span>
+        </div>
       </div>
 
       {/* Nav */}
@@ -56,11 +69,17 @@ export default function VermittlerSidebar({ tenantName }: { tenantName: string }
         ))}
       </nav>
 
-      {/* Sign out */}
-      <div className="px-3 pb-5 border-t border-[#EAD9C8] pt-3">
+      {/* User + Sign out */}
+      <div className="px-3 pb-5 border-t border-[#EAD9C8] pt-3 space-y-0.5">
+        <div className="flex items-center gap-3 px-3 py-2">
+          <div className="w-7 h-7 rounded-full bg-[#C06B4A]/15 flex items-center justify-center shrink-0">
+            <span className="text-xs font-bold text-[#C06B4A]">{initials}</span>
+          </div>
+          <span className="text-sm font-medium text-[#2D2D2D] truncate">{userName ?? "–"}</span>
+        </div>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#2D2D2D]/55 hover:bg-red-50 hover:text-red-600 transition-colors w-full"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-[#2D2D2D]/55 hover:bg-red-50 hover:text-red-600 transition-colors w-full"
         >
           <LogOut className="w-4 h-4" />
           Abmelden

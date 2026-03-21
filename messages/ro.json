@@ -91,11 +91,47 @@
       "welcome": "Bun venit, {name}",
       "subtitle": "Misiunile și solicitările dvs. dintr-o privire.",
       "noMatches": "Nicio potrivire încă. Completați-vă profilul și activați vizibilitatea pe platformă pentru a fi găsit.",
+      "planBanner": {
+        "blocksPlanned": "{count, plural, one {# bloc liber} other {# blocuri libere}} planificate",
+        "horizon": "Orizont de planificare: 10 săptămâni",
+        "edit": "Editare",
+        "noBlocks": "Disponibilitatea nu a fost planificată",
+        "description": "Introduceți primul bloc liber – vom planifica automat 3 blocuri de câte 14 zile.",
+        "firstBlock": "Următorul bloc liber:",
+        "planButton": "Planifică 3 blocuri"
+      },
       "nav": {
         "overview": "Prezentare generală",
         "profile": "Profilul meu",
         "availability": "Disponibilitate",
-        "meetings": "Programări"
+        "meetings": "Programări",
+        "matches": "Potrivirile mele"
+      },
+      "matches": {
+        "title": "Potrivirile mele",
+        "subtitle": "Misiuni propuse și în desfășurare.",
+        "noMatches": "Nu există potriviri.",
+        "client": "Client",
+        "score": "Scor",
+        "status": "Stare",
+        "proposals": "Propuneri de programare",
+        "addProposal": "Propune dată",
+        "proposalDate": "Dată și oră",
+        "proposalDuration": "Durată",
+        "proposalSave": "Adaugă propunere",
+        "proposalSaving": "Se salvează...",
+        "proposalsSent": "E-mail trimis clientului ✓",
+        "proposalsPending": "Așteptând a 3-a propunere",
+        "waitingKunde": "Așteptând răspunsul clientului",
+        "selectedSlot": "Data confirmată",
+        "duration30": "30 minute",
+        "duration60": "60 minute",
+        "statusProposed": "Propus",
+        "statusPending": "În așteptare",
+        "statusAccepted": "Acceptat",
+        "statusActive": "Activ",
+        "statusCompleted": "Finalizat",
+        "statusCancelled": "Anulat"
       },
       "profile": {
         "title": "Profilul meu",

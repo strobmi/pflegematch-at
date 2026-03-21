@@ -209,6 +209,39 @@ export async function createAvailability(
   return { id: entry.id };
 }
 
+export async function planAvailabilityBlocks(
+  firstFreeBlockStart: Date,
+  blocks = 3
+): Promise<{ error?: string }> {
+  const user = await requireSession();
+  const profile = await getOwnCaregiverProfile(user.id);
+
+  const CYCLE_DAYS = 28; // 14 Tage frei + 14 Tage im Einsatz
+  const BLOCK_DAYS = 14;
+
+  const entries = Array.from({ length: blocks }, (_, i) => {
+    const start = new Date(firstFreeBlockStart);
+    start.setDate(start.getDate() + i * CYCLE_DAYS);
+    const end = new Date(start);
+    end.setDate(end.getDate() + BLOCK_DAYS);
+    return {
+      caregiverProfileId: profile.id,
+      tenantId: profile.tenantId,
+      status: "AVAILABLE" as const,
+      startDate: start,
+      endDate: end,
+    };
+  });
+
+  await prisma.caregiverAvailability.createMany({ data: entries });
+
+  for (const locale of ["de", "en", "ro", "hr"]) {
+    revalidatePath(`/${locale}/dashboard/pfleger/verfuegbarkeit`);
+    revalidatePath(`/${locale}/dashboard/pfleger`);
+  }
+  return {};
+}
+
 export async function deleteAvailability(
   id: string
 ): Promise<{ error?: string }> {

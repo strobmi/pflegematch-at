@@ -12,6 +12,7 @@ export interface ScoredCaregiver {
   languages: string[];
   availability: string;
   averageRating: number | null;
+  currentAvailabilityStatus?: string | null;
 }
 
 export interface ScoredRequest {
@@ -24,6 +25,7 @@ export interface ScoreResult {
   pflegestufe: boolean;
   betreuungsart: boolean;
   sprachen: { matched: number; total: number };
+  verfuegbarkeit: boolean;
 }
 
 export function computeScore(
@@ -66,10 +68,14 @@ export function computeScore(
     score += Math.round((sprachen.matched / sprachen.total) * 20);
   }
 
-  // Bewertungs-Bonus (10 Punkte)
+  // Bewertungs-Bonus (5 Punkte)
   if (caregiver.averageRating) {
-    score += Math.round((caregiver.averageRating / 5) * 10);
+    score += Math.round((caregiver.averageRating / 5) * 5);
   }
 
-  return { score, pflegestufe, betreuungsart, sprachen };
+  // Verfügbarkeits-Bonus (5 Punkte)
+  const verfuegbarkeit = caregiver.currentAvailabilityStatus === "AVAILABLE";
+  if (verfuegbarkeit) score += 5;
+
+  return { score, pflegestufe, betreuungsart, sprachen, verfuegbarkeit };
 }

@@ -27,9 +27,23 @@ export default async function VermittlerAnfragenPage() {
         languages: true,
         availability: true,
         averageRating: true,
+        availabilities: {
+          where: {
+            startDate: { lte: new Date() },
+            OR: [{ endDate: null }, { endDate: { gte: new Date() } }],
+          },
+          select: { status: true },
+          take: 1,
+        },
       },
       orderBy: { createdAt: "asc" },
-    }),
+    }).then((rows) =>
+      rows.map((p) => ({
+        ...p,
+        averageRating: p.averageRating ? Number(p.averageRating) : null,
+        currentAvailabilityStatus: p.availabilities[0]?.status ?? null,
+      }))
+    ),
   ]);
 
   return (

@@ -91,11 +91,47 @@
       "welcome": "Willkommen, {name}",
       "subtitle": "Ihre Einsätze und Anfragen im Überblick.",
       "noMatches": "Noch keine Matches. Vervollständigen Sie Ihr Profil und aktivieren Sie die Plattformsichtbarkeit, um gefunden zu werden.",
+      "planBanner": {
+        "blocksPlanned": "{count, plural, one {# freier Block} other {# freie Blöcke}} geplant",
+        "horizon": "Planungshorizont: 10 Wochen",
+        "edit": "Bearbeiten",
+        "noBlocks": "Verfügbarkeit noch nicht geplant",
+        "description": "Gib deinen nächsten freien Block an – wir planen automatisch 3 Blöcke à 14 Tage.",
+        "firstBlock": "Nächster freier Block:",
+        "planButton": "3 Blöcke planen"
+      },
       "nav": {
         "overview": "Übersicht",
         "profile": "Mein Profil",
         "availability": "Verfügbarkeit",
-        "meetings": "Termine"
+        "meetings": "Termine",
+        "matches": "Meine Matches"
+      },
+      "matches": {
+        "title": "Meine Matches",
+        "subtitle": "Vorgeschlagene und laufende Einsätze.",
+        "noMatches": "Keine Matches vorhanden.",
+        "client": "Klient",
+        "score": "Score",
+        "status": "Status",
+        "proposals": "Terminvorschläge",
+        "addProposal": "Termin vorschlagen",
+        "proposalDate": "Datum & Uhrzeit",
+        "proposalDuration": "Dauer",
+        "proposalSave": "Vorschlag hinzufügen",
+        "proposalSaving": "Wird gespeichert...",
+        "proposalsSent": "E-Mail an Kunden gesendet ✓",
+        "proposalsPending": "Warte auf 3. Vorschlag",
+        "waitingKunde": "Warte auf Antwort des Kunden",
+        "selectedSlot": "Termin gewählt",
+        "duration30": "30 Minuten",
+        "duration60": "60 Minuten",
+        "statusProposed": "Vorgeschlagen",
+        "statusPending": "Ausstehend",
+        "statusAccepted": "Akzeptiert",
+        "statusActive": "Aktiv",
+        "statusCompleted": "Abgeschlossen",
+        "statusCancelled": "Storniert"
       },
       "profile": {
         "title": "Mein Profil",

@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { cancelVideoMeetingAction } from "../../video-actions";
+import VermittlerProposalSection from "@/components/dashboard/matches/VermittlerProposalSection";
 import type { MeetingStatus } from "@prisma/client";
 
 const STATUS_LABELS: Record<MeetingStatus, string> = {
@@ -40,6 +41,7 @@ export default async function MatchVideoPage({
       caregiverProfile: { include: { user: true } },
       clientProfile: { include: { user: true } },
       videoMeetings: { orderBy: { scheduledAt: "asc" } },
+      meetingProposals: { orderBy: { proposedAt: "asc" } },
     },
   });
 
@@ -69,6 +71,11 @@ export default async function MatchVideoPage({
           Neuer Termin
         </Link>
       </div>
+
+      <VermittlerProposalSection
+        matchId={matchId}
+        proposals={match.meetingProposals}
+      />
 
       {match.videoMeetings.length === 0 ? (
         <div className="bg-white rounded-2xl border border-[#EAD9C8] p-10 text-center">

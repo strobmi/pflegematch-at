@@ -91,11 +91,47 @@
       "welcome": "Welcome, {name}",
       "subtitle": "Your assignments and enquiries at a glance.",
       "noMatches": "No matches yet. Complete your profile and enable platform visibility to be found.",
+      "planBanner": {
+        "blocksPlanned": "{count, plural, one {# free block} other {# free blocks}} planned",
+        "horizon": "Planning horizon: 10 weeks",
+        "edit": "Edit",
+        "noBlocks": "Availability not yet planned",
+        "description": "Enter your next free block – we will automatically plan 3 blocks of 14 days.",
+        "firstBlock": "Next free block:",
+        "planButton": "Plan 3 blocks"
+      },
       "nav": {
         "overview": "Overview",
         "profile": "My profile",
         "availability": "Availability",
-        "meetings": "Appointments"
+        "meetings": "Appointments",
+        "matches": "My Matches"
+      },
+      "matches": {
+        "title": "My Matches",
+        "subtitle": "Proposed and active assignments.",
+        "noMatches": "No matches available.",
+        "client": "Client",
+        "score": "Score",
+        "status": "Status",
+        "proposals": "Appointment proposals",
+        "addProposal": "Suggest time",
+        "proposalDate": "Date & time",
+        "proposalDuration": "Duration",
+        "proposalSave": "Add proposal",
+        "proposalSaving": "Saving...",
+        "proposalsSent": "Email sent to client ✓",
+        "proposalsPending": "Waiting for 3rd proposal",
+        "waitingKunde": "Waiting for client response",
+        "selectedSlot": "Time confirmed",
+        "duration30": "30 minutes",
+        "duration60": "60 minutes",
+        "statusProposed": "Proposed",
+        "statusPending": "Pending",
+        "statusAccepted": "Accepted",
+        "statusActive": "Active",
+        "statusCompleted": "Completed",
+        "statusCancelled": "Cancelled"
       },
       "profile": {
         "title": "My profile",

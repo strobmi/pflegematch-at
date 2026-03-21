@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { User, Calendar, ArrowRight, Video } from "lucide-react";
 import UpcomingMeetingsList from "@/components/dashboard/meetings/UpcomingMeetingsList";
+import PlanAvailabilityBanner from "@/components/dashboard/pfleger/PlanAvailabilityBanner";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -26,6 +27,20 @@ export default async function PflegerOverviewPage({
   const caregiverProfile = await prisma.caregiverProfile.findUnique({
     where: { userId: session.user.id },
   });
+
+  const now = new Date();
+  const horizon = new Date(now);
+  horizon.setDate(horizon.getDate() + 70); // 3 × 28-Tage-Zyklus
+
+  const plannedBlocks = caregiverProfile
+    ? await prisma.caregiverAvailability.count({
+        where: {
+          caregiverProfileId: caregiverProfile.id,
+          status: "AVAILABLE",
+          startDate: { gte: now, lte: horizon },
+        },
+      })
+    : 0;
 
   const upcomingMeetings = await (caregiverProfile
     ? prisma.videoMeeting.findMany({
@@ -49,6 +64,9 @@ export default async function PflegerOverviewPage({
         </h1>
         <p className="text-[#2D2D2D]/55">{t("subtitle")}</p>
       </div>
+
+      {/* Verfügbarkeits-Planungs-Banner */}
+      <PlanAvailabilityBanner plannedBlocks={plannedBlocks} availabilityHref={`${base}/verfuegbarkeit`} />
 
       {/* Quick actions */}
       <div className="grid sm:grid-cols-3 gap-4">

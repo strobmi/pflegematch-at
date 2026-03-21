@@ -15,6 +15,7 @@ type PflegerItem = {
   pflegestufe: string[];
   languages: string[];
   averageRating: number | null;
+  currentAvailabilityStatus: string | null;
   user: { name: string | null };
 };
 
@@ -60,6 +61,13 @@ const AVAILABILITY_LABELS: Record<string, string> = {
   HOURLY: "Stundenweise", LIVE_IN: "24h",
 };
 
+const STATUS_BADGE: Record<string, { label: string; color: string }> = {
+  AVAILABLE:     { label: "Verfügbar",  color: "#5A7A5A" },
+  ON_ASSIGNMENT: { label: "Im Einsatz", color: "#D97706" },
+  VACATION:      { label: "Urlaub",     color: "#9CA3AF" },
+  BLOCKED:       { label: "Geblockt",   color: "#EF4444" },
+};
+
 export default function MatchCreateForm({
   pflegekraefte,
   klienten,
@@ -89,10 +97,10 @@ export default function MatchCreateForm({
     const klient  = klienten.find((k) => k.id === selectedKlient);
     if (!pfleger || !klient) return;
 
-    const result = computeScore(pfleger, {
-      pflegegeldStufe: klient.pflegegeldStufe,
-      careNeedsRaw: buildCareNeedsRaw(klient),
-    });
+    const result = computeScore(
+      { ...pfleger, currentAvailabilityStatus: pfleger.currentAvailabilityStatus },
+      { pflegegeldStufe: klient.pflegegeldStufe, careNeedsRaw: buildCareNeedsRaw(klient) }
+    );
     setAutoScore(result.score);
   }, [selectedPfleger, selectedKlient, pflegekraefte, klienten, setValue]);
 
@@ -158,6 +166,17 @@ export default function MatchCreateForm({
                     <p className="text-xs text-[#2D2D2D]/50">
                       {p.locationCity ?? "–"} · {AVAILABILITY_LABELS[p.availability]}
                     </p>
+                    {p.currentAvailabilityStatus && STATUS_BADGE[p.currentAvailabilityStatus] && (
+                      <span
+                        className="inline-block text-xs font-medium px-1.5 py-0.5 rounded-md mt-1"
+                        style={{
+                          color: STATUS_BADGE[p.currentAvailabilityStatus].color,
+                          backgroundColor: STATUS_BADGE[p.currentAvailabilityStatus].color + "18",
+                        }}
+                      >
+                        {STATUS_BADGE[p.currentAvailabilityStatus].label}
+                      </span>
+                    )}
                   </div>
                   {selectedPfleger === p.id && (
                     <Check className="w-4 h-4 text-[#C06B4A] flex-shrink-0" />

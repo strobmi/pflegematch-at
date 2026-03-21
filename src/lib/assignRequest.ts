@@ -1,12 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { computeScore } from "@/lib/scoring";
-import type { CaregiverProfile, MatchRequest } from "@prisma/client";
+import type { CaregiverAvailability, CaregiverProfile, MatchRequest } from "@prisma/client";
 
-function scoreCaregiverForRequest(caregiver: CaregiverProfile, request: MatchRequest): number {
-  return computeScore(caregiver, {
-    pflegegeldStufe: request.pflegegeldStufe,
-    careNeedsRaw: request.careNeedsRaw,
-  }).score;
+function scoreCaregiverForRequest(
+  caregiver: CaregiverProfile & { availabilities: Pick<CaregiverAvailability, "status">[] },
+  request: MatchRequest
+): number {
+  return computeScore(
+    { ...caregiver, currentAvailabilityStatus: caregiver.availabilities[0]?.status ?? null },
+    { pflegegeldStufe: request.pflegegeldStufe, careNeedsRaw: request.careNeedsRaw }
+  ).score;
 }
 
 // ─── Auto-Assign ──────────────────────────────────────────────────────────────
@@ -17,13 +20,35 @@ export async function autoAssignByScore(matchRequestId: string): Promise<void> {
   });
   if (!request) return;
 
+  const now = new Date();
+
   // Alle aktiven Vermittler-Pfleger holen (Freelancer vorerst ausgeschlossen)
+  // Hard Filter: Pfleger mit aktivem VACATION/BLOCKED-Eintrag ausschließen
   const caregivers = await prisma.caregiverProfile.findMany({
     where: {
       isActive: true,
       tenant: { status: "ACTIVE", isPlatform: false },
+      NOT: {
+        availabilities: {
+          some: {
+            status: { in: ["VACATION", "BLOCKED"] },
+            startDate: { lte: now },
+            OR: [{ endDate: null }, { endDate: { gte: now } }],
+          },
+        },
+      },
     },
-    include: { tenant: true },
+    include: {
+      tenant: true,
+      availabilities: {
+        where: {
+          startDate: { lte: now },
+          OR: [{ endDate: null }, { endDate: { gte: now } }],
+        },
+        select: { status: true },
+        take: 1,
+      },
+    },
   });
 
   if (caregivers.length === 0) return; // kein Pfleger → beim Platform-Tenant belassen

@@ -91,11 +91,47 @@
       "welcome": "Dobrodošli, {name}",
       "subtitle": "Vaši zadaci i upiti na jednom mjestu.",
       "noMatches": "Još nema podudaranja. Ispunite profil i aktivirajte vidljivost na platformi da vas pronađu.",
+      "planBanner": {
+        "blocksPlanned": "{count, plural, one {# slobodan blok} other {# slobodna bloka}} planiran",
+        "horizon": "Horizont planiranja: 10 tjedana",
+        "edit": "Uredi",
+        "noBlocks": "Dostupnost još nije planirana",
+        "description": "Unesite sljedeći slobodan blok – automatski ćemo planirati 3 bloka od 14 dana.",
+        "firstBlock": "Sljedeći slobodan blok:",
+        "planButton": "Planiraj 3 bloka"
+      },
       "nav": {
         "overview": "Pregled",
         "profile": "Moj profil",
         "availability": "Dostupnost",
-        "meetings": "Termini"
+        "meetings": "Termini",
+        "matches": "Moji parovi"
+      },
+      "matches": {
+        "title": "Moji parovi",
+        "subtitle": "Predloženi i aktivni zadaci.",
+        "noMatches": "Nema dostupnih parova.",
+        "client": "Klijent",
+        "score": "Rezultat",
+        "status": "Status",
+        "proposals": "Prijedlozi termina",
+        "addProposal": "Predloži termin",
+        "proposalDate": "Datum i vrijeme",
+        "proposalDuration": "Trajanje",
+        "proposalSave": "Dodaj prijedlog",
+        "proposalSaving": "Sprema se...",
+        "proposalsSent": "E-mail poslan klijentu ✓",
+        "proposalsPending": "Čekanje 3. prijedloga",
+        "waitingKunde": "Čekanje odgovora klijenta",
+        "selectedSlot": "Termin potvrđen",
+        "duration30": "30 minuta",
+        "duration60": "60 minuta",
+        "statusProposed": "Predloženo",
+        "statusPending": "Na čekanju",
+        "statusAccepted": "Prihvaćeno",
+        "statusActive": "Aktivno",
+        "statusCompleted": "Završeno",
+        "statusCancelled": "Otkazano"
       },
       "profile": {
         "title": "Moj profil",

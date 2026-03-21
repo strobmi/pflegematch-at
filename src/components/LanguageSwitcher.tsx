@@ -11,7 +11,13 @@ const LOCALES: { code: string; flag: string; label: string }[] = [
   { code: "hr", flag: "🇭🇷", label: "Hrvatski" },
 ];
 
-export default function LanguageSwitcher({ currentLocale }: { currentLocale: string }) {
+export default function LanguageSwitcher({
+  currentLocale,
+  direction = "down",
+}: {
+  currentLocale: string;
+  direction?: "down" | "up";
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -44,7 +50,7 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale: str
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1.5 w-40 bg-white rounded-xl border border-[#EAD9C8] shadow-lg shadow-[#2D2D2D]/8 py-1 z-50">
+        <div className={`absolute right-0 w-40 bg-white rounded-xl border border-[#EAD9C8] shadow-lg shadow-[#2D2D2D]/8 py-1 z-50 ${direction === "up" ? "bottom-full mb-1.5" : "top-full mt-1.5"}`}>
           {LOCALES.map(({ code, flag, label }) => (
             <button
               key={code}

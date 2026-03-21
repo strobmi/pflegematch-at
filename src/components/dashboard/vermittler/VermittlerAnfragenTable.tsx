@@ -41,6 +41,7 @@ interface Pfleger {
   languages: string[];
   availability: string;
   averageRating: number | null;
+  currentAvailabilityStatus: string | null;
 }
 
 // ─── Label helpers ────────────────────────────────────────────────────────────
@@ -105,7 +106,7 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
-function BreakdownChip({ ok, label }: { ok: boolean; label: string }) {
+function BreakdownChip({ ok, label, failLabel }: { ok: boolean; label: string; failLabel?: string }) {
   return (
     <span
       className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
@@ -114,7 +115,7 @@ function BreakdownChip({ ok, label }: { ok: boolean; label: string }) {
           : "bg-[#2D2D2D]/6 text-[#2D2D2D]/35"
       }`}
     >
-      {ok ? "✓" : "✗"} {label}
+      {ok ? "✓" : "✗"} {ok ? label : (failLabel ?? label)}
     </span>
   );
 }
@@ -167,6 +168,7 @@ function PflegerCard({
         {sprachenLabel && (
           <BreakdownChip ok={result.sprachen.matched === result.sprachen.total} label={sprachenLabel} />
         )}
+        <BreakdownChip ok={result.verfuegbarkeit} label="Verfügbarkeit" failLabel="Verfügbarkeit prüfen" />
       </div>
     </button>
   );
@@ -190,7 +192,10 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
   const scoredPfleger = pfleger
     .map((p) => ({
       pfleger: p,
-      result: computeScore(p, { pflegegeldStufe: req.pflegegeldStufe, careNeedsRaw: req.careNeedsRaw }),
+      result: computeScore(
+        { ...p, currentAvailabilityStatus: p.currentAvailabilityStatus },
+        { pflegegeldStufe: req.pflegegeldStufe, careNeedsRaw: req.careNeedsRaw }
+      ),
     }))
     .sort((a, b) =>
       b.result.score !== a.result.score

@@ -76,6 +76,18 @@ enum MeetingStatus {
   COMPLETED
 }
 
+enum ProposalStatus {
+  OPEN
+  SELECTED
+  DECLINED
+}
+
+enum ProposedByRole {
+  PFLEGER
+  VERMITTLER
+  KUNDE
+}
+
 enum ClosedReason {
   KEIN_INTERESSE
   ANDERWEITIG_VERSORGT
@@ -111,6 +123,7 @@ model Tenant {
   matchRequests         MatchRequest[]
   caregiverAvailabilities CaregiverAvailability[]
   videoMeetings         VideoMeeting[]
+  meetingProposals      MeetingProposal[]
   inviteTokens          InviteToken[]
 
   @@index([slug])
@@ -336,9 +349,10 @@ model Match {
   tenant           Tenant           @relation(fields: [tenantId], references: [id])
   caregiverProfile CaregiverProfile @relation("PflegerMatches", fields: [caregiverProfileId], references: [id])
   clientProfile    ClientProfile    @relation("ClientMatches", fields: [clientProfileId], references: [id])
-  availabilities   CaregiverAvailability[]
-  reviews          Review[]
-  videoMeetings    VideoMeeting[]
+  availabilities    CaregiverAvailability[]
+  reviews           Review[]
+  videoMeetings     VideoMeeting[]
+  meetingProposals  MeetingProposal[]
 
   @@index([tenantId])
   @@index([caregiverProfileId])
@@ -472,4 +486,25 @@ model VideoMeeting {
   @@index([tenantId])
   @@index([matchId])
   @@index([scheduledAt])
+}
+
+// ─────────────────────────────────────────────
+// MEETING PROPOSAL (Terminvorschläge)
+// ─────────────────────────────────────────────
+
+model MeetingProposal {
+  id          String         @id @default(cuid())
+  tenantId    String
+  matchId     String
+  proposedAt  DateTime
+  durationMin Int            @default(30)
+  status      ProposalStatus @default(OPEN)
+  proposedBy  ProposedByRole
+  createdAt   DateTime       @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
+  @@index([tenantId])
 }

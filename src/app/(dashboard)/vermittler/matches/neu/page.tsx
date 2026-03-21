@@ -9,6 +9,8 @@ export const metadata = { title: "Match erstellen · pflegematch" };
 export default async function NeuerMatchPage() {
   const session = await requireTenantSession();
 
+  const now = new Date();
+
   const [pflegekraefte, klienten] = await Promise.all([
     prisma.caregiverProfile.findMany({
       where: { tenantId: session.tenantId, isActive: true },
@@ -20,6 +22,14 @@ export default async function NeuerMatchPage() {
         languages: true,
         averageRating: true,
         user: { select: { name: true } },
+        availabilities: {
+          where: {
+            startDate: { lte: now },
+            OR: [{ endDate: null }, { endDate: { gte: now } }],
+          },
+          select: { status: true },
+          take: 1,
+        },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -37,6 +47,12 @@ export default async function NeuerMatchPage() {
     }),
   ]);
 
+  const pflegekraefteFormatted = pflegekraefte.map((p) => ({
+    ...p,
+    averageRating: p.averageRating ? Number(p.averageRating) : null,
+    currentAvailabilityStatus: p.availabilities[0]?.status ?? null,
+  }));
+
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
@@ -45,7 +61,7 @@ export default async function NeuerMatchPage() {
         </Link>
         <h1 className="text-2xl font-bold text-[#2D2D2D]">Match erstellen</h1>
       </div>
-      <MatchCreateForm pflegekraefte={pflegekraefte} klienten={klienten} />
+      <MatchCreateForm pflegekraefte={pflegekraefteFormatted} klienten={klienten} />
     </div>
   );
 }
