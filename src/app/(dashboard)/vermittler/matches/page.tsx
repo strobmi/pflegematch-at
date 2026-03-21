@@ -4,6 +4,7 @@ import { requireTenantSession } from "@/lib/tenant";
 import { Plus, Link2, ArrowRight } from "lucide-react";
 import MatchTable from "@/components/dashboard/matches/MatchTable";
 import { computeScore } from "@/lib/scoring";
+import { serializeMatch, serializeCaregiverProfile } from "@/lib/serializers";
 
 export const metadata = { title: "Matches · pflegematch" };
 
@@ -27,17 +28,27 @@ export default async function MatchesPage() {
       clientProfile: {
         include: { user: { select: { name: true } } },
       },
+      videoMeetings: {
+        select: { scheduledAt: true, status: true },
+        orderBy: { scheduledAt: "asc" },
+      },
+      contract: { select: { id: true } },
     },
     orderBy: { createdAt: "desc" },
   });
 
   // Decimal → number serialisieren (Client Components akzeptieren keine Prisma Decimal-Objekte)
-  const matches = rawMatches.filter((m) => m.caregiverProfile != null && m.clientProfile != null).map((m) => ({
-    ...m,
-    caregiverProfile: m.caregiverProfile
-      ? { ...m.caregiverProfile, hourlyRate: m.caregiverProfile.hourlyRate ? Number(m.caregiverProfile.hourlyRate) : null }
-      : null,
-  }));
+  const matches = rawMatches
+    .filter((m) => m.caregiverProfile != null && m.clientProfile != null)
+    .map((m) => ({
+      ...serializeMatch(m),
+      caregiverProfile: m.caregiverProfile ? serializeCaregiverProfile(m.caregiverProfile) : null,
+      videoMeetings: m.videoMeetings.map((v) => ({
+        scheduledAt: v.scheduledAt.toISOString(),
+        status:      v.status,
+      })),
+      hasContract: !!m.contract,
+    }));
 
   // ── KPI calculations ──────────────────────────────────────
   const activeCount    = matches.filter((m) => m.status === "ACTIVE").length;

@@ -105,7 +105,8 @@
         "profile": "My profile",
         "availability": "Availability",
         "meetings": "Appointments",
-        "matches": "My Matches"
+        "matches": "My Matches",
+        "contract": "My Contract"
       },
       "matches": {
         "title": "My Matches",

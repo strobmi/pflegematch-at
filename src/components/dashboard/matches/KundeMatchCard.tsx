@@ -1,11 +1,12 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { User, CheckCircle, Calendar, Video, Clock, ThumbsUp } from "lucide-react";
-import { acceptMatch } from "@/app/(dashboard)/kunde/matches/actions";
+import { User, CheckCircle, Calendar, Video, Clock, ThumbsUp, ThumbsDown } from "lucide-react";
+import { confirmKennenlernen } from "@/app/(dashboard)/kunde/matches/actions";
 
 interface VideoMeeting {
   id: string;
@@ -27,6 +28,8 @@ interface Match {
   score: number | null;
   videoMeetings: VideoMeeting[];
   caregiverProfile: CaregiverProfile;
+  clientConfirmed: boolean | null;
+  clientConfirmedAt: Date | null;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -43,15 +46,23 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function KundeMatchCard({ match }: { match: Match }) {
   const [isPending, startTransition] = useTransition();
+  const [confirmError, setConfirmError] = useState<string | null>(null);
   const router = useRouter();
 
-  const meeting = match.videoMeetings[0] ?? null;
+  const now = new Date();
+  const pastMeeting = match.videoMeetings.find(
+    (m) => m.status !== "CANCELLED" && new Date(m.scheduledAt) < now
+  ) ?? null;
+  const upcomingMeeting = match.videoMeetings[0] ?? null;
+  const meeting = upcomingMeeting;
   const caregiverName =
     match.caregiverProfile.user.name ?? match.caregiverProfile.user.email;
 
-  function handleAccept() {
+  function handleConfirm(confirmed: boolean) {
+    setConfirmError(null);
     startTransition(async () => {
-      await acceptMatch(match.id);
+      const result = await confirmKennenlernen(match.id, confirmed);
+      if (result.error) { setConfirmError(result.error); return; }
       router.refresh();
     });
   }
@@ -104,42 +115,58 @@ export default function KundeMatchCard({ match }: { match: Match }) {
               {format(meeting.scheduledAt, "EEEE, dd. MMMM yyyy · HH:mm 'Uhr'", { locale: de })}
               {" "}({meeting.durationMin} Min.)
             </p>
-            <a
-              href={meeting.roomUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href={`/kunde/meetings/${meeting.id}`}
               className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-700 underline"
             >
               Zum Videotermin beitreten →
-            </a>
+            </Link>
           </div>
         )}
 
-        {/* Accept after call */}
-        {match.status === "PENDING" && meeting && (
-          <div className="pt-1">
-            <p className="text-xs text-[#2D2D2D]/50 mb-2">
-              Nach dem Kennenlerngespräch: Hat Ihnen die Pflegekraft gefallen?
-            </p>
-            <button
-              onClick={handleAccept}
-              disabled={isPending}
-              className="flex items-center gap-2 bg-green-600 text-white text-sm font-medium rounded-lg px-4 py-2 hover:bg-green-700 disabled:opacity-50 transition-colors"
-            >
-              {isPending ? (
-                <CheckCircle className="w-4 h-4 animate-pulse" />
-              ) : (
+        {/* Kennenlernen-Bestätigung */}
+        {pastMeeting && match.clientConfirmed === null && match.status !== "ACTIVE" && match.status !== "COMPLETED" && (
+          <div className="bg-[#FAF6F1] rounded-xl px-4 py-4 space-y-3">
+            <p className="text-xs font-semibold text-[#2D2D2D]/60">Wie war das Kennenlerngespräch?</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleConfirm(true)}
+                disabled={isPending}
+                className="flex items-center gap-2 bg-green-600 text-white text-sm font-medium rounded-lg px-4 py-2 hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
                 <ThumbsUp className="w-4 h-4" />
-              )}
-              {isPending ? "Wird gespeichert…" : "Pflegekraft akzeptieren"}
-            </button>
+                Gespräch war erfolgreich
+              </button>
+              <button
+                onClick={() => handleConfirm(false)}
+                disabled={isPending}
+                className="flex items-center gap-2 bg-white text-[#2D2D2D]/60 border border-[#EAD9C8] text-sm font-medium rounded-lg px-4 py-2 hover:bg-[#F5EDE3] disabled:opacity-50 transition-colors"
+              >
+                <ThumbsDown className="w-4 h-4" />
+                Passt leider nicht
+              </button>
+            </div>
+            {confirmError && <p className="text-xs text-red-500">{confirmError}</p>}
           </div>
         )}
 
-        {match.status === "ACCEPTED" && (
+        {match.clientConfirmed === true && match.status !== "ACTIVE" && match.status !== "COMPLETED" && (
           <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 rounded-xl px-4 py-3">
             <CheckCircle className="w-4 h-4" />
-            Pflegekraft akzeptiert – Ihr Vermittler bereitet den Vertrag vor.
+            Bestätigt{match.clientConfirmedAt ? ` am ${format(new Date(match.clientConfirmedAt), "dd.MM.yyyy", { locale: de })}` : ""} – Ihr Vermittler bereitet den Vertrag vor.
+          </div>
+        )}
+
+        {match.clientConfirmed === false && match.status !== "ACTIVE" && match.status !== "COMPLETED" && (
+          <div className="flex items-center gap-2 text-sm text-[#2D2D2D]/60 bg-[#FAF6F1] rounded-xl px-4 py-3">
+            Rückmeldung erhalten – Ihr Vermittler wird sich melden.
+          </div>
+        )}
+
+        {match.status === "ACTIVE" && (
+          <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 rounded-xl px-4 py-3">
+            <CheckCircle className="w-4 h-4" />
+            Vertrag aktiv – Ihr Vermittler hat den Vertrag aufgesetzt.
           </div>
         )}
       </div>

@@ -4,13 +4,13 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { Heart, LayoutGrid, Video, Settings, LogOut, Handshake, Menu, X } from "lucide-react";
+import { Heart, LayoutGrid, Settings, LogOut, Handshake, Menu, X, FileText } from "lucide-react";
 
 const navItems = [
   { href: "/kunde",               label: "Übersicht",     icon: LayoutGrid },
   { href: "/kunde/einstellungen", label: "Profil",        icon: Settings },
   { href: "/kunde/matches",       label: "Meine Matches", icon: Handshake },
-  { href: "/kunde/meetings",      label: "Videotermine",  icon: Video },
+  { href: "/kunde/vertrag",       label: "Mein Vertrag",  icon: FileText },
 ];
 
 export default function KundeSidebar({ userName }: { userName?: string | null }) {

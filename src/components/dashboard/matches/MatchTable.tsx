@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, Search } from "lucide-react";
-import { updateMatchStatus, deleteMatch } from "@/app/(dashboard)/vermittler/matches/actions";
+import Link from "next/link";
+import { Trash2, Search, FileText, Ban, RotateCcw, UserCheck } from "lucide-react";
+import { updateMatchStatus, deleteMatch, confirmForClient } from "@/app/(dashboard)/vermittler/matches/actions";
 import MeetingScheduleButton from "./MeetingScheduleButton";
 import type { Match, CaregiverProfile, ClientProfile, User } from "@prisma/client";
 import type { MatchStatus } from "@prisma/client";
@@ -36,6 +37,8 @@ function getEffectiveScore(m: MatchWithRelations): { score: number; isAuto: bool
 type MatchWithRelations = Match & {
   caregiverProfile: CaregiverProfile & { user: Pick<User, "name"> };
   clientProfile: ClientProfile & { user: Pick<User, "name"> };
+  videoMeetings?: { scheduledAt: string | Date; status: string }[];
+  hasContract?: boolean;
 };
 
 type Tab = "offen" | "laufend" | "abgeschlossen" | "alle";
@@ -49,23 +52,49 @@ const STATUS_CONFIG: Record<MatchStatus, { label: string; className: string }> =
   CANCELLED: { label: "Storniert",     className: "bg-red-50 text-red-600" },
 };
 
-const ALL_STATUSES: MatchStatus[] = ["PENDING", "ACCEPTED", "ACTIVE", "COMPLETED", "CANCELLED"];
+function getConfirmationBadge(m: MatchWithRelations) {
+  if (m.status === "ACTIVE" || m.status === "COMPLETED" || m.status === "CANCELLED") return null;
+  const { caregiverConfirmed, clientConfirmed } = m;
+  if (caregiverConfirmed === true && clientConfirmed === true)
+    return { label: "✓ Bereit für Vertrag", className: "bg-green-50 text-green-700" };
+  if (caregiverConfirmed === false || clientConfirmed === false)
+    return { label: "⚠ Ablehnung", className: "bg-yellow-50 text-yellow-700" };
+  const now = new Date();
+  const hasPastMeeting = (m.videoMeetings ?? []).some(
+    (v) => v.status !== "CANCELLED" && new Date(v.scheduledAt) < now
+  );
+  if (hasPastMeeting)
+    return { label: "○ Wartet auf Feedback", className: "bg-gray-50 text-gray-500" };
+  return null;
+}
 
-const OFFEN_STATUSES:        MatchStatus[] = ["PENDING"];
-const LAUFEND_STATUSES:      MatchStatus[] = ["ACCEPTED", "ACTIVE"];
+const OFFEN_STATUSES:         MatchStatus[] = ["PENDING"];
+const LAUFEND_STATUSES:       MatchStatus[] = ["ACCEPTED", "ACTIVE"];
 const ABGESCHLOSSEN_STATUSES: MatchStatus[] = ["COMPLETED", "CANCELLED"];
 
 export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
   const [tab, setTab]       = useState<Tab>("offen");
   const [search, setSearch] = useState("");
 
-  async function handleStatusChange(matchId: string, status: MatchStatus) {
-    await updateMatchStatus(matchId, status);
+  async function handleCancel(matchId: string) {
+    if (!confirm("Match wirklich stornieren?")) return;
+    await updateMatchStatus(matchId, "CANCELLED");
+  }
+
+  async function handleReset(matchId: string) {
+    if (!confirm("Match zurück auf Ausstehend setzen?")) return;
+    await updateMatchStatus(matchId, "PENDING");
+  }
+
+  async function handleConfirmForClient(matchId: string) {
+    if (!confirm("Klient hat telefonisch zugestimmt – Bestätigung setzen?")) return;
+    await confirmForClient(matchId);
   }
 
   async function handleDelete(matchId: string) {
     if (!confirm("Match wirklich löschen?")) return;
-    await deleteMatch(matchId);
+    const result = await deleteMatch(matchId);
+    if (result?.error) alert(result.error);
   }
 
   const counts = {
@@ -142,14 +171,13 @@ export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden md:table-cell">Score</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide hidden lg:table-cell">Start</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide">Status</th>
-              <th className="px-4 py-3" />
-              <th className="px-4 py-3" />
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide">Aktionen</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#EAD9C8]">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-[#2D2D2D]/35 text-sm">
+                <td colSpan={6} className="px-4 py-10 text-center text-[#2D2D2D]/35 text-sm">
                   {search ? "Keine Treffer für diese Suche." : "Keine Matches vorhanden."}
                 </td>
               </tr>
@@ -158,6 +186,12 @@ export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
                 const cfg = STATUS_CONFIG[m.status];
                 const { score, isAuto } = getEffectiveScore(m);
                 const scoreColor = score >= 70 ? "text-[#5A7A5A]" : score >= 40 ? "text-amber-600" : "text-[#2D2D2D]/40";
+                const badge = getConfirmationBadge(m);
+                const canCancel  = m.status === "PENDING" || m.status === "ACCEPTED";
+                const canReset   = m.status === "CANCELLED";
+                const canClientConfirm =
+                  m.clientConfirmed === null &&
+                  !["ACTIVE", "COMPLETED", "CANCELLED"].includes(m.status);
                 return (
                   <tr key={m.id} className="hover:bg-[#FAF6F1] transition-colors">
                     <td className="px-4 py-3 font-medium text-[#2D2D2D]">
@@ -176,26 +210,73 @@ export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
                         : "–"}
                     </td>
                     <td className="px-4 py-3">
-                      <select
-                        defaultValue={m.status}
-                        onChange={(e) => handleStatusChange(m.id, e.target.value as MatchStatus)}
-                        className={`text-xs font-medium px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none ${cfg.className}`}
-                      >
-                        {ALL_STATUSES.map((s) => (
-                          <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
-                        ))}
-                      </select>
+                      <div className="flex flex-col gap-1.5 items-start">
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${cfg.className}`}>
+                          {cfg.label}
+                        </span>
+                        {badge && (
+                          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${badge.className}`}>
+                            {badge.label}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
-                      <MeetingScheduleButton matchId={m.id} matchStatus={m.status} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => handleDelete(m.id)}
-                        className="p-1.5 text-[#2D2D2D]/40 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <MeetingScheduleButton matchId={m.id} matchStatus={m.status} />
+                        {m.caregiverConfirmed === true && m.clientConfirmed === true && m.status !== "ACTIVE" && (
+                          <Link
+                            href={`/vermittler/vertraege/neu/${m.id}`}
+                            className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors whitespace-nowrap"
+                          >
+                            <FileText className="w-3 h-3" />
+                            Vertrag
+                          </Link>
+                        )}
+                        {canClientConfirm && (
+                          <button
+                            onClick={() => handleConfirmForClient(m.id)}
+                            title="Klient hat telefonisch zugestimmt"
+                            className="p-1.5 text-[#2D2D2D]/30 hover:text-[#5A7A5A] hover:bg-[#F0F7F0] rounded-lg transition-colors cursor-pointer"
+                          >
+                            <UserCheck className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {canCancel && (
+                          <button
+                            onClick={() => handleCancel(m.id)}
+                            title="Match stornieren"
+                            className="p-1.5 text-[#2D2D2D]/30 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Ban className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {canReset && (
+                          <button
+                            onClick={() => handleReset(m.id)}
+                            title="Zurücksetzen zu Ausstehend"
+                            className="p-1.5 text-[#2D2D2D]/30 hover:text-[#C06B4A] hover:bg-[#FDF5F0] rounded-lg transition-colors cursor-pointer"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {m.hasContract ? (
+                          <span
+                            title="Vertrag vorhanden – nicht löschbar"
+                            className="p-1.5 inline-flex text-[#2D2D2D]/15 cursor-not-allowed"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleDelete(m.id)}
+                            title="Match löschen"
+                            className="p-1.5 text-[#2D2D2D]/30 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

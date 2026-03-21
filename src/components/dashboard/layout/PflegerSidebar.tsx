@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { Heart, LayoutGrid, User, Calendar, Video, LogOut, Handshake } from "lucide-react";
+import { Heart, LayoutGrid, User, Calendar, LogOut, Handshake, FileText } from "lucide-react";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
@@ -27,7 +27,7 @@ export default function PflegerSidebar({
     { href: `${base}/profil`,            label: t("profile"),      icon: User },
     { href: `${base}/verfuegbarkeit`,    label: t("availability"), icon: Calendar },
     { href: `${base}/matches`,           label: t("matches"),      icon: Handshake },
-    { href: `${base}/meetings`,          label: t("meetings"),     icon: Video },
+    { href: `${base}/vertrag`,           label: t("contract"),     icon: FileText },
   ];
 
   function isActive(href: string) {

@@ -4,15 +4,19 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { Heart, LayoutGrid, Users, HeartHandshake, Link2, LogOut, Inbox, User, Menu, X } from "lucide-react";
+import { Heart, LayoutGrid, Users, HeartHandshake, LogOut, User, Menu, X } from "lucide-react";
 
 const navItems = [
-  { href: "/vermittler",           label: "Übersicht",    icon: LayoutGrid },
-  { href: "/vermittler/profil",    label: "Profil",       icon: User },
-  { href: "/vermittler/pfleger",   label: "Pflegekräfte", icon: Users },
-  { href: "/vermittler/klienten",  label: "Klienten",     icon: HeartHandshake },
-  { href: "/vermittler/anfragen",  label: "Anfragen",     icon: Inbox },
-  { href: "/vermittler/matches",   label: "Matches",      icon: Link2 },
+  { href: "/vermittler",          label: "Übersicht",    icon: LayoutGrid },
+  { href: "/vermittler/profil",   label: "Profil",       icon: User },
+  { href: "/vermittler/pfleger",  label: "Pflegekräfte", icon: Users },
+  { href: "/vermittler/klienten", label: "Klienten",     icon: HeartHandshake },
+];
+
+const flowItems = [
+  { href: "/vermittler/anfragen",  label: "Anfragen", step: 1 },
+  { href: "/vermittler/matches",   label: "Matches",  step: 2 },
+  { href: "/vermittler/vertraege", label: "Verträge", step: 3 },
 ];
 
 export default function VermittlerSidebar({
@@ -103,6 +107,45 @@ export default function VermittlerSidebar({
               {label}
             </Link>
           ))}
+
+          {/* Flow-Gruppe: Anfragen → Matches → Verträge */}
+          <div className="pt-3">
+            <p className="px-3 text-[10px] font-semibold tracking-widest uppercase text-[#2D2D2D]/30 mb-1.5">
+              Prozess
+            </p>
+            <div className="relative">
+              {/* Vertikale Connector-Linie */}
+              <div className={`absolute left-5 top-3 bottom-3 w-px ${
+                flowItems.some((f) => isActive(f.href)) ? "bg-[#C06B4A]/50" : "bg-[#EAD9C8]"
+              }`} />
+              {flowItems.map(({ href, label, step }) => {
+                const active = isActive(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-[#C06B4A]/10 text-[#C06B4A]"
+                        : "text-[#2D2D2D]/65 hover:bg-[#F5EDE3] hover:text-[#2D2D2D]"
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 relative z-10 ${
+                        active
+                          ? "bg-[#C06B4A] text-white"
+                          : "bg-white border border-[#D0B8A0] text-[#2D2D2D]/40"
+                      }`}
+                    >
+                      {step}
+                    </div>
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </nav>
 
         {/* User + Sign out */}

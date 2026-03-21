@@ -38,7 +38,7 @@ export default async function PflegerMatchesPage({
   const matches = await prisma.match.findMany({
     where: {
       caregiverProfileId: caregiverProfile.id,
-      status: { in: ["PENDING", "ACCEPTED"] },
+      status: { in: ["PENDING", "ACCEPTED", "ACTIVE"] },
     },
     include: {
       clientProfile: {
@@ -50,9 +50,7 @@ export default async function PflegerMatchesPage({
         },
       },
       videoMeetings: {
-        where: { status: { not: "CANCELLED" } },
         orderBy: { scheduledAt: "asc" },
-        take: 1,
       },
     },
     orderBy: { createdAt: "desc" },
@@ -101,7 +99,21 @@ export default async function PflegerMatchesPage({
           {matches.map((match) => (
             <PflegerMatchCard
               key={match.id}
-              match={match}
+              match={{
+                id:                   match.id,
+                status:               match.status,
+                score:                match.score != null ? Number(match.score) : null,
+                caregiverConfirmed:   match.caregiverConfirmed,
+                caregiverConfirmedAt: match.caregiverConfirmedAt,
+                clientProfile:        match.clientProfile,
+                videoMeetings:        match.videoMeetings.map((v) => ({
+                  id:          v.id,
+                  scheduledAt: v.scheduledAt,
+                  durationMin: v.durationMin,
+                  roomUrl:     v.roomUrl,
+                  status:      v.status,
+                })),
+              }}
               wunschtermine={slotsMap.get(match.clientProfileId) ?? []}
             />
           ))}

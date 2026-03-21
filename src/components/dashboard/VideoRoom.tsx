@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Video } from "lucide-react";
 
 interface VideoRoomProps {
@@ -8,17 +9,19 @@ interface VideoRoomProps {
 }
 
 export default function VideoRoom({ url, displayName }: VideoRoomProps) {
+  useEffect(() => {
+    import("@whereby.com/browser-sdk/embed");
+  }, []);
+
   const src = displayName
     ? `${url}?displayName=${encodeURIComponent(displayName)}`
     : url;
 
   return (
     <div className="w-full h-[calc(100vh-72px)] rounded-2xl overflow-hidden border border-[#EAD9C8] bg-[#F7F3EE]">
-      <iframe
-        src={src}
-        allow="camera; microphone; fullscreen; display-capture; autoplay; speaker-selection"
-        className="w-full h-full border-0"
-        title="Videotermin"
+      <whereby-embed
+        room={src}
+        style={{ width: "100%", height: "100%", border: "none" }}
       />
     </div>
   );

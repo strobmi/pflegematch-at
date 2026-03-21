@@ -65,6 +65,12 @@ enum ProvisionStatus {
   PAID
 }
 
+enum ContractStatus {
+  ACTIVE
+  TERMINATED
+  EXPIRED
+}
+
 enum ReviewTarget {
   CAREGIVER
   VERMITTLER
@@ -113,7 +119,9 @@ model Tenant {
   updatedAt DateTime     @updatedAt
 
   isPlatform        Boolean   @default(false)   // true = pflegematch.at selbst (genau 1x)
-  provisionPercent  Decimal?  @db.Decimal(5, 2) // z.B. 15.00 = 15%, Superadmin konfigurierbar
+  provisionPercent  Decimal?  @db.Decimal(5, 2) // Legacy: %, bleibt für Übergangszeit
+  defaultMatchFee   Decimal?  @db.Decimal(8, 2) // Standard-Matchgebühr (€, einmalig)
+  defaultMonthlyFee Decimal?  @db.Decimal(8, 2) // Standard-Monatspauschale (€, pro aktivem Match)
   lastAssignedAt    DateTime?                   // Score-Zuweisung: wann zuletzt eine Anfrage zugewiesen wurde
 
   memberships           TenantMembership[]
@@ -125,6 +133,7 @@ model Tenant {
   videoMeetings         VideoMeeting[]
   meetingProposals      MeetingProposal[]
   inviteTokens          InviteToken[]
+  contracts             Contract[]
 
   @@index([slug])
 }
@@ -246,6 +255,7 @@ model CaregiverProfile {
   matchesAsPfleger Match[]                  @relation("PflegerMatches")
   availabilities   CaregiverAvailability[]
   directRequests   MatchRequest[]           @relation("DirectRequests")
+  contracts        Contract[]
 
   @@index([tenantId])
 }
@@ -284,6 +294,7 @@ model ClientProfile {
   tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   matchesAsClient Match[]     @relation("ClientMatches")
   matchRequests   MatchRequest[]
+  contracts       Contract[]
 
   @@index([tenantId])
 }
@@ -305,8 +316,15 @@ model Match {
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 
-  provisionAmount  Decimal?        @db.Decimal(8, 2) // berechneter Provisionsbetrag
+  provisionAmount  Decimal?        @db.Decimal(8, 2) // = Contract.monthlyFeeAmount (Snapshot)
   provisionStatus  ProvisionStatus @default(PENDING)
+  matchFeeAmount   Decimal?        @db.Decimal(8, 2) // = Contract.matchFeeAmount (Snapshot, einmalig)
+
+  // Kennenlerngespräch-Bestätigung
+  caregiverConfirmed   Boolean?
+  caregiverConfirmedAt DateTime?
+  clientConfirmed      Boolean?
+  clientConfirmedAt    DateTime?
 
   tenant           Tenant           @relation(fields: [tenantId], references: [id])
   caregiverProfile CaregiverProfile @relation("PflegerMatches", fields: [caregiverProfileId], references: [id], onDelete: Cascade)
@@ -315,6 +333,7 @@ model Match {
   reviews           Review[]
   videoMeetings     VideoMeeting[]
   meetingProposals  MeetingProposal[]
+  contract          Contract?
 
   @@index([tenantId])
   @@index([caregiverProfileId])
@@ -453,6 +472,45 @@ model VideoMeeting {
 // ─────────────────────────────────────────────
 // MEETING PROPOSAL (Terminvorschläge)
 // ─────────────────────────────────────────────
+
+// ─────────────────────────────────────────────
+// CONTRACT (Betreuungsvertrag)
+// ─────────────────────────────────────────────
+
+model Contract {
+  id                 String         @id @default(cuid())
+  matchId            String         @unique
+  tenantId           String
+  caregiverProfileId String
+  clientProfileId    String
+
+  contractNumber          String?   // Interne Vermittler-Referenznummer
+  contractNumberCaregiver String?   // Referenznummer für Pflegekraft (z.B. aus deren System)
+  contractNumberClient    String?   // Referenznummer für Klient (z.B. aus deren System)
+
+  startDate          DateTime
+  endDate            DateTime?      // null = unbefristet
+  noticePeriodDays   Int            @default(14)
+  notes              String?        @db.Text
+
+  // Tatsächlich verrechnet (Snapshot bei Vertragsabschluss, Vermittler kann anpassen)
+  // Vorausgefüllt aus Tenant.defaultMatchFee / defaultMonthlyFee
+  matchFeeAmount     Decimal?       @db.Decimal(8, 2)  // einmalig
+  monthlyFeeAmount   Decimal?       @db.Decimal(8, 2)  // laufend pro Monat
+
+  status             ContractStatus @default(ACTIVE)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  match            Match            @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  tenant           Tenant           @relation(fields: [tenantId], references: [id])
+  caregiverProfile CaregiverProfile @relation(fields: [caregiverProfileId], references: [id])
+  clientProfile    ClientProfile    @relation(fields: [clientProfileId], references: [id])
+
+  @@index([tenantId])
+  @@index([caregiverProfileId])
+  @@index([clientProfileId])
+}
 
 model MeetingProposal {
   id          String         @id @default(cuid())

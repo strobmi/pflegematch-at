@@ -24,7 +24,8 @@ export default async function TenantBearbeitenPage({ params }: { params: Promise
     tenantPhone:      tenant.phone ?? "",
     tenantAddress:    tenant.address ?? "",
     status:           tenant.status,
-    provisionPercent: tenant.provisionPercent ? Number(tenant.provisionPercent) : undefined,
+    defaultMatchFee:   tenant.defaultMatchFee   ? Number(tenant.defaultMatchFee)   : undefined,
+    defaultMonthlyFee: tenant.defaultMonthlyFee ? Number(tenant.defaultMonthlyFee) : undefined,
   };
 
   return (

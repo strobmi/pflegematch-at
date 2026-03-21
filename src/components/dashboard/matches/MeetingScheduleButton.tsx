@@ -23,9 +23,10 @@ export default function MeetingScheduleButton({
     <button
       onClick={() => router.push(`/vermittler/matches/${matchId}/video`)}
       title="Videotermin planen"
-      className="p-1.5 text-[#2D2D2D]/40 hover:text-[#7B9E7B] hover:bg-[#F0F7F0] rounded-lg transition-colors"
+      className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-lg bg-[#5A7A5A]/10 text-[#5A7A5A] hover:bg-[#5A7A5A]/20 transition-colors whitespace-nowrap cursor-pointer"
     >
-      <Video className="w-4 h-4" />
+      <Video className="w-3 h-3" />
+      Kennenlernen
     </button>
   );
 }

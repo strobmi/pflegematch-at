@@ -27,7 +27,7 @@ export default async function KundeMatchesPage() {
   const matches = await prisma.match.findMany({
     where: {
       clientProfileId: clientProfile.id,
-      status: { in: ["PENDING", "ACCEPTED"] },
+      status: { in: ["PENDING", "ACCEPTED", "ACTIVE"] },
     },
     include: {
       caregiverProfile: {
@@ -41,9 +41,7 @@ export default async function KundeMatchesPage() {
         orderBy: { proposedAt: "asc" },
       },
       videoMeetings: {
-        where: { status: { not: "CANCELLED" } },
         orderBy: { scheduledAt: "asc" },
-        take: 1,
       },
     },
     orderBy: { createdAt: "desc" },
@@ -65,9 +63,30 @@ export default async function KundeMatchesPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {matches.map((match) => (
-            <KundeMatchCard key={match.id} match={match} />
-          ))}
+          {matches.map((match) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const m = match as any;
+            return (
+            <KundeMatchCard
+              key={match.id}
+              match={{
+                id:                match.id,
+                status:            match.status,
+                score:             match.score != null ? Number(match.score) : null,
+                clientConfirmed:   m.clientConfirmed   ?? null,
+                clientConfirmedAt: m.clientConfirmedAt ?? null,
+                caregiverProfile:  match.caregiverProfile,
+                videoMeetings:     match.videoMeetings.map((v) => ({
+                  id:          v.id,
+                  scheduledAt: v.scheduledAt,
+                  durationMin: v.durationMin,
+                  roomUrl:     v.roomUrl,
+                  status:      v.status,
+                })),
+              }}
+            />
+            );
+          })}
         </div>
       )}
     </div>

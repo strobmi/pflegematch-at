@@ -68,8 +68,6 @@ export default async function AdminMatchesPage() {
     return {
       id:               m.id,
       status:           m.status,
-      provisionStatus:  m.provisionStatus,
-      provisionAmount:  m.provisionAmount != null ? Number(m.provisionAmount) : null,
       startDate:        m.startDate ? m.startDate.toISOString() : null,
       computedScore,
       scoreIsAuto,
@@ -79,26 +77,15 @@ export default async function AdminMatchesPage() {
     };
   });
 
-  const activeCount    = rows.filter((m) => m.status === "ACTIVE").length;
-  const provisionTotal = rows.reduce((sum, m) => sum + (m.provisionAmount ?? 0), 0);
+  const activeCount = rows.filter((m) => m.status === "ACTIVE").length;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Alle Matches</h1>
-          <p className="text-sm text-white/50 mt-0.5">
-            {rows.length} gesamt · {activeCount} aktiv
-          </p>
-        </div>
-        {provisionTotal > 0 && (
-          <div className="text-right">
-            <p className="text-xs text-white/40 uppercase tracking-wide">Provision gesamt</p>
-            <p className="text-xl font-bold text-[#A8C5A8]">
-              {provisionTotal.toLocaleString("de-AT", { style: "currency", currency: "EUR" })}
-            </p>
-          </div>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold text-white">Alle Matches</h1>
+        <p className="text-sm text-white/50 mt-0.5">
+          {rows.length} gesamt · {activeCount} aktiv
+        </p>
       </div>
 
       <AdminMatchesTable matches={rows} />

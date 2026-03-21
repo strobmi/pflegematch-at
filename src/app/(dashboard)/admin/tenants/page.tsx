@@ -51,7 +51,6 @@ export default async function AdminTenantsPage() {
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Pfleger</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Klienten</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Matches</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden lg:table-cell">Provision</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Status</th>
               <th className="px-4 py-3" />
             </tr>
@@ -78,12 +77,6 @@ export default async function AdminTenantsPage() {
                   <td className="px-4 py-3 text-white/70 hidden md:table-cell">{t._count.caregiverProfiles}</td>
                   <td className="px-4 py-3 text-white/70 hidden md:table-cell">{t._count.clientProfiles}</td>
                   <td className="px-4 py-3 text-white/70 hidden md:table-cell">{t._count.matches}</td>
-                  <td className="px-4 py-3 hidden lg:table-cell">
-                    {t.provisionPercent != null
-                      ? <span className="text-[#A8C5A8] font-medium">{Number(t.provisionPercent).toFixed(1)} %</span>
-                      : <span className="text-white/25 text-xs">–</span>
-                    }
-                  </td>
                   <td className="px-4 py-3">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cfg.className}`}>
                       {cfg.label}

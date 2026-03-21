@@ -106,8 +106,13 @@ export async function createMatch(data: CreateMatchData) {
   redirect("/vermittler/matches");
 }
 
+// Only PENDING and CANCELLED are settable manually via targeted action buttons
+const MANUAL_STATUSES: MatchStatus[] = ["PENDING", "CANCELLED"];
+
 export async function updateMatchStatus(matchId: string, status: MatchStatus) {
   const session = await requireTenantSession();
+
+  if (!MANUAL_STATUSES.includes(status)) return { error: "Dieser Status kann nicht manuell gesetzt werden." };
 
   const match = await prisma.match.findFirst({
     where: { id: matchId, tenantId: session.tenantId },
@@ -125,23 +130,44 @@ export async function deleteMatch(matchId: string) {
   });
   if (!match) return { error: "Nicht gefunden." };
 
-  await prisma.$transaction(async (tx) => {
-    await tx.match.delete({ where: { id: matchId } });
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.match.delete({ where: { id: matchId } });
 
-    await tx.matchRequest.updateMany({
-      where: {
-        tenantId: session.tenantId,
-        clientProfileId: match.clientProfileId,
-        isProcessed: true,
-      },
-      data: {
-        isProcessed: false,
-        clientProfileId: null,
-        processedByUserId: null,
-      },
+      await tx.matchRequest.updateMany({
+        where: {
+          tenantId: session.tenantId,
+          clientProfileId: match.clientProfileId,
+          isProcessed: true,
+        },
+        data: {
+          isProcessed: false,
+          clientProfileId: null,
+          processedByUserId: null,
+        },
+      });
     });
-  });
+  } catch {
+    return { error: "Match kann nicht gelöscht werden – möglicherweise ist ein Vertrag vorhanden." };
+  }
 
   revalidatePath("/vermittler/matches");
   revalidatePath("/vermittler/anfragen");
+}
+
+export async function confirmForClient(matchId: string) {
+  const session = await requireTenantSession();
+  const match = await prisma.match.findFirst({
+    where: { id: matchId, tenantId: session.tenantId },
+  });
+  if (!match) return { error: "Nicht gefunden." };
+
+  await prisma.match.update({
+    where: { id: matchId },
+    data: {
+      clientConfirmed:   true,
+      clientConfirmedAt: new Date(),
+    },
+  });
+  revalidatePath("/vermittler/matches");
 }

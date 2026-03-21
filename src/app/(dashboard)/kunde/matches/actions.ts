@@ -39,3 +39,25 @@ export async function acceptMatch(matchId: string) {
   revalidatePath("/vermittler/matches");
   return { success: true };
 }
+
+export async function confirmKennenlernen(matchId: string, confirmed: boolean) {
+  const { clientProfile } = await getKundeProfile();
+
+  const match = await prisma.match.findFirst({
+    where: { id: matchId, clientProfileId: clientProfile.id },
+    select: { id: true },
+  });
+  if (!match) return { error: "Match nicht gefunden." };
+
+  await prisma.match.update({
+    where: { id: matchId },
+    data: {
+      clientConfirmed:   confirmed,
+      clientConfirmedAt: new Date(),
+    },
+  });
+
+  revalidatePath("/kunde/matches");
+  revalidatePath("/vermittler/matches");
+  return { ok: true };
+}

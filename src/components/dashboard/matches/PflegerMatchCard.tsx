@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { User, MapPin, Star, Calendar, CheckCircle, Video } from "lucide-react";
+import { User, MapPin, Star, Calendar, CheckCircle, Video, ThumbsUp, ThumbsDown } from "lucide-react";
 import { scheduleMeetingFromSlot } from "@/app/(dashboard)/vermittler/matches/video-actions";
+import { confirmKennenlernen } from "@/app/[locale]/dashboard/pfleger/matches/actions";
 
 export interface Wunschtermin {
   dateTime: string;
@@ -33,6 +35,8 @@ interface Match {
   score: number | null;
   videoMeetings: VideoMeeting[];
   clientProfile: ClientProfile;
+  caregiverConfirmed: boolean | null;
+  caregiverConfirmedAt: Date | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -62,6 +66,9 @@ export default function PflegerMatchCard({
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const params = useParams();
+  const locale = (params?.locale as string) ?? "de";
+  const [confirmError, setConfirmError] = useState<string | null>(null);
   const [ownDate, setOwnDate] = useState("");
   const [ownTime, setOwnTime] = useState("");
   const [ownDuration, setOwnDuration] = useState<30 | 60>(30);
@@ -71,7 +78,20 @@ export default function PflegerMatchCard({
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
+  const now = new Date();
+  const pastMeeting = match.videoMeetings.find(
+    (m) => m.status !== "CANCELLED" && new Date(m.scheduledAt) < now
+  ) ?? null;
   const meeting = match.videoMeetings[0] ?? null;
+
+  function handleConfirm(confirmed: boolean) {
+    setConfirmError(null);
+    startTransition(async () => {
+      const result = await confirmKennenlernen(match.id, confirmed);
+      if (result.error) { setConfirmError(result.error); return; }
+      router.refresh();
+    });
+  }
   const clientName = match.clientProfile.user.name ?? match.clientProfile.user.email;
 
   function handleSchedule(slot: Wunschtermin) {
@@ -142,14 +162,12 @@ export default function PflegerMatchCard({
               {format(meeting.scheduledAt, "EEEE, dd. MMMM yyyy · HH:mm 'Uhr'", { locale: de })}{" "}
               ({meeting.durationMin} Min.)
             </p>
-            <a
-              href={meeting.roomUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href={`/${locale}/dashboard/pfleger/meetings/${meeting.id}`}
               className="text-sm font-medium text-blue-700 underline"
             >
               Beitreten →
-            </a>
+            </Link>
           </div>
         )}
 
@@ -231,10 +249,49 @@ export default function PflegerMatchCard({
           </div>
         )}
 
-        {match.status === "ACCEPTED" && (
+        {/* Kennenlernen-Bestätigung */}
+        {pastMeeting && match.caregiverConfirmed === null && match.status !== "ACTIVE" && match.status !== "COMPLETED" && (
+          <div className="bg-[#FAF6F1] rounded-xl px-4 py-4 space-y-3">
+            <p className="text-xs font-semibold text-[#2D2D2D]/60">Wie war das Kennenlerngespräch?</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleConfirm(true)}
+                disabled={isPending}
+                className="flex items-center gap-2 bg-green-600 text-white text-sm font-medium rounded-lg px-4 py-2 hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                <ThumbsUp className="w-4 h-4" />
+                Gespräch war erfolgreich
+              </button>
+              <button
+                onClick={() => handleConfirm(false)}
+                disabled={isPending}
+                className="flex items-center gap-2 bg-white text-[#2D2D2D]/60 border border-[#EAD9C8] text-sm font-medium rounded-lg px-4 py-2 hover:bg-[#F5EDE3] disabled:opacity-50 transition-colors"
+              >
+                <ThumbsDown className="w-4 h-4" />
+                Passt leider nicht
+              </button>
+            </div>
+            {confirmError && <p className="text-xs text-red-500">{confirmError}</p>}
+          </div>
+        )}
+
+        {match.caregiverConfirmed === true && match.status !== "ACTIVE" && match.status !== "COMPLETED" && (
           <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 rounded-xl px-4 py-3">
             <CheckCircle className="w-4 h-4" />
-            Klient hat die Zusammenarbeit bestätigt.
+            Rückmeldung gesendet – Ihr Vermittler wird sich melden.
+          </div>
+        )}
+
+        {match.caregiverConfirmed === false && match.status !== "ACTIVE" && match.status !== "COMPLETED" && (
+          <div className="flex items-center gap-2 text-sm text-[#2D2D2D]/60 bg-[#FAF6F1] rounded-xl px-4 py-3">
+            Rückmeldung erhalten – Ihr Vermittler wird sich melden.
+          </div>
+        )}
+
+        {match.status === "ACTIVE" && (
+          <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 rounded-xl px-4 py-3">
+            <CheckCircle className="w-4 h-4" />
+            Vertrag aktiv.
           </div>
         )}
 

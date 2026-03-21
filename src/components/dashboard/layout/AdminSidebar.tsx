@@ -4,14 +4,15 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { Heart, LayoutGrid, Building2, Users, LogOut, Link2, Inbox, Menu, X } from "lucide-react";
+import { Heart, LayoutGrid, Building2, Users, LogOut, Link2, Inbox, Menu, X, TrendingUp } from "lucide-react";
 
 const navItems = [
-  { href: "/admin",          label: "Übersicht",  icon: LayoutGrid },
-  { href: "/admin/tenants",  label: "Vermittler", icon: Building2 },
-  { href: "/admin/users",    label: "Alle User",  icon: Users },
-  { href: "/admin/anfragen", label: "Anfragen",   icon: Inbox },
-  { href: "/admin/matches",  label: "Matches",    icon: Link2 },
+  { href: "/admin",               label: "Übersicht",   icon: LayoutGrid },
+  { href: "/admin/tenants",       label: "Vermittler",  icon: Building2 },
+  { href: "/admin/users",         label: "Alle User",   icon: Users },
+  { href: "/admin/anfragen",      label: "Anfragen",    icon: Inbox },
+  { href: "/admin/matches",       label: "Matches",     icon: Link2 },
+  { href: "/admin/controlling",   label: "Controlling", icon: TrendingUp },
 ];
 
 export default function AdminSidebar() {

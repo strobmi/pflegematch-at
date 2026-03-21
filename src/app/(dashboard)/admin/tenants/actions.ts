@@ -67,13 +67,14 @@ export async function createVermittler(data: VermittlerFormData) {
 }
 
 const TenantEditSchema = z.object({
-  tenantName:       z.string().min(2, "Min. 2 Zeichen"),
-  tenantSlug:       z.string().min(2, "Min. 2 Zeichen").regex(/^[a-z0-9-]+$/, "Nur Kleinbuchstaben, Zahlen und Bindestriche"),
-  tenantEmail:      z.string().email("Ungültige E-Mail"),
-  tenantPhone:      z.string().optional(),
-  tenantAddress:    z.string().optional(),
-  status:           z.enum(["ACTIVE", "PENDING", "SUSPENDED"]),
-  provisionPercent: z.coerce.number().min(0).max(100).optional().nullable(),
+  tenantName:        z.string().min(2, "Min. 2 Zeichen"),
+  tenantSlug:        z.string().min(2, "Min. 2 Zeichen").regex(/^[a-z0-9-]+$/, "Nur Kleinbuchstaben, Zahlen und Bindestriche"),
+  tenantEmail:       z.string().email("Ungültige E-Mail"),
+  tenantPhone:       z.string().optional(),
+  tenantAddress:     z.string().optional(),
+  status:            z.enum(["ACTIVE", "PENDING", "SUSPENDED"]),
+  defaultMatchFee:   z.coerce.number().min(0).optional().nullable(),
+  defaultMonthlyFee: z.coerce.number().min(0).optional().nullable(),
 });
 
 export type TenantEditFormData = z.infer<typeof TenantEditSchema>;
@@ -97,8 +98,9 @@ export async function updateTenant(tenantId: string, data: TenantEditFormData) {
       email:            parsed.tenantEmail,
       phone:            parsed.tenantPhone,
       address:          parsed.tenantAddress,
-      status:           parsed.status,
-      provisionPercent: parsed.provisionPercent ?? null,
+      status:            parsed.status,
+      defaultMatchFee:   parsed.defaultMatchFee ?? null,
+      defaultMonthlyFee: parsed.defaultMonthlyFee ?? null,
     },
   });
 
