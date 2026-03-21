@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { ChevronDown, ChevronUp, Check, Loader2, Search, Link2, RotateCcw, UserCheck } from "lucide-react";
+import { ChevronDown, ChevronUp, Check, Loader2, Search, Link2, RotateCcw, UserCheck, Calendar } from "lucide-react";
 import { markAnfrageProcessed, createMatchFromAnfrage, reopenAnfrage } from "@/app/(dashboard)/vermittler/anfragen/actions";
 import { computeScore, type ScoreResult } from "@/lib/scoring";
 
@@ -310,6 +310,22 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
                 } />
               </div>
             </div>
+
+            {Array.isArray(raw.wunschtermine) && (raw.wunschtermine as Array<{ dateTime: string; durationMin: number }>).filter((s) => new Date(s.dateTime) > new Date()).length > 0 && (
+              <div className="bg-white rounded-xl border border-[#EAD9C8] p-4 mb-4">
+                <p className="text-xs font-semibold text-[#2D2D2D]/40 uppercase tracking-wide mb-2">Wunschtermine Kennenlernen</p>
+                <div className="space-y-1.5">
+                  {(raw.wunschtermine as Array<{ dateTime: string; durationMin: number }>)
+                    .filter((s) => new Date(s.dateTime) > new Date())
+                    .map((s, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs text-[#2D2D2D]/70">
+                        <Calendar className="w-3.5 h-3.5 text-[#C06B4A] shrink-0" />
+                        {format(new Date(s.dateTime), "EE, dd.MM.yyyy · HH:mm 'Uhr'", { locale: de })} ({s.durationMin} Min.)
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
 
             {req.notes && (
               <div className="bg-white rounded-xl border border-[#EAD9C8] p-4 mb-4">

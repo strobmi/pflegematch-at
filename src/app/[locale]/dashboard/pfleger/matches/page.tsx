@@ -38,7 +38,7 @@ export default async function PflegerMatchesPage({
   const matches = await prisma.match.findMany({
     where: {
       caregiverProfileId: caregiverProfile.id,
-      status: { in: ["PROPOSED", "PENDING", "ACCEPTED"] },
+      status: { in: ["PENDING", "ACCEPTED"] },
     },
     include: {
       clientProfile: {

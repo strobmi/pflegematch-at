@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X, Calendar } from "lucide-react";
 import { createAnfrage } from "@/app/(dashboard)/vermittler/anfragen/actions";
 
 const ic = "w-full px-3 py-2.5 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/10 transition-colors placeholder:text-[#2D2D2D]/35";
@@ -28,11 +28,18 @@ const LEVELS = [
   { value: "muttersprache",   label: "Muttersprache" },
 ];
 
+const emptySlot = () => ({ date: "", time: "", durationMin: 60 as 30 | 60 });
+
 export default function AnfrageCreateForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState<string | null>(null);
   const [sprachen, setSprachen] = useState<Array<{ lang: string; level: string }>>([]);
+  const [slotInputs, setSlotInputs] = useState([emptySlot(), emptySlot(), emptySlot()]);
+
+  function updateSlot(index: number, field: "date" | "time" | "durationMin", value: string | number) {
+    setSlotInputs((prev) => prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)));
+  }
 
   function toggleSprache(lang: string) {
     setSprachen((prev) =>
@@ -51,6 +58,9 @@ export default function AnfrageCreateForm() {
     setLoading(true);
     setError(null);
     const fd = new FormData(e.currentTarget);
+    const wunschtermine = slotInputs
+      .filter((s) => s.date && s.time)
+      .map((s) => ({ dateTime: `${s.date}T${s.time}:00`, durationMin: s.durationMin }));
     try {
       await createAnfrage({
         contactName:   fd.get("contactName") as string,
@@ -67,6 +77,7 @@ export default function AnfrageCreateForm() {
         ort:           (fd.get("ort") as string) || undefined,
         sprachen,
         notes:         (fd.get("notes") as string) || undefined,
+        wunschtermine: wunschtermine.length > 0 ? wunschtermine : undefined,
       });
     } catch (err) {
       // Re-throw Next.js redirect errors so they are handled correctly
@@ -261,6 +272,53 @@ export default function AnfrageCreateForm() {
             </div>
           )}
         </div>
+      </Section>
+
+      {/* Wunschtermine */}
+      <Section title="Wunschtermine für Kennenlerngespräch (optional)">
+        {(() => {
+          const today = new Date();
+          today.setDate(today.getDate() + 1);
+          const minDate = today.toISOString().split("T")[0];
+          return (
+            <div className="space-y-3">
+              {slotInputs.map((slot, i) => (
+                <div key={i} className="space-y-1">
+                  <label className="block text-xs font-medium text-[#2D2D2D]/50">{i + 1}. Wunschtermin</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="date"
+                      value={slot.date}
+                      min={minDate}
+                      onChange={(e) => updateSlot(i, "date", e.target.value)}
+                      className={ic}
+                    />
+                    <input
+                      type="time"
+                      value={slot.time}
+                      disabled={!slot.date}
+                      onChange={(e) => updateSlot(i, "time", e.target.value)}
+                      className={`${ic} w-32 disabled:opacity-40`}
+                    />
+                    <select
+                      value={slot.durationMin}
+                      disabled={!slot.date}
+                      onChange={(e) => updateSlot(i, "durationMin", Number(e.target.value))}
+                      className={`${sc} w-28 disabled:opacity-40`}
+                    >
+                      <option value={30}>30 Min.</option>
+                      <option value={60}>60 Min.</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+              <p className="text-xs text-[#2D2D2D]/40 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5" />
+                Frühestens morgen · max. ein Termin pro Tag
+              </p>
+            </div>
+          );
+        })()}
       </Section>
 
       {/* Notizen */}

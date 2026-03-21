@@ -66,7 +66,7 @@ export async function scheduleVideoMeeting(
 
   await prisma.match.update({
     where: { id: matchId },
-    data: { status: "PENDING" },
+    data: { status: "ACCEPTED" },
   });
 
   // Send email notifications
@@ -157,6 +157,15 @@ export async function cancelVideoMeetingAction(meetingId: string): Promise<void>
   await cancelVideoMeeting(meetingId);
 }
 
+// Void wrapper for slot quick-pick forms in video/neu page
+export async function scheduleVideoMeetingAction(
+  matchId: string,
+  scheduledAt: string,
+  durationMin: 30 | 60,
+): Promise<void> {
+  await scheduleVideoMeeting(matchId, { scheduledAt, durationMin });
+}
+
 /**
  * Called from Pfleger portal — same logic as scheduleVideoMeeting but
  * returns a result instead of redirecting.
@@ -201,7 +210,7 @@ export async function scheduleMeetingFromSlot(
 
   await prisma.match.update({
     where: { id: matchId },
-    data: { status: "PENDING" },
+    data: { status: "ACCEPTED" },
   });
 
   const caregiverUser = match.caregiverProfile.user;

@@ -8,7 +8,6 @@ import { computeScore } from "@/lib/scoring";
 export const metadata = { title: "Matches · pflegematch" };
 
 const FUNNEL_STAGES = [
-  { status: "PROPOSED",  label: "Vorgeschlagen",  color: "#C06B4A", bg: "#F5EDE3", textColor: "#C06B4A" },
   { status: "PENDING",   label: "Ausstehend",     color: "#D97706", bg: "#FEF3C7", textColor: "#D97706" },
   { status: "ACCEPTED",  label: "Akzeptiert",     color: "#5A7A5A", bg: "#F0F7F0", textColor: "#5A7A5A" },
   { status: "ACTIVE",    label: "Aktiv",           color: "#7B9E7B", bg: "#DCFCE7", textColor: "#166534" },

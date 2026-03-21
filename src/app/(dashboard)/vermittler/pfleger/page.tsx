@@ -24,7 +24,7 @@ export default async function PflegerListPage() {
     where: {
       tenantId: session.tenantId,
       caregiverProfileId: { in: profileIds },
-      status: { in: ["ACTIVE", "PROPOSED", "PENDING"] },
+      status: { in: ["ACTIVE", "PENDING"] },
     },
     select: { caregiverProfileId: true, status: true },
   });

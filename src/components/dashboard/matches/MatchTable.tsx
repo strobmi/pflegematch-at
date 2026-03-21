@@ -49,9 +49,9 @@ const STATUS_CONFIG: Record<MatchStatus, { label: string; className: string }> =
   CANCELLED: { label: "Storniert",     className: "bg-red-50 text-red-600" },
 };
 
-const ALL_STATUSES: MatchStatus[] = ["PROPOSED", "PENDING", "ACCEPTED", "ACTIVE", "COMPLETED", "CANCELLED"];
+const ALL_STATUSES: MatchStatus[] = ["PENDING", "ACCEPTED", "ACTIVE", "COMPLETED", "CANCELLED"];
 
-const OFFEN_STATUSES:        MatchStatus[] = ["PROPOSED", "PENDING"];
+const OFFEN_STATUSES:        MatchStatus[] = ["PENDING"];
 const LAUFEND_STATUSES:      MatchStatus[] = ["ACCEPTED", "ACTIVE"];
 const ABGESCHLOSSEN_STATUSES: MatchStatus[] = ["COMPLETED", "CANCELLED"];
 

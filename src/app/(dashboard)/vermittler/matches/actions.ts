@@ -8,6 +8,7 @@ import { z } from "zod";
 import type { MatchStatus } from "@prisma/client";
 import { computeScore } from "@/lib/scoring";
 import { sendWelcomeToken } from "@/lib/sendWelcomeToken";
+import { sendMatchNotificationEmail } from "@/lib/emails/meetingInvite";
 
 // Reverse-map AvailabilityType → betreuungsart key for careNeedsRaw JSON
 const AVAIL_REVERSE: Partial<Record<string, string>> = {
@@ -38,6 +39,7 @@ export async function createMatch(data: CreateMatchData) {
         languages: true,
         availability: true,
         averageRating: true,
+        user: { select: { email: true, name: true } },
       },
     }),
     prisma.clientProfile.findFirst({
@@ -85,13 +87,20 @@ export async function createMatch(data: CreateMatchData) {
       score,
       notes: parsed.notes,
       startDate: parsed.startDate ? new Date(parsed.startDate) : undefined,
-      status: "PROPOSED",
+      status: "PENDING",
     },
   });
 
   if (client.user && !client.user.passwordHash) {
     await sendWelcomeToken(client.user.email, client.user.name ?? client.user.email);
   }
+
+  await sendMatchNotificationEmail({
+    to: caregiver.user.email,
+    caregiverName: caregiver.user.name ?? caregiver.user.email,
+    clientName: client.user.name ?? client.user.email,
+    portalUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://pflegematch.at"}/de/dashboard/pfleger/matches`,
+  });
 
   revalidatePath("/vermittler/matches");
   redirect("/vermittler/matches");

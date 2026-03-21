@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowRight, ArrowLeft, Check, Loader2, CheckCircle } from "lucide-react";
+import { X, ArrowRight, ArrowLeft, Check, Loader2, CheckCircle, Calendar } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,7 +40,7 @@ const initialData: FormData = {
   telefon: "",
 };
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 10;
 
 // ─── Option Card ──────────────────────────────────────────────────────────────
 
@@ -210,12 +210,16 @@ interface Props {
   onClose: () => void;
 }
 
+const emptySlot = () => ({ date: "", time: "", durationMin: 60 as 30 | 60 });
+
 export default function FragebogenModal({ isOpen, onClose }: Props) {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [data, setData] = useState<FormData>(initialData);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; telefon?: string }>({});
+  const [slotInputs, setSlotInputs] = useState([emptySlot(), emptySlot(), emptySlot()]);
+  const [slotError, setSlotError] = useState<string | null>(null);
 
   const progress = (step / TOTAL_STEPS) * 100;
 
@@ -238,6 +242,16 @@ export default function FragebogenModal({ isOpen, onClose }: Props) {
     setTimeout(goNext, 160);
   }
 
+  function selectZeitplanField(key: "startZeit" | "dauer", value: string) {
+    setData((d) => {
+      const updated = { ...d, [key]: value };
+      if (updated.startZeit && updated.dauer) {
+        setTimeout(goNext, 160);
+      }
+      return updated;
+    });
+  }
+
   function toggleSprache(lang: string) {
     setData((d) => {
       const exists = d.sprachen.find((s) => s.lang === lang);
@@ -257,7 +271,45 @@ export default function FragebogenModal({ isOpen, onClose }: Props) {
     }));
   }
 
-  async function handleSubmit() {
+  function updateSlot(index: number, field: "date" | "time" | "durationMin", value: string | number) {
+    setSlotInputs((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, [field]: value } : s))
+    );
+    setSlotError(null);
+  }
+
+  function validateSlots(): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const filledSlots = slotInputs.filter((s) => s.date || s.time);
+    for (const slot of filledSlots) {
+      if (!slot.date || !slot.time) {
+        setSlotError("Bitte Datum und Uhrzeit für jeden angegebenen Termin ausfüllen.");
+        return false;
+      }
+      const d = new Date(slot.date);
+      if (d < tomorrow) {
+        setSlotError("Wunschtermine müssen mindestens am nächsten Tag liegen.");
+        return false;
+      }
+    }
+
+    const dates = filledSlots.map((s) => s.date).filter(Boolean);
+    const uniqueDates = new Set(dates);
+    if (uniqueDates.size < dates.length) {
+      setSlotError("Pro Tag ist nur ein Wunschtermin erlaubt.");
+      return false;
+    }
+
+    setSlotError(null);
+    return true;
+  }
+
+  /** Validates contact fields then advances from step 9 → 10 */
+  function handleContactWeiter() {
     if (!data.name.trim() || !data.email.trim()) return;
 
     const errors: { email?: string; telefon?: string } = {};
@@ -271,12 +323,22 @@ export default function FragebogenModal({ isOpen, onClose }: Props) {
       return;
     }
     setFieldErrors({});
+    goNext();
+  }
+
+  async function handleSubmit() {
+    if (!validateSlots()) return;
+
+    const wunschtermine = slotInputs
+      .filter((s) => s.date && s.time)
+      .map((s) => ({ dateTime: `${s.date}T${s.time}:00`, durationMin: s.durationMin }));
+
     setStatus("loading");
     try {
       const res = await fetch("/api/fragebogen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, wunschtermine }),
       });
       setStatus(res.ok ? "success" : "error");
     } catch {
@@ -292,6 +354,8 @@ export default function FragebogenModal({ isOpen, onClose }: Props) {
       setStatus("idle");
       setDirection(1);
       setFieldErrors({});
+      setSlotInputs([emptySlot(), emptySlot(), emptySlot()]);
+      setSlotError(null);
     }, 300);
   }
 
@@ -525,7 +589,7 @@ export default function FragebogenModal({ isOpen, onClose }: Props) {
                       key={o.value}
                       label={o.label}
                       selected={data.startZeit === o.value}
-                      onClick={() => set("startZeit", o.value)}
+                      onClick={() => selectZeitplanField("startZeit", o.value)}
                     />
                   ))}
                 </div>
@@ -543,7 +607,7 @@ export default function FragebogenModal({ isOpen, onClose }: Props) {
                       key={o.value}
                       label={o.label}
                       selected={data.dauer === o.value}
-                      onClick={() => set("dauer", o.value)}
+                      onClick={() => selectZeitplanField("dauer", o.value)}
                     />
                   ))}
                 </div>
@@ -641,33 +705,6 @@ export default function FragebogenModal({ isOpen, onClose }: Props) {
 
       // ── 9: Kontakt ────────────────────────────────────────────────────────────
       case 9:
-        if (status === "success") {
-          return (
-            <div className="flex flex-col items-center justify-center py-6 gap-4 text-center">
-              <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", damping: 15 }}
-              >
-                <CheckCircle className="w-16 h-16 text-[#7B9E7B]" />
-              </motion.div>
-              <div>
-                <p className="font-bold text-xl text-[#2D2D2D]">
-                  Vielen Dank, {data.name.split(" ")[0]}!
-                </p>
-                <p className="text-[#2D2D2D]/55 mt-2 text-sm leading-relaxed">
-                  Wir haben Ihre Anfrage erhalten und melden uns innerhalb von 24 Stunden bei Ihnen — kostenlos und unverbindlich.
-                </p>
-              </div>
-              <button
-                onClick={handleClose}
-                className="mt-2 bg-[#7B9E7B] hover:bg-[#5A7A5A] text-white px-8 py-3 rounded-full font-semibold transition-colors cursor-pointer"
-              >
-                Fenster schließen
-              </button>
-            </div>
-          );
-        }
         return (
           <div>
             <h2 className="text-2xl font-bold text-[#2D2D2D] mb-1">Fast geschafft!</h2>
@@ -711,14 +748,101 @@ export default function FragebogenModal({ isOpen, onClose }: Props) {
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border-2 border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/15 transition-colors placeholder:text-[#2D2D2D]/35 resize-none"
               />
+            </div>
+          </div>
+        );
+
+      // ── 10: Wunschtermine ─────────────────────────────────────────────────────
+      case 10: {
+        if (status === "success") {
+          return (
+            <div className="flex flex-col items-center justify-center py-6 gap-4 text-center">
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", damping: 15 }}
+              >
+                <CheckCircle className="w-16 h-16 text-[#7B9E7B]" />
+              </motion.div>
+              <div>
+                <p className="font-bold text-xl text-[#2D2D2D]">
+                  Vielen Dank, {data.name.split(" ")[0]}!
+                </p>
+                <p className="text-[#2D2D2D]/55 mt-2 text-sm leading-relaxed">
+                  Wir haben Ihre Anfrage erhalten und melden uns innerhalb von 24 Stunden bei Ihnen — kostenlos und unverbindlich.
+                </p>
+              </div>
+              <button
+                onClick={handleClose}
+                className="mt-2 bg-[#7B9E7B] hover:bg-[#5A7A5A] text-white px-8 py-3 rounded-full font-semibold transition-colors cursor-pointer"
+              >
+                Fenster schließen
+              </button>
+            </div>
+          );
+        }
+
+        const todayPlus1 = new Date();
+        todayPlus1.setDate(todayPlus1.getDate() + 1);
+        const minDate = todayPlus1.toISOString().split("T")[0];
+
+        return (
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Calendar className="w-5 h-5 text-[#C06B4A]" />
+              <h2 className="text-2xl font-bold text-[#2D2D2D]">Wunschtermine Kennenlernen</h2>
+            </div>
+            <p className="text-[#2D2D2D]/55 text-sm mb-6">
+              Wann hätten Sie Zeit für ein kurzes Kennenlerngespräch? Geben Sie bis zu 3 Wunschtermine an — dieser Schritt ist optional.
+            </p>
+
+            <div className="space-y-4">
+              {slotInputs.map((slot, i) => (
+                <div key={i} className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#2D2D2D]/55 uppercase tracking-wide">
+                    {i + 1}. Wunschtermin (optional)
+                  </label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="date"
+                      value={slot.date}
+                      min={minDate}
+                      onChange={(e) => updateSlot(i, "date", e.target.value)}
+                      className="flex-1 px-3 py-2.5 rounded-xl border-2 border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/15 transition-colors"
+                    />
+                    <input
+                      type="time"
+                      value={slot.time}
+                      onChange={(e) => updateSlot(i, "time", e.target.value)}
+                      disabled={!slot.date}
+                      className="w-28 px-3 py-2.5 rounded-xl border-2 border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/15 transition-colors disabled:opacity-40"
+                    />
+                    <select
+                      value={slot.durationMin}
+                      onChange={(e) => updateSlot(i, "durationMin", Number(e.target.value) as 30 | 60)}
+                      disabled={!slot.date}
+                      className="w-24 px-3 py-2.5 rounded-xl border-2 border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] transition-colors disabled:opacity-40 cursor-pointer"
+                    >
+                      <option value={30}>30 Min.</option>
+                      <option value={60}>60 Min.</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+
+              {slotError && (
+                <p className="text-xs text-red-500">{slotError}</p>
+              )}
+
               {status === "error" && (
                 <p className="text-xs text-red-500 text-center">
                   Fehler beim Senden. Bitte versuchen Sie es erneut.
                 </p>
               )}
+
               <button
                 onClick={handleSubmit}
-                disabled={status === "loading" || !data.name.trim() || !data.email.trim()}
+                disabled={status === "loading"}
                 className="w-full bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-50 text-white py-4 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 mt-1 cursor-pointer"
               >
                 {status === "loading" ? (
@@ -737,6 +861,7 @@ export default function FragebogenModal({ isOpen, onClose }: Props) {
             </div>
           </div>
         );
+      }
 
       default:
         return null;
@@ -745,11 +870,19 @@ export default function FragebogenModal({ isOpen, onClose }: Props) {
 
   // ── Footer logic ──────────────────────────────────────────────────────────────
   // Steps 1–6: auto-advance on click → only show "Zurück"
-  // Steps 7–8: show "Zurück" + "Weiter"
-  // Step 9: show "Zurück" (submit is inside form)
+  // Steps 7–9: show "Zurück" + "Weiter"
+  // Step 10: show "Zurück" (submit is inside form)
   const showBack = step > 1 && status !== "success";
-  const showWeiter = step === 7 || step === 8;
+  const showWeiter = step === 8 || step === 9;
   const showFooter = showBack || showWeiter;
+
+  function handleWeiterClick() {
+    if (step === 9) {
+      handleContactWeiter();
+    } else {
+      goNext();
+    }
+  }
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -832,8 +965,9 @@ export default function FragebogenModal({ isOpen, onClose }: Props) {
                   </button>
                   {showWeiter && (
                     <button
-                      onClick={goNext}
-                      className="flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer"
+                      onClick={handleWeiterClick}
+                      disabled={step === 9 && (!data.name.trim() || !data.email.trim())}
+                      className="flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-50 text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer"
                     >
                       Weiter <ArrowRight className="w-4 h-4" />
                     </button>

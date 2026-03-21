@@ -135,6 +135,19 @@ export async function POST(req: Request) {
         <h2 style="font-size:15px;color:#C06B4A;margin:0 0 8px">Persönliche Nachricht</h2>
         <p style="background:#FAF6F1;border-left:3px solid #C06B4A;padding:12px 16px;border-radius:0 8px 8px 0;margin:0;font-size:14px;line-height:1.6">${prioritaeten}</p>
         ` : ""}
+
+        ${Array.isArray(data.wunschtermine) && data.wunschtermine.length > 0 ? `
+        <h2 style="font-size:15px;color:#C06B4A;margin:16px 0 8px">Wunschtermine für Kennenlerngespräch</h2>
+        <table style="border-collapse:collapse;width:100%;margin-bottom:24px">
+          ${(data.wunschtermine as Array<{ dateTime: string; durationMin: number }>).map((s, i) => {
+            const d = new Date(s.dateTime);
+            const label = d.toLocaleDateString("de-AT", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" })
+              + " · " + d.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" })
+              + ` Uhr (${s.durationMin} Min.)`;
+            return row(`${i + 1}. Termin:`, label);
+          }).join("")}
+        </table>
+        ` : ""}
       </div>
     </div>
   `;

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireTenantSession } from "@/lib/tenant";
 import { sendWelcomeToken } from "@/lib/sendWelcomeToken";
+import { sendMatchNotificationEmail } from "@/lib/emails/meetingInvite";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -22,6 +23,7 @@ const CreateAnfrageSchema = z.object({
   ort:           z.string().optional(),
   sprachen:      z.array(z.object({ lang: z.string(), level: z.string() })).optional(),
   notes:         z.string().optional(),
+  wunschtermine: z.array(z.object({ dateTime: z.string(), durationMin: z.number() })).optional(),
 });
 
 export type CreateAnfrageData = z.infer<typeof CreateAnfrageSchema>;
@@ -49,6 +51,7 @@ export async function createAnfrage(data: CreateAnfrageData) {
     name:          parsed.contactName,
     email:         parsed.contactEmail,
     telefon:       parsed.contactPhone,
+    wunschtermine: parsed.wunschtermine ?? [],
   });
 
   await prisma.matchRequest.create({
@@ -127,6 +130,7 @@ export async function createMatchFromAnfrage(
     // 2. Verify the CaregiverProfile belongs to this tenant
     const caregiver = await prisma.caregiverProfile.findFirst({
       where: { id: caregiverProfileId, tenantId: session.tenantId },
+      include: { user: { select: { email: true, name: true } } },
     });
     if (!caregiver) return { error: "Pflegekraft nicht gefunden." };
 
@@ -176,7 +180,7 @@ export async function createMatchFromAnfrage(
         tenantId:           session.tenantId,
         caregiverProfileId: caregiverProfileId,
         clientProfileId:    clientProfile.id,
-        status:             "PROPOSED",
+        status:             "PENDING",
       },
     });
 
@@ -190,6 +194,18 @@ export async function createMatchFromAnfrage(
     if (isNewUser) {
       await sendWelcomeToken(user.email, user.name ?? user.email);
     }
+
+    // 9. Notify Pfleger about the new match
+    const wunschtermine = req.careNeedsRaw
+      ? ((() => { try { return JSON.parse(req.careNeedsRaw).wunschtermine; } catch { return undefined; } })())
+      : undefined;
+    await sendMatchNotificationEmail({
+      to: caregiver.user.email,
+      caregiverName: caregiver.user.name ?? caregiver.user.email,
+      clientName: req.contactName ?? user.email,
+      wunschtermine,
+      portalUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://pflegematch.at"}/de/dashboard/pfleger/matches`,
+    });
 
     revalidatePath("/vermittler/anfragen");
     revalidatePath("/vermittler/matches");

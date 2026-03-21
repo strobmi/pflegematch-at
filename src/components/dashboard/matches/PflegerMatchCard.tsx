@@ -62,7 +62,14 @@ export default function PflegerMatchCard({
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [ownDate, setOwnDate] = useState("");
+  const [ownTime, setOwnTime] = useState("");
+  const [ownDuration, setOwnDuration] = useState<30 | 60>(30);
   const router = useRouter();
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
   const meeting = match.videoMeetings[0] ?? null;
   const clientName = match.clientProfile.user.name ?? match.clientProfile.user.email;
@@ -146,11 +153,11 @@ export default function PflegerMatchCard({
           </div>
         )}
 
-        {/* Wunschtermine — only show if no meeting yet */}
+        {/* Wunschtermine Kennenlernen — only show if no meeting yet */}
         {!meeting && wunschtermine.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs font-medium text-[#2D2D2D]/60">
-              Wunschtermine des Klienten
+              Wunschtermine Kennenlernen
             </p>
             {wunschtermine.map((slot, i) => (
               <div
@@ -174,11 +181,54 @@ export default function PflegerMatchCard({
           </div>
         )}
 
-        {/* No meeting, no slots */}
-        {!meeting && wunschtermine.length === 0 && match.status === "PROPOSED" && (
-          <p className="text-sm text-[#2D2D2D]/40 bg-[#FAF6F1] rounded-xl px-4 py-3">
-            Noch keine Wunschtermine angegeben. Ihr Vermittler wird einen Termin vereinbaren.
-          </p>
+        {/* No Kunde slots — Pfleger can propose own time */}
+        {!meeting && wunschtermine.length === 0 && match.status === "PENDING" && (
+          <div className="bg-[#FAF6F1] rounded-xl px-4 py-4 space-y-3">
+            <p className="text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide">
+              Kennenlerngespräch vorschlagen
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-xs text-[#2D2D2D]/50">Datum</label>
+                <input
+                  type="date"
+                  min={tomorrowStr}
+                  value={ownDate}
+                  onChange={(e) => setOwnDate(e.target.value)}
+                  className="w-full text-sm border border-[#EAD9C8] rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-[#C06B4A]"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-[#2D2D2D]/50">Uhrzeit</label>
+                <input
+                  type="time"
+                  value={ownTime}
+                  onChange={(e) => setOwnTime(e.target.value)}
+                  className="w-full text-sm border border-[#EAD9C8] rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-[#C06B4A]"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={ownDuration}
+                onChange={(e) => setOwnDuration(Number(e.target.value) as 30 | 60)}
+                className="text-sm border border-[#EAD9C8] rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-[#C06B4A]"
+              >
+                <option value={30}>30 Min.</option>
+                <option value={60}>60 Min.</option>
+              </select>
+              <button
+                disabled={!ownDate || !ownTime || isPending}
+                onClick={() => {
+                  if (!ownDate || !ownTime) return;
+                  handleSchedule({ dateTime: `${ownDate}T${ownTime}:00`, durationMin: ownDuration });
+                }}
+                className="flex-1 bg-[#C06B4A] text-white text-sm font-medium rounded-lg px-4 py-2 hover:bg-[#A05438] disabled:opacity-40 transition-colors"
+              >
+                {isPending ? "Wird erstellt…" : "Termin erstellen"}
+              </button>
+            </div>
+          </div>
         )}
 
         {match.status === "ACCEPTED" && (
