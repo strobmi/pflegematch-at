@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import type { Role } from "@prisma/client";
@@ -8,8 +7,7 @@ import type { Role } from "@prisma/client";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
   trustHost: true,
-  adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt", maxAge: 60 * 60 }, // 1 Stunde
+  session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 }, // 7 Tage
   providers: [
     Credentials({
       credentials: {
@@ -39,6 +37,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           user.passwordHash
         );
         if (!valid) return null;
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() },
+        });
 
         const activeMembership = user.memberships.find(
           (m) => m.tenant.status === "ACTIVE"

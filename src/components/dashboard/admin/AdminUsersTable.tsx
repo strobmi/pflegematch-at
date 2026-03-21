@@ -17,7 +17,7 @@ type AdminUser = {
   email: string;
   role: string;
   createdAt: string;
-  hasActiveSession: boolean;
+  lastLoginAt: string | null;
   isActive: boolean | null;
   tenant: string | null;
 };
@@ -108,7 +108,7 @@ export default function AdminUsersTable({ users }: { users: AdminUser[] }) {
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Typ</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Status</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden lg:table-cell">Herkunft</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden xl:table-cell">Session</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden xl:table-cell">Letzter Login</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden xl:table-cell">Registriert</th>
               <th className="px-4 py-3" />
             </tr>
@@ -141,13 +141,7 @@ export default function AdminUsersTable({ users }: { users: AdminUser[] }) {
                       )}
                     </td>
                     <td className="px-4 py-3 text-white/50 hidden lg:table-cell">{u.tenant ?? "–"}</td>
-                    <td className="px-4 py-3 hidden xl:table-cell">
-                      {u.hasActiveSession ? (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-500/20 text-green-300">Aktiv</span>
-                      ) : (
-                        <span className="text-xs text-white/30">–</span>
-                      )}
-                    </td>
+                    <td className="px-4 py-3 text-white/40 text-xs hidden xl:table-cell">{u.lastLoginAt ?? "–"}</td>
                     <td className="px-4 py-3 text-white/40 text-xs hidden xl:table-cell">{u.createdAt}</td>
                     <td className="px-4 py-3 text-right">
                       <Link
