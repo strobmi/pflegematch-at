@@ -5,7 +5,8 @@
  * Components. Always use these helpers at the Server → Client boundary.
  */
 
-import type { Decimal } from "@prisma/client/runtime/library";
+import { Prisma } from "@prisma/client";
+type Decimal = Prisma.Decimal;
 
 /** Convert a nullable Prisma Decimal to a plain JS number (or null). */
 export function dec(value: Decimal | null | undefined): number | null {
