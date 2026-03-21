@@ -5,20 +5,21 @@
  * Components. Always use these helpers at the Server → Client boundary.
  */
 
-import { Prisma } from "@prisma/client";
-type Decimal = Prisma.Decimal;
+/** Prisma 7 may return Decimal fields as number or as a Decimal object. */
+type DecimalLike = { toNumber(): number } | number | null | undefined;
 
-/** Convert a nullable Prisma Decimal to a plain JS number (or null). */
-export function dec(value: Decimal | null | undefined): number | null {
-  return value != null ? Number(value) : null;
+/** Convert a nullable Prisma Decimal (or number) to a plain JS number (or null). */
+export function dec(value: DecimalLike): number | null {
+  if (value == null) return null;
+  return typeof value === "number" ? value : value.toNumber();
 }
 
 /** Serialize a Match row — strips all Decimal fields. */
 export function serializeMatch<
   T extends {
-    score?: Decimal | null;
-    provisionAmount?: Decimal | null;
-    matchFeeAmount?: Decimal | null;
+    score?: DecimalLike;
+    provisionAmount?: DecimalLike;
+    matchFeeAmount?: DecimalLike;
   },
 >(m: T): Omit<T, "score" | "provisionAmount" | "matchFeeAmount"> & {
   score: number | null;
@@ -36,8 +37,8 @@ export function serializeMatch<
 /** Serialize a CaregiverProfile row — strips all Decimal fields. */
 export function serializeCaregiverProfile<
   T extends {
-    hourlyRate?: Decimal | null;
-    averageRating?: Decimal | null;
+    hourlyRate?: DecimalLike;
+    averageRating?: DecimalLike;
   },
 >(p: T): Omit<T, "hourlyRate" | "averageRating"> & {
   hourlyRate: number | null;
@@ -53,8 +54,8 @@ export function serializeCaregiverProfile<
 /** Serialize a Contract row — strips all Decimal fields. */
 export function serializeContract<
   T extends {
-    matchFeeAmount?: Decimal | null;
-    monthlyFeeAmount?: Decimal | null;
+    matchFeeAmount?: DecimalLike;
+    monthlyFeeAmount?: DecimalLike;
   },
 >(c: T): Omit<T, "matchFeeAmount" | "monthlyFeeAmount"> & {
   matchFeeAmount: number | null;
@@ -70,9 +71,9 @@ export function serializeContract<
 /** Serialize a Tenant row — strips all Decimal fields. */
 export function serializeTenant<
   T extends {
-    defaultMatchFee?: Decimal | null;
-    defaultMonthlyFee?: Decimal | null;
-    provisionPercent?: Decimal | null;
+    defaultMatchFee?: DecimalLike;
+    defaultMonthlyFee?: DecimalLike;
+    provisionPercent?: DecimalLike;
   },
 >(t: T): Omit<T, "defaultMatchFee" | "defaultMonthlyFee" | "provisionPercent"> & {
   defaultMatchFee: number | null;
