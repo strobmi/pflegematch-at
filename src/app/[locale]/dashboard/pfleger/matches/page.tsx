@@ -3,9 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Handshake } from "lucide-react";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
-import PflegerMatchCard from "@/components/dashboard/matches/PflegerMatchCard";
+import PflegerMatchCard, { type Wunschtermin } from "@/components/dashboard/matches/PflegerMatchCard";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -51,9 +49,6 @@ export default async function PflegerMatchesPage({
           user: { select: { name: true, email: true } },
         },
       },
-      meetingProposals: {
-        orderBy: { proposedAt: "asc" },
-      },
       videoMeetings: {
         where: { status: { not: "CANCELLED" } },
         orderBy: { scheduledAt: "asc" },
@@ -62,6 +57,30 @@ export default async function PflegerMatchesPage({
     },
     orderBy: { createdAt: "desc" },
   });
+
+  // Load preferred slots from MatchRequests for each client
+  const clientProfileIds = matches.map((m) => m.clientProfileId);
+  const matchRequests = clientProfileIds.length
+    ? await prisma.matchRequest.findMany({
+        where: { clientProfileId: { in: clientProfileIds }, isProcessed: true },
+        select: { clientProfileId: true, careNeedsRaw: true },
+      })
+    : [];
+
+  // Build map: clientProfileId → wunschtermine[]
+  const slotsMap = new Map<string, Wunschtermin[]>();
+  for (const req of matchRequests) {
+    if (!req.clientProfileId || !req.careNeedsRaw) continue;
+    try {
+      const raw = JSON.parse(req.careNeedsRaw) as { wunschtermine?: Wunschtermin[] };
+      const slots = (raw.wunschtermine ?? []).filter(
+        (s) => s.dateTime && new Date(s.dateTime) > new Date()
+      );
+      if (slots.length) slotsMap.set(req.clientProfileId, slots);
+    } catch {
+      // ignore malformed JSON
+    }
+  }
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -83,7 +102,7 @@ export default async function PflegerMatchesPage({
             <PflegerMatchCard
               key={match.id}
               match={match}
-              locale={locale}
+              wunschtermine={slotsMap.get(match.clientProfileId) ?? []}
             />
           ))}
         </div>

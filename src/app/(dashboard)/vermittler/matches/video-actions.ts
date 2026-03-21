@@ -50,7 +50,7 @@ export async function scheduleVideoMeeting(
     return { error: `Videoraum konnte nicht erstellt werden: ${msg}` };
   }
 
-  // Save to DB
+  // Save to DB + set match → PENDING
   const meeting = await prisma.videoMeeting.create({
     data: {
       tenantId: session.tenantId,
@@ -62,6 +62,11 @@ export async function scheduleVideoMeeting(
       durationMin: parsed.durationMin,
       notes: parsed.notes,
     },
+  });
+
+  await prisma.match.update({
+    where: { id: matchId },
+    data: { status: "PENDING" },
   });
 
   // Send email notifications
@@ -150,4 +155,82 @@ export async function cancelVideoMeeting(meetingId: string) {
 // Void wrapper for use in HTML <form action={...}>
 export async function cancelVideoMeetingAction(meetingId: string): Promise<void> {
   await cancelVideoMeeting(meetingId);
+}
+
+/**
+ * Called from Pfleger portal — same logic as scheduleVideoMeeting but
+ * returns a result instead of redirecting.
+ */
+export async function scheduleMeetingFromSlot(
+  matchId: string,
+  scheduledAt: string,
+  durationMin: 30 | 60
+): Promise<{ success: true } | { error: string }> {
+  const session = await requireTenantSession();
+  const scheduledDate = new Date(scheduledAt);
+
+  const match = await prisma.match.findFirst({
+    where: { id: matchId, tenantId: session.tenantId },
+    include: {
+      caregiverProfile: { include: { user: true } },
+      clientProfile: { include: { user: true } },
+    },
+  });
+
+  if (!match) return { error: "Match nicht gefunden." };
+
+  let wherebyData;
+  try {
+    wherebyData = await createWherebyMeeting(scheduledDate, durationMin);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { error: `Videoraum konnte nicht erstellt werden: ${msg}` };
+  }
+
+  await prisma.videoMeeting.create({
+    data: {
+      tenantId: session.tenantId,
+      matchId,
+      wherebyMeetingId: wherebyData.meetingId,
+      roomUrl: wherebyData.roomUrl,
+      hostRoomUrl: wherebyData.hostRoomUrl,
+      scheduledAt: scheduledDate,
+      durationMin,
+    },
+  });
+
+  await prisma.match.update({
+    where: { id: matchId },
+    data: { status: "PENDING" },
+  });
+
+  const caregiverUser = match.caregiverProfile.user;
+  const clientUser = match.clientProfile.user;
+
+  await Promise.all([
+    sendMeetingScheduledEmail({
+      to: clientUser.email,
+      recipientName: clientUser.name ?? clientUser.email,
+      partnerName: caregiverUser.name ?? caregiverUser.email,
+      scheduledAt: scheduledDate,
+      durationMin,
+      joinUrl: wherebyData.roomUrl,
+    }),
+    sendMeetingScheduledEmail({
+      to: caregiverUser.email,
+      recipientName: caregiverUser.name ?? caregiverUser.email,
+      partnerName: clientUser.name ?? clientUser.email,
+      scheduledAt: scheduledDate,
+      durationMin,
+      joinUrl: wherebyData.roomUrl,
+    }),
+  ]);
+
+  revalidatePath("/vermittler/matches");
+  revalidatePath(`/vermittler/matches/${matchId}/video`);
+  revalidatePath("/kunde/matches");
+  // Revalidate all localized Pfleger routes
+  revalidatePath("/[locale]/dashboard/pfleger/matches", "page");
+
+  return { success: true };
 }
