@@ -78,8 +78,7 @@ export default function PflegerProfileForm({ profile, user, locale }: Props) {
   const [emailChangeError, setEmailChangeError] = useState<string | null>(null);
   const [isEmailChangePending, startEmailChangeTransition] = useTransition();
 
-  function handleEmailChange(e: React.FormEvent) {
-    e.preventDefault();
+  function handleEmailChange() {
     setEmailChangeStatus("idle");
     setEmailChangeError(null);
     startEmailChangeTransition(async () => {
@@ -194,7 +193,7 @@ export default function PflegerProfileForm({ profile, user, locale }: Props) {
           <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">{t("emailChange.currentLabel")}</label>
           <input value={user.email} disabled className={`${inputClass} opacity-50 cursor-not-allowed`} />
         </div>
-        <form onSubmit={handleEmailChange} className="space-y-3">
+        <div className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">{t("emailChange.newLabel")}</label>
             <input
@@ -213,14 +212,15 @@ export default function PflegerProfileForm({ profile, user, locale }: Props) {
             <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{emailChangeError}</p>
           )}
           <button
-            type="submit"
+            type="button"
+            onClick={handleEmailChange}
             disabled={isEmailChangePending || !newEmail}
             className="bg-[#C06B4A] hover:bg-[#A05438] disabled:opacity-60 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors flex items-center gap-2"
           >
             {isEmailChangePending && <Loader2 className="w-4 h-4 animate-spin" />}
             {isEmailChangePending ? t("emailChange.submitting") : t("emailChange.submit")}
           </button>
-        </form>
+        </div>
       </div>
 
       {/* Wohnadresse */}

@@ -34,12 +34,20 @@ export default async function PflegerProfilPage({
     redirect(`/${locale}/dashboard/pfleger`);
   }
 
+  const serializedProfile = {
+    ...profile,
+    hourlyRate: profile.hourlyRate ? Number(profile.hourlyRate) : null,
+    averageRating: profile.averageRating ? Number(profile.averageRating) : null,
+    createdAt: profile.createdAt.toISOString(),
+    updatedAt: profile.updatedAt.toISOString(),
+  };
+
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className="text-2xl font-bold text-[#2D2D2D]">{t("title")}</h1>
       </div>
-      <PflegerProfileForm profile={profile} user={user} locale={locale} />
+      <PflegerProfileForm profile={serializedProfile as any} user={user} locale={locale} />
     </div>
   );
 }
