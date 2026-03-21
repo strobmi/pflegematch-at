@@ -4,6 +4,7 @@ import { User, Building2, Mail, Phone, MapPin, Calendar, Users, Clock } from "lu
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import EmailChangeForm from "@/components/dashboard/EmailChangeForm";
+import PasswordChangeForm from "@/components/dashboard/PasswordChangeForm";
 import TeamInviteForm from "@/components/dashboard/team/TeamInviteForm";
 import TeamMemberRow from "@/components/dashboard/team/TeamMemberRow";
 import RevokeInviteButton from "@/components/dashboard/team/RevokeInviteButton";
@@ -116,6 +117,9 @@ export default async function VermittlerProfilPage() {
 
       {/* E-Mail ändern */}
       <EmailChangeForm currentEmail={user.email} />
+
+      {/* Passwort ändern */}
+      <PasswordChangeForm />
 
       {/* Vermittler Team */}
       <div>

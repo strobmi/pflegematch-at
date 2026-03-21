@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import PflegerProfileForm from "@/components/dashboard/pfleger/PflegerProfileForm";
+import PasswordChangeForm from "@/components/dashboard/PasswordChangeForm";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -48,6 +49,7 @@ export default async function PflegerProfilPage({
         <h1 className="text-2xl font-bold text-[#2D2D2D]">{t("title")}</h1>
       </div>
       <PflegerProfileForm profile={serializedProfile as any} user={user} locale={locale} />
+      <PasswordChangeForm />
     </div>
   );
 }

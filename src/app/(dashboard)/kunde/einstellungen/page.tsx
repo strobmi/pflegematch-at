@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { Mail, Calendar } from "lucide-react";
 import EmailChangeForm from "@/components/dashboard/EmailChangeForm";
+import PasswordChangeForm from "@/components/dashboard/PasswordChangeForm";
 import KundeProfilForm from "@/components/dashboard/kunde/KundeProfilForm";
 
 export const metadata = { title: "Einstellungen · pflegematch" };
@@ -68,6 +69,9 @@ export default async function KundeEinstellungenPage() {
 
       {/* E-Mail ändern */}
       <EmailChangeForm currentEmail={user.email} />
+
+      {/* Passwort ändern */}
+      <PasswordChangeForm />
 
       {/* Profil vervollständigen */}
       {profile && <KundeProfilForm defaultValues={profileDefaults} />}
