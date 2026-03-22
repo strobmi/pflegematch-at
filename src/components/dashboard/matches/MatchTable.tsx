@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Trash2, Search, FileText, Ban, RotateCcw, UserCheck, ChevronDown, ChevronUp, Video } from "lucide-react";
-import { updateMatchStatus, deleteMatch, confirmForClient } from "@/app/(dashboard)/vermittler/matches/actions";
+import { Trash2, Search, FileText, Ban, RotateCcw, ChevronDown, ChevronUp, Video } from "lucide-react";
+import { updateMatchStatus, deleteMatch, confirmForClient, confirmForCaregiver } from "@/app/(dashboard)/vermittler/matches/actions";
 import MeetingScheduleButton from "./MeetingScheduleButton";
 import type { Match, CaregiverProfile, ClientProfile, User } from "@prisma/client";
 import type { MatchStatus } from "@prisma/client";
@@ -94,8 +95,14 @@ const ABGESCHLOSSEN_STATUSES: MatchStatus[] = ["COMPLETED", "CANCELLED"];
 
 // ─── MatchRow ────────────────────────────────────────────────────────────────
 
-function MatchRow({ m }: { m: MatchWithRelations }) {
-  const [expanded, setExpanded] = useState(false);
+function MatchRow({ m, initiallyExpanded }: { m: MatchWithRelations; initiallyExpanded?: boolean }) {
+  const [expanded, setExpanded] = useState(initiallyExpanded ?? false);
+  const rowRef = useRef<HTMLTableRowElement>(null);
+  useEffect(() => {
+    if (initiallyExpanded && rowRef.current) {
+      rowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [initiallyExpanded]);
 
   async function handleCancel(e: React.MouseEvent) {
     e.stopPropagation();
@@ -107,6 +114,12 @@ function MatchRow({ m }: { m: MatchWithRelations }) {
     e.stopPropagation();
     if (!confirm("Match zurück auf Ausstehend setzen?")) return;
     await updateMatchStatus(m.id, "PENDING");
+  }
+
+  async function handleConfirmForCaregiver(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!confirm("Pflegekraft hat telefonisch zugestimmt – Bestätigung setzen?")) return;
+    await confirmForCaregiver(m.id);
   }
 
   async function handleConfirmForClient(e: React.MouseEvent) {
@@ -128,6 +141,9 @@ function MatchRow({ m }: { m: MatchWithRelations }) {
   const badge = getConfirmationBadge(m);
   const canCancel       = m.status === "PENDING" || m.status === "ACCEPTED";
   const canReset        = m.status === "CANCELLED";
+  const canCaregiverConfirm =
+    m.caregiverConfirmed === null &&
+    !["ACTIVE", "COMPLETED", "CANCELLED"].includes(m.status);
   const canClientConfirm =
     m.clientConfirmed === null &&
     !["ACTIVE", "COMPLETED", "CANCELLED"].includes(m.status);
@@ -142,6 +158,7 @@ function MatchRow({ m }: { m: MatchWithRelations }) {
   return (
     <>
       <tr
+        ref={rowRef}
         onClick={() => setExpanded((e) => !e)}
         className="hover:bg-[#FAF6F1] transition-colors cursor-pointer"
       >
@@ -184,13 +201,22 @@ function MatchRow({ m }: { m: MatchWithRelations }) {
                 Vertrag
               </Link>
             )}
+            {canCaregiverConfirm && (
+              <button
+                onClick={handleConfirmForCaregiver}
+                title="Pflegekraft hat telefonisch zugestimmt"
+                className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-[#F5EDE3] text-[#C06B4A] hover:bg-[#C06B4A] hover:text-white transition-colors cursor-pointer"
+              >
+                P ✓
+              </button>
+            )}
             {canClientConfirm && (
               <button
                 onClick={handleConfirmForClient}
                 title="Klient hat telefonisch zugestimmt"
-                className="p-1.5 text-[#2D2D2D]/30 hover:text-[#5A7A5A] hover:bg-[#F0F7F0] rounded-lg transition-colors cursor-pointer"
+                className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-[#F0F7F0] text-[#5A7A5A] hover:bg-[#5A7A5A] hover:text-white transition-colors cursor-pointer"
               >
-                <UserCheck className="w-3.5 h-3.5" />
+                K ✓
               </button>
             )}
             {canCancel && (
@@ -338,7 +364,15 @@ function MatchRow({ m }: { m: MatchWithRelations }) {
 // ─── Table ────────────────────────────────────────────────────────────────────
 
 export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
-  const [tab, setTab]       = useState<Tab>("offen");
+  const searchParams = useSearchParams();
+  const openId = searchParams.get("open");
+  const openMatch = openId ? data.find((m) => m.id === openId) : null;
+  const [tab, setTab] = useState<Tab>(() => {
+    if (!openMatch) return "offen";
+    if (LAUFEND_STATUSES.includes(openMatch.status))       return "laufend";
+    if (ABGESCHLOSSEN_STATUSES.includes(openMatch.status)) return "abgeschlossen";
+    return "offen";
+  });
   const [search, setSearch] = useState("");
 
   const counts = {
@@ -427,7 +461,7 @@ export default function MatchTable({ data }: { data: MatchWithRelations[] }) {
                 </td>
               </tr>
             ) : (
-              filtered.map((m) => <MatchRow key={m.id} m={m} />)
+              filtered.map((m) => <MatchRow key={m.id} m={m} initiallyExpanded={m.id === openId} />)
             )}
           </tbody>
         </table>

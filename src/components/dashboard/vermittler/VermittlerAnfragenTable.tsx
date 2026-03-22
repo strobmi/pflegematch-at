@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { ChevronDown, ChevronUp, Check, Loader2, Search, Link2, RotateCcw, UserCheck, Calendar } from "lucide-react";
@@ -176,8 +177,14 @@ function PflegerCard({
 
 // ─── Row ──────────────────────────────────────────────────────────────────────
 
-function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pfleger[]; showBadge: boolean }) {
-  const [expanded, setExpanded] = useState(false);
+function AnfrageRow({ req, pfleger, showBadge, initiallyExpanded }: { req: Anfrage; pfleger: Pfleger[]; showBadge: boolean; initiallyExpanded?: boolean }) {
+  const [expanded, setExpanded] = useState(initiallyExpanded ?? false);
+  const rowRef = useRef<HTMLTableRowElement>(null);
+  useEffect(() => {
+    if (initiallyExpanded && rowRef.current) {
+      rowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [initiallyExpanded]);
   const [processing, setProcessing] = useState(false);
   const [reopening, setReopening]   = useState(false);
   const [matching, setMatching]   = useState(false);
@@ -238,6 +245,7 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
   return (
     <>
       <tr
+        ref={rowRef}
         onClick={() => setExpanded((e) => !e)}
         className={`transition-colors cursor-pointer ${req.isProcessed && showBadge ? "opacity-55 hover:opacity-100" : "hover:bg-[#FAF6F1]"}`}
       >
@@ -495,7 +503,13 @@ function AnfrageRow({ req, pfleger, showBadge }: { req: Anfrage; pfleger: Pflege
 type Tab = "offen" | "erledigt" | "alle";
 
 export default function VermittlerAnfragenTable({ requests, pfleger }: { requests: Anfrage[]; pfleger: Pfleger[] }) {
-  const [tab, setTab] = useState<Tab>("offen");
+  const searchParams = useSearchParams();
+  const openId = searchParams.get("open");
+  const openRequest = openId ? requests.find((r) => r.id === openId) : null;
+  const [tab, setTab] = useState<Tab>(() => {
+    if (openRequest?.isProcessed) return "alle";
+    return "offen";
+  });
   const [search, setSearch] = useState("");
   const [betreuungsFilter, setBetreuungsFilter] = useState("");
   const [reasonFilter, setReasonFilter] = useState("");
@@ -615,7 +629,7 @@ export default function VermittlerAnfragenTable({ requests, pfleger }: { request
             </tr>
           ) : (
             filtered.map((r) => (
-              <AnfrageRow key={r.id} req={r} pfleger={pfleger} showBadge={tab === "alle"} />
+              <AnfrageRow key={r.id} req={r} pfleger={pfleger} showBadge={tab === "alle"} initiallyExpanded={r.id === openId} />
             ))
           )}
         </tbody>

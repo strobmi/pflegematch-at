@@ -155,6 +155,23 @@ export async function deleteMatch(matchId: string) {
   revalidatePath("/vermittler/anfragen");
 }
 
+export async function confirmForCaregiver(matchId: string) {
+  const session = await requireTenantSession();
+  const match = await prisma.match.findFirst({
+    where: { id: matchId, tenantId: session.tenantId },
+  });
+  if (!match) return { error: "Nicht gefunden." };
+
+  await prisma.match.update({
+    where: { id: matchId },
+    data: {
+      caregiverConfirmed:   true,
+      caregiverConfirmedAt: new Date(),
+    },
+  });
+  revalidatePath("/vermittler/matches");
+}
+
 export async function confirmForClient(matchId: string) {
   const session = await requireTenantSession();
   const match = await prisma.match.findFirst({
