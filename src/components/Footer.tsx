@@ -8,14 +8,11 @@ const footerLinks = {
     { label: "Für Pflegekräfte", href: "#for-caregivers" },
   ],
   "Über uns": [
-    { label: "Unser Team", href: "#team" },
-    { label: "Mission", href: "#mission" },
-    { label: "Presse", href: "#press" },
-    { label: "Karriere", href: "#careers" },
+    { label: "Über uns", href: "#about" },
+    { label: "Mission", href: "#about" },
   ],
   "Hilfe & Recht": [
     { label: "FAQ", href: "#faq" },
-    { label: "Pflegegeld-Infos", href: "#pflegegeld" },
     { label: "Datenschutz", href: "#privacy" },
     { label: "AGB", href: "#terms" },
     { label: "Impressum", href: "/impressum" },

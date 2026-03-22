@@ -7,6 +7,7 @@ import CaregiverProfiles from "@/components/CaregiverProfiles";
 import VideoCallFeature from "@/components/VideoCallFeature";
 import Testimonials from "@/components/Testimonials";
 import KostenSection from "@/components/KostenSection";
+import UeberUnsSection from "@/components/UeberUnsSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 
@@ -22,6 +23,7 @@ export default function Home() {
         <VideoCallFeature />
         <Testimonials />
         <KostenSection />
+        <UeberUnsSection />
         <CTASection />
         <Footer />
       </main>
