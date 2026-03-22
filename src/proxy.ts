@@ -26,7 +26,7 @@ function isRateLimited(ip: string): boolean {
 // Locale-prefixed paths handled by next-intl (de/en/ro/hr)
 const LOCALE_PREFIX_RE = /^\/(de|en|ro|hr)(\/|$)/;
 
-const PUBLIC_PATHS = ["/", "/login", "/api/auth", "/invite", "/faq", "/agb", "/datenschutz", "/impressum"];
+const PUBLIC_PATHS = ["/", "/login", "/api/auth", "/invite", "/faq", "/agb", "/datenschutz", "/impressum", "/partner"];
 const STATIC_PREFIXES = ["/_next", "/favicon", "/public", "/robots.txt"];
 
 // Locale-prefixed public paths (registration, public profiles, direct requests)
