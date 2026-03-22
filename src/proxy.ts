@@ -27,7 +27,7 @@ function isRateLimited(ip: string): boolean {
 const LOCALE_PREFIX_RE = /^\/(de|en|ro|hr)(\/|$)/;
 
 const PUBLIC_PATHS = ["/", "/login", "/api/auth", "/api/anfrage", "/api/fragebogen", "/invite", "/faq", "/agb", "/datenschutz", "/impressum", "/partner"];
-const STATIC_PREFIXES = ["/_next", "/favicon", "/public", "/robots.txt"];
+const STATIC_PREFIXES = ["/_next", "/favicon", "/public", "/robots.txt", "/logos"];
 
 // Locale-prefixed public paths (registration, public profiles, direct requests)
 const LOCALE_PUBLIC_RE = /^\/(de|en|ro|hr)\/(registrierung|pfleger)(\/|$)/;
@@ -127,5 +127,7 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon\\.ico|logos/|images/|icons/|fonts/|.*\\.svg$|.*\\.png$|.*\\.jpg$|.*\\.ico$|.*\\.webp$|.*\\.woff2?$).*)",
+  ],
 };
