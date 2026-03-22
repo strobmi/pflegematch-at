@@ -181,6 +181,11 @@ export default function Hero() {
                 </div>
               </div>
 
+              {/* Kennenlernen — dekorativ, nicht klickbar */}
+              <div className="w-full bg-[#C06B4A]/90 text-white py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 cursor-default select-none opacity-90">
+                <span className="text-base">🎥</span>
+                Kennenlerngespräch starten
+              </div>
             </div>
 
             {/* Background card decoration */}

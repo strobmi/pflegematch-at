@@ -3,11 +3,11 @@
 import { motion } from "framer-motion";
 
 const mediaLogos = [
-  { name: "Der Standard", abbr: "DS" },
-  { name: "Kleine Zeitung", abbr: "KZ" },
-  { name: "ORF", abbr: "ORF" },
-  { name: "APA", abbr: "APA" },
-  { name: "WKO", abbr: "WKO" },
+  { name: "Der Standard",  src: "/logos/derstandard.svg",  h: "h-7"  },
+  { name: "Kleine Zeitung", src: "/logos/kleinezeitung.svg", h: "h-7"  },
+  { name: "ORF",           src: "/logos/orf.svg",           h: "h-8"  },
+  { name: "APA",           src: "/logos/apa.svg",           h: "h-7"  },
+  { name: "WKO",           src: "/logos/wko.svg",           h: "h-8"  },
 ];
 
 const trustPoints = [
@@ -43,15 +43,13 @@ export default function TrustSection() {
           <p className="text-sm font-semibold text-[#2D2D2D]/40 uppercase tracking-widest mb-6">
             Bekannt aus österreichischen Medien
           </p>
-          <div className="flex flex-wrap justify-center items-center gap-8">
+          <div className="flex flex-wrap justify-center items-center gap-10">
             {mediaLogos.map((logo) => (
               <div
                 key={logo.name}
-                className="flex items-center justify-center h-8 px-4 opacity-35 hover:opacity-60 transition-opacity"
+                className={`flex items-center justify-center ${logo.h} opacity-50 hover:opacity-80 transition-opacity`}
               >
-                <span className="text-[#2D2D2D] font-black text-lg tracking-tight">
-                  {logo.name}
-                </span>
+                <img src={logo.src} alt={logo.name} className="h-full w-auto object-contain" />
               </div>
             ))}
           </div>

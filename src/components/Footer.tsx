@@ -4,17 +4,17 @@ const footerLinks = {
   "Plattform": [
     { label: "Wie es funktioniert", href: "#how-it-works" },
     { label: "Pflegekräfte finden", href: "#caregivers" },
-    { label: "Preise", href: "#pricing" },
-    { label: "Für Pflegekräfte", href: "#for-caregivers" },
+    { label: "Kosten", href: "#pricing" },
+    { label: "Für Pflegekräfte", href: "/de/registrierung" },
   ],
   "Über uns": [
     { label: "Über uns", href: "#about" },
     { label: "Mission", href: "#about" },
   ],
   "Hilfe & Recht": [
-    { label: "FAQ", href: "#faq" },
-    { label: "Datenschutz", href: "#privacy" },
-    { label: "AGB", href: "#terms" },
+    { label: "FAQ", href: "/faq" },
+    { label: "Datenschutz", href: "/datenschutz" },
+    { label: "AGB", href: "/agb" },
     { label: "Impressum", href: "/impressum" },
   ],
 };

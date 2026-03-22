@@ -156,13 +156,6 @@ export default function VideoCallFeature() {
               ))}
             </div>
 
-            <a
-              href="#get-started"
-              className="inline-flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] text-white px-7 py-4 rounded-full font-bold transition-all duration-200 hover:shadow-xl hover:shadow-[#C06B4A]/30"
-            >
-              <Video className="w-5 h-5" />
-              Erstes Kennenlernen planen
-            </a>
           </motion.div>
         </div>
       </div>

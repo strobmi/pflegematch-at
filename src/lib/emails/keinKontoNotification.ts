@@ -9,7 +9,7 @@ export async function sendKeinKontoNotification(): Promise<void> {
 
   const { error } = await resend.emails.send({
     from: "pflegematch.at <noreply@pflegematch.at>",
-    to: "office@ms-consulting.at",
+    to: "office@pflegematch.at",
     subject: "pflegematch.at – Kein Konto Anfrage",
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #2D2D2D;">

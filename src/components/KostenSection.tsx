@@ -98,9 +98,13 @@ export default function KostenSection() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2D2D2D] leading-tight mb-4">
             Was kostet 24-Stunden-Pflege?
           </h2>
-          <p className="text-[#2D2D2D]/60 text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-[#2D2D2D]/60 text-lg max-w-2xl mx-auto leading-relaxed mb-6">
             Alle Kosten auf einen Blick — inklusive staatlicher Förderungen, Pflegegeld und steuerlicher Vorteile.
           </p>
+          <div className="inline-flex items-center gap-2.5 bg-[#7B9E7B]/15 border border-[#7B9E7B]/30 text-[#5A7A5A] font-semibold px-5 py-3 rounded-2xl text-base">
+            <span className="text-xl">✓</span>
+            Das Matching ist für Familien vollständig kostenlos und unverbindlich.
+          </div>
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-8 mb-10">
@@ -203,9 +207,9 @@ export default function KostenSection() {
         >
           <Info className="w-5 h-5 text-[#C06B4A] flex-shrink-0 mt-0.5" />
           <p className="text-sm text-[#2D2D2D]/70 leading-relaxed">
-            <span className="font-semibold text-[#2D2D2D]">Individuelle Kostenberechnung: </span>
-            Die tatsächlichen Kosten hängen von Pflegestufe, Betreuungsaufwand und Region ab.
-            Unser Beratungsteam erstellt Ihnen kostenlos und unverbindlich eine persönliche Kostenübersicht.
+            <span className="font-semibold text-[#2D2D2D]">Keine versteckten Kosten: </span>
+            Das Matching, die Beratung und das Kennenlerngespräch sind für Familien immer kostenlos und völlig unverbindlich.
+            Die obigen Kosten entstehen erst nach erfolgter Vermittlung und betreffen ausschließlich die laufende Betreuung.
           </p>
         </motion.div>
       </div>

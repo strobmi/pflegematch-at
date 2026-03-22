@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ClipboardList, Cpu, Video, CheckCircle2 } from "lucide-react";
+import { useFragebogen } from "@/components/FragebogenContext";
 
 const steps = [
   {
@@ -43,6 +44,7 @@ const steps = [
 ];
 
 export default function HowItWorks() {
+  const { openModal } = useFragebogen();
   return (
     <section id="how-it-works" className="py-20 lg:py-28 bg-[#FAF6F1]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -123,13 +125,13 @@ export default function HowItWorks() {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="text-center mt-12"
         >
-          <a
-            href="#get-started"
-            className="inline-flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] text-white px-8 py-4 rounded-full text-base font-bold transition-all duration-200 hover:shadow-xl hover:shadow-[#C06B4A]/30"
+          <button
+            onClick={openModal}
+            className="inline-flex items-center gap-2 bg-[#C06B4A] hover:bg-[#A05438] text-white px-8 py-4 rounded-full text-base font-bold transition-all duration-200 hover:shadow-xl hover:shadow-[#C06B4A]/30 cursor-pointer"
           >
             Jetzt kostenlos starten
             <span>→</span>
-          </a>
+          </button>
           <p className="text-sm text-[#2D2D2D]/40 mt-3">Keine Kreditkarte notwendig · Erstberatung kostenlos</p>
         </motion.div>
       </div>

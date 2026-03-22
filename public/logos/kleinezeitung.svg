@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 80" width="130" height="80">
+  <rect width="130" height="80" fill="#C1001F"/>
+  <text x="65" y="34" font-family="Arial Black, Arial, sans-serif" font-size="22" font-weight="900" fill="white" text-anchor="middle" letter-spacing="1">KLEINE</text>
+  <line x1="8" y1="41" x2="122" y2="41" stroke="white" stroke-width="2"/>
+  <text x="65" y="62" font-family="Arial Black, Arial, sans-serif" font-size="18" font-weight="900" fill="white" text-anchor="middle" letter-spacing="1">ZEITUNG</text>
+</svg>

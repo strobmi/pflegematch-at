@@ -50,8 +50,8 @@ export default function Impressum() {
             </h2>
             <p className="text-base leading-relaxed">
               E-Mail:{" "}
-              <a href="mailto:office@ms-consulting.at" className="text-[#C06B4A] hover:underline">
-                office@ms-consulting.at
+              <a href="mailto:office@pflegematch.at" className="text-[#C06B4A] hover:underline">
+                office@pflegematch.at
               </a>
             </p>
           </section>

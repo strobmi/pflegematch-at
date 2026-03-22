@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
   const { error } = await resend.emails.send({
     from:    "pflegematch.at <noreply@pflegematch.at>",
-    to:      "office@ms-consulting.at",
+    to:      "office@pflegematch.at",
     subject: "Neue Pflegeanfrage über pflegematch.at",
     html: `
       <p>Es ist eine neue unverbindliche Anfrage eingegangen:</p>
