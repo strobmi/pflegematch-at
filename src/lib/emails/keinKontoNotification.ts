@@ -8,7 +8,7 @@ export async function sendKeinKontoNotification(): Promise<void> {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   const { error } = await resend.emails.send({
-    from: "pflegematch.at <noreply@pflegematch.at>",
+    from: "pflegematch.at <noreply@mail.pflegematch.at>",
     to: "office@pflegematch.at",
     subject: "pflegematch.at – Kein Konto Anfrage",
     html: `

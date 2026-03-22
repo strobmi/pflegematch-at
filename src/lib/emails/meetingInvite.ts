@@ -40,7 +40,7 @@ export async function sendMatchNotificationEmail({
     : `<p style="color: #555; font-size: 14px;">Der Klient hat noch keine Wunschtermine angegeben. Sie können selbst einen Termin vorschlagen.</p>`;
 
   const { error } = await resend.emails.send({
-    from: "pflegematch.at <noreply@pflegematch.at>",
+    from: "pflegematch.at <noreply@mail.pflegematch.at>",
     to,
     subject: `Neuer Match: Kennenlerngespräch mit ${clientName}`,
     html: `
@@ -110,7 +110,7 @@ export async function sendMeetingScheduledEmail({
   const subject = `Ihr Videotermin bei pflegematch.at – ${dateStr}`;
 
   const { error } = await resend.emails.send({
-    from: "pflegematch.at <noreply@pflegematch.at>",
+    from: "pflegematch.at <noreply@mail.pflegematch.at>",
     to,
     subject,
     html: `
@@ -170,7 +170,7 @@ export async function sendMeetingCancelledEmail({
   const timeStr = format(scheduledAt, "HH:mm", { locale: de });
 
   const { error } = await resend.emails.send({
-    from: "pflegematch.at <noreply@pflegematch.at>",
+    from: "pflegematch.at <noreply@mail.pflegematch.at>",
     to,
     subject: `Videotermin abgesagt – ${dateStr}`,
     html: `

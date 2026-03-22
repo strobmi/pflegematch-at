@@ -181,7 +181,7 @@ export async function POST(req: Request) {
   `;
 
   const { error: emailError } = await resend.emails.send({
-    from: "pflegematch.at <noreply@pflegematch.at>",
+    from: "pflegematch.at <noreply@mail.pflegematch.at>",
     to: "office@pflegematch.at",
     replyTo: email,
     subject: `Neue Pflegeanfrage von ${name}`,

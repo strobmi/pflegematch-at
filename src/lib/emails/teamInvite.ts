@@ -20,7 +20,7 @@ export async function sendTeamInviteEmail({
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   const { error } = await resend.emails.send({
-    from: "pflegematch.at <noreply@pflegematch.at>",
+    from: "pflegematch.at <noreply@mail.pflegematch.at>",
     to,
     subject: `Einladung zum Team bei ${tenantName} – pflegematch.at`,
     html: `

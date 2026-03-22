@@ -116,7 +116,7 @@ export async function registerFreelancePfleger(
   // Welcome email
   try {
     await resend?.emails.send({
-      from: "pflegematch.at <noreply@pflegematch.at>",
+      from: "pflegematch.at <noreply@mail.pflegematch.at>",
       to: email,
       subject: "Willkommen bei pflegematch.at",
       html: `<p>Hallo ${name},</p><p>Ihr Profil wurde erfolgreich erstellt. Melden Sie sich jetzt an und vervollständigen Sie Ihr Profil.</p><p>Ihr pflegematch.at-Team</p>`,
