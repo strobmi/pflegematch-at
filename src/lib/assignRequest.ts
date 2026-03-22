@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { computeScore } from "@/lib/scoring";
+import { sendNeueAnfrageNotification } from "@/lib/emails/neueAnfrageNotification";
 import type { CaregiverAvailability, CaregiverProfile, MatchRequest } from "@prisma/client";
 
 function scoreCaregiverForRequest(
@@ -95,6 +96,20 @@ export async function autoAssignByScore(matchRequestId: string): Promise<void> {
           prisma.user.update({ where: { id: fallbackAdmins[0].id }, data: { lastAssignedAt: new Date() } }),
           prisma.tenant.update({ where: { id: fallbackTenantId }, data: { lastAssignedAt: new Date() } }),
         ]);
+        const fallbackAdmin = await prisma.user.findUnique({
+          where: { id: fallbackAdmins[0].id },
+          select: { email: true, name: true },
+        });
+        if (fallbackAdmin?.email) {
+          await sendNeueAnfrageNotification({
+            adminEmail: fallbackAdmin.email,
+            adminName: fallbackAdmin.name ?? "Vermittler",
+            contactName: request.contactName,
+            contactEmail: request.contactEmail ?? "",
+            contactPhone: request.contactPhone ?? "",
+            dashboardUrl: "https://pflegematch.at/vermittler/anfragen",
+          });
+        }
         return;
       }
     }
@@ -109,4 +124,19 @@ export async function autoAssignByScore(matchRequestId: string): Promise<void> {
     prisma.user.update({ where: { id: admins[0].id }, data: { lastAssignedAt: new Date() } }),
     prisma.tenant.update({ where: { id: tenantId }, data: { lastAssignedAt: new Date() } }),
   ]);
+
+  const admin = await prisma.user.findUnique({
+    where: { id: admins[0].id },
+    select: { email: true, name: true },
+  });
+  if (admin?.email) {
+    await sendNeueAnfrageNotification({
+      adminEmail: admin.email,
+      adminName: admin.name ?? "Vermittler",
+      contactName: request.contactName,
+      contactEmail: request.contactEmail ?? "",
+      contactPhone: request.contactPhone ?? "",
+      dashboardUrl: "https://pflegematch.at/vermittler/anfragen",
+    });
+  }
 }
