@@ -118,6 +118,34 @@ export async function deleteTenant(tenantId: string) {
 }
 
 // ─────────────────────────────────────────────
+// PLAN-ZUWEISUNG
+// ─────────────────────────────────────────────
+
+const AssignPlanSchema = z.object({
+  planId:        z.string().min(1),
+  effectiveFrom: z.coerce.date(),
+});
+
+export async function assignPricingPlan(tenantId: string, data: { planId: string; effectiveFrom: string }) {
+  const session = await requireSession();
+  if (session.role !== "SUPERADMIN") return { error: "Keine Berechtigung." };
+
+  const parsed = AssignPlanSchema.parse(data);
+
+  await prisma.tenantPlanAssignment.create({
+    data: {
+      tenantId,
+      planId:        parsed.planId,
+      effectiveFrom: parsed.effectiveFrom,
+      assignedById:  session.id,
+    },
+  });
+
+  revalidatePath(`/admin/tenants/${tenantId}/bearbeiten`);
+  return { success: true };
+}
+
+// ─────────────────────────────────────────────
 // PFLEGER-ZUORDNUNG
 // ─────────────────────────────────────────────
 

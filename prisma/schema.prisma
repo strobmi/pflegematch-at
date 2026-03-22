@@ -134,6 +134,7 @@ model Tenant {
   meetingProposals      MeetingProposal[]
   inviteTokens          InviteToken[]
   contracts             Contract[]
+  planAssignments       TenantPlanAssignment[]
 
   @@index([slug])
 }
@@ -163,6 +164,7 @@ model User {
   assignedRequests   MatchRequest[]      @relation("AssignedRequests")
   processedRequests  MatchRequest[]      @relation("ProcessedRequests")
   emailChangeTokens  EmailChangeToken[]
+  planAssignments    TenantPlanAssignment[]
 
   @@index([email])
 }
@@ -527,4 +529,37 @@ model MeetingProposal {
 
   @@index([matchId])
   @@index([tenantId])
+}
+
+// ─────────────────────────────────────────────
+// PRICING PLANS (Tarife: Basic / Starter / Pro)
+// ─────────────────────────────────────────────
+
+model PricingPlan {
+  id         String   @id @default(cuid())
+  name       String                          // "Basic", "Starter", "Pro"
+  slug       String   @unique               // "basic", "starter", "pro"
+  monthlyFee Decimal  @db.Decimal(8, 2)     // Monatspauschale (€/Monat)
+  matchFee   Decimal  @db.Decimal(8, 2)     // Matchgebühr (€, einmalig)
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenantPlans TenantPlanAssignment[]
+}
+
+model TenantPlanAssignment {
+  id            String      @id @default(cuid())
+  tenantId      String
+  planId        String
+  effectiveFrom DateTime    // Datum ab dem der Plan gilt (z.B. 1. des nächsten Monats)
+  assignedAt    DateTime    @default(now())
+  assignedById  String      // User-ID des Admins, der die Änderung durchgeführt hat
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan        PricingPlan @relation(fields: [planId], references: [id])
+  assignedBy  User        @relation(fields: [assignedById], references: [id])
+
+  @@index([tenantId, effectiveFrom])
 }

@@ -3,6 +3,7 @@ import { requireTenantSession } from "@/lib/tenant";
 import { redirect } from "next/navigation";
 import { FileText } from "lucide-react";
 import ContractForm from "@/components/dashboard/matches/ContractForm";
+import { getActivePlan } from "@/lib/pricing";
 
 export const metadata = { title: "Vertrag anlegen · pflegematch" };
 
@@ -26,10 +27,17 @@ export default async function NeuerVertragPage({
   if (!match) redirect("/vermittler/matches");
   if (match.contract) redirect(`/vermittler/vertraege/${match.contract.id}`);
 
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: session.tenantId },
-    select: { defaultMatchFee: true, defaultMonthlyFee: true },
-  });
+  const [tenant, activePlan] = await Promise.all([
+    prisma.tenant.findUnique({
+      where:  { id: session.tenantId },
+      select: { defaultMatchFee: true, defaultMonthlyFee: true },
+    }),
+    getActivePlan(session.tenantId),
+  ]);
+
+  // Plan-Werte haben Vorrang vor den manuellen Tenant-Defaults
+  const defaultMatchFee   = activePlan ? Number(activePlan.plan.matchFee)   : (tenant?.defaultMatchFee   ? Number(tenant.defaultMatchFee)   : null);
+  const defaultMonthlyFee = activePlan ? Number(activePlan.plan.monthlyFee) : (tenant?.defaultMonthlyFee ? Number(tenant.defaultMonthlyFee) : null);
 
   const caregiverName =
     match.caregiverProfile.user.name ?? match.caregiverProfile.user.email;
@@ -52,8 +60,8 @@ export default async function NeuerVertragPage({
         matchId={matchId}
         caregiverName={caregiverName}
         clientName={clientName}
-        defaultMatchFee={tenant?.defaultMatchFee ? Number(tenant.defaultMatchFee) : null}
-        defaultMonthlyFee={tenant?.defaultMonthlyFee ? Number(tenant.defaultMonthlyFee) : null}
+        defaultMatchFee={defaultMatchFee}
+        defaultMonthlyFee={defaultMonthlyFee}
       />
     </div>
   );

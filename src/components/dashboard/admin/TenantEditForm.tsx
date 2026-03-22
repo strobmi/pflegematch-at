@@ -3,9 +3,9 @@
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Tag } from "lucide-react";
 
 const schema = z.object({
   tenantName:        z.string().min(2, "Min. 2 Zeichen"),
@@ -26,6 +26,14 @@ const STATUS_OPTIONS = [
   { value: "SUSPENDED", label: "Gesperrt" },
 ];
 
+interface PlanOption {
+  id: string;
+  name: string;
+  slug: string;
+  monthlyFee: number;
+  matchFee: number;
+}
+
 interface Props {
   tenantId: string;
   defaultValues: Partial<FormData>;
@@ -33,12 +41,28 @@ interface Props {
   onSubmit: (tenantId: string, data: FormData) => Promise<any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDelete: (tenantId: string) => Promise<any>;
+  allPlans?: PlanOption[];
+  activePlan?: { name: string; monthlyFee: number; matchFee: number } | null;
+  pendingPlan?: { name: string; effectiveFrom: string } | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onAssignPlan?: (tenantId: string, data: { planId: string; effectiveFrom: string }) => Promise<any>;
 }
 
-export default function TenantEditForm({ tenantId, defaultValues, onSubmit, onDelete }: Props) {
+function firstOfNextMonth(): string {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1, 1);
+  return d.toISOString().split("T")[0];
+}
+
+export default function TenantEditForm({ tenantId, defaultValues, onSubmit, onDelete, allPlans, activePlan, pendingPlan, onAssignPlan }: Props) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState("");
+  const [effectiveFrom, setEffectiveFrom] = useState(firstOfNextMonth);
+  const [planError, setPlanError] = useState<string | null>(null);
+  const [planSuccess, setPlanSuccess] = useState(false);
+  const [isPlanPending, startPlanTransition] = useTransition();
   const router = useRouter();
 
   const {
@@ -59,6 +83,18 @@ export default function TenantEditForm({ tenantId, defaultValues, onSubmit, onDe
     const result = await onDelete(tenantId);
     if (result?.error) { setServerError(result.error); setDeleting(false); return; }
     router.push("/admin/tenants");
+  }
+
+  function handleAssignPlan() {
+    if (!onAssignPlan || !selectedPlanId) return;
+    setPlanError(null);
+    startPlanTransition(async () => {
+      const result = await onAssignPlan(tenantId, { planId: selectedPlanId, effectiveFrom });
+      if (result?.error) { setPlanError(result.error); return; }
+      setPlanSuccess(true);
+      setSelectedPlanId("");
+      setTimeout(() => { setPlanSuccess(false); router.refresh(); }, 1500);
+    });
   }
 
   const inputClass =
@@ -157,6 +193,83 @@ export default function TenantEditForm({ tenantId, defaultValues, onSubmit, onDe
           </div>
         </div>
       </div>
+
+      {/* Preisplan */}
+      {allPlans && allPlans.length > 0 && (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Tag className="w-4 h-4 text-white/40" />
+            <h3 className="font-semibold text-white">Preisplan</h3>
+          </div>
+
+          {/* Aktiver Plan */}
+          {activePlan ? (
+            <div className="bg-white/5 rounded-xl px-4 py-3 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-white/40 mb-0.5">Aktiver Plan</p>
+                <p className="font-medium text-white">{activePlan.name}</p>
+              </div>
+              <div className="text-right text-sm text-white/60">
+                <p>{activePlan.monthlyFee} €/Monat</p>
+                <p>{activePlan.matchFee} €/Match</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-white/40">Kein Plan zugewiesen — manuelle Gebühren gelten.</p>
+          )}
+
+          {/* Ausstehender Planwechsel */}
+          {pendingPlan && (
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 text-sm text-amber-300">
+              Wechsel zu <span className="font-semibold">{pendingPlan.name}</span> ab{" "}
+              {new Date(pendingPlan.effectiveFrom).toLocaleDateString("de-AT")}
+            </div>
+          )}
+
+          {/* Neuen Plan zuweisen */}
+          {planError && (
+            <p className="text-xs text-red-400">{planError}</p>
+          )}
+          {planSuccess && (
+            <p className="text-xs text-[#7B9E7B]">Plan-Wechsel gespeichert ✓</p>
+          )}
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Neuer Plan</label>
+              <select
+                value={selectedPlanId}
+                onChange={(e) => setSelectedPlanId(e.target.value)}
+                className={inputClass + " cursor-pointer"}
+              >
+                <option value="" className="bg-[#2D2D2D]">— Plan wählen —</option>
+                {allPlans.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-[#2D2D2D]">
+                    {p.name} ({p.monthlyFee} €/Mo + {p.matchFee} €/Match)
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Stichtag</label>
+              <input
+                type="date"
+                value={effectiveFrom}
+                onChange={(e) => setEffectiveFrom(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleAssignPlan}
+            disabled={!selectedPlanId || isPlanPending}
+            className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 disabled:opacity-40 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+          >
+            {isPlanPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            Plan zuweisen
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center justify-between">
         <button

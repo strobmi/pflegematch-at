@@ -372,6 +372,21 @@ async function main() {
     console.log(`✓ MatchRequest: Karl Schwarz`);
   }
 
+  // ── Pricing Plans ──────────────────────────────────────────
+  const pricingPlans = [
+    { name: "Basic",   slug: "basic",   monthlyFee: 29, matchFee: 50, sortOrder: 0 },
+    { name: "Starter", slug: "starter", monthlyFee: 49, matchFee: 40, sortOrder: 1 },
+    { name: "Pro",     slug: "pro",     monthlyFee: 79, matchFee: 30, sortOrder: 2 },
+  ];
+  for (const plan of pricingPlans) {
+    await prisma.pricingPlan.upsert({
+      where:  { slug: plan.slug },
+      update: { name: plan.name, monthlyFee: plan.monthlyFee, matchFee: plan.matchFee, sortOrder: plan.sortOrder },
+      create: plan,
+    });
+    console.log(`✓ PricingPlan: ${plan.name} (${plan.monthlyFee}€/Monat + ${plan.matchFee}€/Match)`);
+  }
+
   console.log("\n✅ Seed completed.");
   console.log(`\nLogin credentials:`);
   console.log(`  Superadmin:  ${superadminEmail} / ${superadminPassword}`);

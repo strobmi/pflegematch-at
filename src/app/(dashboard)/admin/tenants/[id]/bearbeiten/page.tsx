@@ -4,7 +4,8 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Users } from "lucide-react";
 import TenantEditForm from "@/components/dashboard/admin/TenantEditForm";
-import { updateTenant, deleteTenant } from "../../actions";
+import { updateTenant, deleteTenant, assignPricingPlan } from "../../actions";
+import { getActivePlan, getPendingPlan } from "@/lib/pricing";
 
 export const metadata = { title: "Vermittler bearbeiten · Admin · pflegematch" };
 
@@ -14,7 +15,12 @@ export default async function TenantBearbeitenPage({ params }: { params: Promise
 
   const { id } = await params;
 
-  const tenant = await prisma.tenant.findUnique({ where: { id } });
+  const [tenant, allPlans, activePlanAssignment, pendingPlanAssignment] = await Promise.all([
+    prisma.tenant.findUnique({ where: { id } }),
+    prisma.pricingPlan.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
+    getActivePlan(id),
+    getPendingPlan(id),
+  ]);
   if (!tenant) notFound();
 
   const defaultValues = {
@@ -58,6 +64,10 @@ export default async function TenantBearbeitenPage({ params }: { params: Promise
         defaultValues={defaultValues}
         onSubmit={updateTenant}
         onDelete={deleteTenant}
+        allPlans={allPlans.map((p) => ({ id: p.id, name: p.name, slug: p.slug, monthlyFee: Number(p.monthlyFee), matchFee: Number(p.matchFee) }))}
+        activePlan={activePlanAssignment ? { name: activePlanAssignment.plan.name, monthlyFee: Number(activePlanAssignment.plan.monthlyFee), matchFee: Number(activePlanAssignment.plan.matchFee) } : null}
+        pendingPlan={pendingPlanAssignment ? { name: pendingPlanAssignment.plan.name, effectiveFrom: pendingPlanAssignment.effectiveFrom.toISOString() } : null}
+        onAssignPlan={assignPricingPlan}
       />
     </div>
   );
