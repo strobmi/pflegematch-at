@@ -75,12 +75,6 @@ export default function CaregiverProfiles() {
               Lernen Sie exemplarische Profile kennen. Alle Personen sind geprüft, versichert und persönlich interviewt.
             </p>
           </div>
-          <a
-            href="#get-started"
-            className="flex-shrink-0 bg-[#FAF6F1] hover:bg-[#F5EDE3] text-[#C06B4A] font-semibold px-6 py-3 rounded-full border border-[#EAD9C8] transition-colors text-sm"
-          >
-            Alle Profile ansehen →
-          </a>
         </motion.div>
 
         {/* Profile Cards */}
