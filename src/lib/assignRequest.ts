@@ -104,7 +104,7 @@ export async function autoAssignByScore(matchRequestId: string): Promise<void> {
           await sendNeueAnfrageNotification({
             adminEmail: fallbackAdmin.email,
             adminName: fallbackAdmin.name ?? "Vermittler",
-            contactName: request.contactName,
+            contactName: request.contactName ?? "",
             contactEmail: request.contactEmail ?? "",
             contactPhone: request.contactPhone ?? "",
             dashboardUrl: "https://pflegematch.at/vermittler/anfragen",
@@ -133,7 +133,7 @@ export async function autoAssignByScore(matchRequestId: string): Promise<void> {
     await sendNeueAnfrageNotification({
       adminEmail: admin.email,
       adminName: admin.name ?? "Vermittler",
-      contactName: request.contactName,
+      contactName: request.contactName ?? "",
       contactEmail: request.contactEmail ?? "",
       contactPhone: request.contactPhone ?? "",
       dashboardUrl: "https://pflegematch.at/vermittler/anfragen",
