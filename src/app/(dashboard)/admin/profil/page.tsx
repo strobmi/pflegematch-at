@@ -50,10 +50,10 @@ export default async function AdminProfilPage() {
       </div>
 
       {/* E-Mail ändern */}
-      <EmailChangeForm currentEmail={user.email} />
+      <EmailChangeForm currentEmail={user.email} dark />
 
       {/* Passwort ändern */}
-      <PasswordChangeForm />
+      <PasswordChangeForm dark />
     </div>
   );
 }

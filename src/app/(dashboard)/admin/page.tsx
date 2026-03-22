@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/tenant";
 import { redirect } from "next/navigation";
-import { Building2, Users, Link2, Inbox, Tag, UserCog } from "lucide-react";
+import { Building2, Users, Link2, Inbox } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = { title: "Admin · pflegematch" };
@@ -27,10 +27,8 @@ export default async function AdminPage() {
   const stats = [
     { label: "Vermittler",      value: tenantCount,    icon: Building2, href: "/admin/tenants" },
     { label: "Alle User",       value: userCount,      icon: Users,     href: "/admin/users" },
-    { label: "Alle Matches",    value: matchCount,      icon: Link2,     href: "#" },
+    { label: "Alle Matches",    value: matchCount,      icon: Link2,     href: "/admin/matches" },
     { label: "Offene Anfragen", value: offeneAnfragen, icon: Inbox,     href: "/admin/anfragen", highlight: offeneAnfragen > 0 },
-    { label: "Preispläne",      value: "→",            icon: Tag,       href: "/admin/pricing-plans" },
-    { label: "Mein Profil",     value: "→",            icon: UserCog,   href: "/admin/profil" },
   ];
 
   return (

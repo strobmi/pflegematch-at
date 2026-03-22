@@ -17,7 +17,7 @@ export default async function DashboardLayout({
 
   const sidebar =
     role === "SUPERADMIN" ? (
-      <AdminSidebar />
+      <AdminSidebar userName={name} />
     ) : role === "VERMITTLER_ADMIN" ? (
       <VermittlerSidebar tenantName={tenantName ?? ""} userName={name} />
     ) : role === "KUNDE" ? (

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { changePassword } from "@/lib/password-change-actions";
 
-export default function PasswordChangeForm() {
+export default function PasswordChangeForm({ dark }: { dark?: boolean }) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -15,8 +15,11 @@ export default function PasswordChangeForm() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const inputClass =
-    "w-full px-4 py-2.5 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20 transition-colors placeholder:text-[#2D2D2D]/35";
+  const inputClass = dark
+    ? "w-full px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20 transition-colors placeholder:text-white/30"
+    : "w-full px-4 py-2.5 rounded-xl border border-[#EAD9C8] bg-[#FAF6F1] text-sm focus:outline-none focus:border-[#C06B4A] focus:ring-2 focus:ring-[#C06B4A]/20 transition-colors placeholder:text-[#2D2D2D]/35";
+  const labelClass = dark ? "block text-xs font-medium text-white/50 mb-1.5" : "block text-xs font-medium text-[#2D2D2D]/70 mb-1.5";
+  const eyeClass = dark ? "absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors" : "absolute right-3 top-1/2 -translate-y-1/2 text-[#2D2D2D]/40 hover:text-[#2D2D2D]/70 transition-colors";
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,11 +52,11 @@ export default function PasswordChangeForm() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAD9C8] p-6 space-y-4">
-      <h2 className="text-sm font-semibold text-[#2D2D2D]/70 uppercase tracking-wide">Passwort ändern</h2>
+    <div className={dark ? "bg-white/10 rounded-2xl border border-white/10 p-6 space-y-4" : "bg-white rounded-2xl border border-[#EAD9C8] p-6 space-y-4"}>
+      <h2 className={dark ? "text-sm font-semibold text-white/50 uppercase tracking-wide" : "text-sm font-semibold text-[#2D2D2D]/70 uppercase tracking-wide"}>Passwort ändern</h2>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Aktuelles Passwort</label>
+          <label className={labelClass}>Aktuelles Passwort</label>
           <div className="relative">
             <input
               type={showCurrent ? "text" : "password"}
@@ -63,19 +66,14 @@ export default function PasswordChangeForm() {
               placeholder="••••••••"
               className={`${inputClass} pr-10`}
             />
-            <button
-              type="button"
-              onClick={() => setShowCurrent((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#2D2D2D]/40 hover:text-[#2D2D2D]/70 transition-colors"
-              tabIndex={-1}
-            >
+            <button type="button" onClick={() => setShowCurrent((v) => !v)} className={eyeClass} tabIndex={-1}>
               {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Neues Passwort</label>
+          <label className={labelClass}>Neues Passwort</label>
           <div className="relative">
             <input
               type={showNew ? "text" : "password"}
@@ -85,19 +83,14 @@ export default function PasswordChangeForm() {
               placeholder="Mindestens 8 Zeichen"
               className={`${inputClass} pr-10`}
             />
-            <button
-              type="button"
-              onClick={() => setShowNew((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#2D2D2D]/40 hover:text-[#2D2D2D]/70 transition-colors"
-              tabIndex={-1}
-            >
+            <button type="button" onClick={() => setShowNew((v) => !v)} className={eyeClass} tabIndex={-1}>
               {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-[#2D2D2D]/70 mb-1.5">Neues Passwort wiederholen</label>
+          <label className={labelClass}>Neues Passwort wiederholen</label>
           <div className="relative">
             <input
               type={showConfirm ? "text" : "password"}
@@ -107,12 +100,7 @@ export default function PasswordChangeForm() {
               placeholder="••••••••"
               className={`${inputClass} pr-10`}
             />
-            <button
-              type="button"
-              onClick={() => setShowConfirm((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#2D2D2D]/40 hover:text-[#2D2D2D]/70 transition-colors"
-              tabIndex={-1}
-            >
+            <button type="button" onClick={() => setShowConfirm((v) => !v)} className={eyeClass} tabIndex={-1}>
               {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
@@ -124,7 +112,7 @@ export default function PasswordChangeForm() {
           </p>
         )}
         {status === "error" && errorMsg && (
-          <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{errorMsg}</p>
+          <p className={dark ? "text-sm text-red-400 bg-red-500/10 px-3 py-2 rounded-lg" : "text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg"}>{errorMsg}</p>
         )}
 
         <button

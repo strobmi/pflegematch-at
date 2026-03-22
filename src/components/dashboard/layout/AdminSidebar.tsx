@@ -4,20 +4,25 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { Heart, LayoutGrid, Building2, Users, LogOut, Link2, Inbox, Menu, X, TrendingUp } from "lucide-react";
+import { Heart, LayoutGrid, Building2, Users, LogOut, Link2, Inbox, Menu, X, TrendingUp, Tag } from "lucide-react";
 
 const navItems = [
-  { href: "/admin",               label: "Übersicht",   icon: LayoutGrid },
-  { href: "/admin/tenants",       label: "Vermittler",  icon: Building2 },
-  { href: "/admin/users",         label: "Alle User",   icon: Users },
-  { href: "/admin/anfragen",      label: "Anfragen",    icon: Inbox },
-  { href: "/admin/matches",       label: "Matches",     icon: Link2 },
-  { href: "/admin/controlling",   label: "Controlling", icon: TrendingUp },
+  { href: "/admin",                label: "Übersicht",   icon: LayoutGrid },
+  { href: "/admin/tenants",        label: "Vermittler",  icon: Building2 },
+  { href: "/admin/users",          label: "Alle User",   icon: Users },
+  { href: "/admin/anfragen",       label: "Anfragen",    icon: Inbox },
+  { href: "/admin/matches",        label: "Matches",     icon: Link2 },
+  { href: "/admin/controlling",    label: "Controlling", icon: TrendingUp },
+  { href: "/admin/pricing-plans",  label: "Preispläne",  icon: Tag },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ userName }: { userName?: string | null }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const initials = userName
+    ? userName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "SA";
 
   function isActive(href: string) {
     if (href === "/admin") return pathname === "/admin";
@@ -90,7 +95,21 @@ export default function AdminSidebar() {
           ))}
         </nav>
 
-        <div className="px-3 pb-5 border-t border-white/10 pt-3">
+        <div className="px-3 pb-5 border-t border-white/10 pt-3 space-y-0.5">
+          <Link
+            href="/admin/profil"
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+              isActive("/admin/profil")
+                ? "bg-white/10 text-white"
+                : "text-white/55 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            <div className="w-7 h-7 rounded-full bg-[#C06B4A]/30 flex items-center justify-center shrink-0">
+              <span className="text-xs font-bold text-[#C06B4A]">{initials}</span>
+            </div>
+            <span className="truncate">{userName ?? "Superadmin"}</span>
+          </Link>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/40 hover:bg-red-500/10 hover:text-red-400 transition-colors w-full"
