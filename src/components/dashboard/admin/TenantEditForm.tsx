@@ -42,10 +42,12 @@ interface Props {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDelete: (tenantId: string) => Promise<any>;
   allPlans?: PlanOption[];
-  activePlan?: { name: string; monthlyFee: number; matchFee: number } | null;
-  pendingPlan?: { name: string; effectiveFrom: string } | null;
+  activePlan?: { id: string; name: string; monthlyFee: number; matchFee: number } | null;
+  pendingPlan?: { id: string; name: string; effectiveFrom: string } | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onAssignPlan?: (tenantId: string, data: { planId: string; effectiveFrom: string }) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onCancelPendingPlan?: (assignmentId: string, tenantId: string) => Promise<any>;
 }
 
 function firstOfNextMonth(): string {
@@ -54,7 +56,7 @@ function firstOfNextMonth(): string {
   return d.toISOString().split("T")[0];
 }
 
-export default function TenantEditForm({ tenantId, defaultValues, onSubmit, onDelete, allPlans, activePlan, pendingPlan, onAssignPlan }: Props) {
+export default function TenantEditForm({ tenantId, defaultValues, onSubmit, onDelete, allPlans, activePlan, pendingPlan, onAssignPlan, onCancelPendingPlan }: Props) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -154,46 +156,6 @@ export default function TenantEditForm({ tenantId, defaultValues, onSubmit, onDe
         </div>
       </div>
 
-      {/* Gebühren */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
-        <div>
-          <h3 className="font-semibold text-white">Plattform-Gebühren</h3>
-          <p className="text-xs text-white/40 mt-0.5">Vorausgefüllte Standardwerte beim Vertragsabschluss — Vermittler kann pro Vertrag anpassen.</p>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className={labelClass}>Matchgebühr (€, einmalig)</label>
-            <div className="relative">
-              <input
-                {...register("defaultMatchFee")}
-                type="number"
-                min="0"
-                step="1"
-                placeholder="z.B. 200"
-                className={inputClass + " pr-8"}
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">€</span>
-            </div>
-            {errors.defaultMatchFee && <p className={errorClass}>{errors.defaultMatchFee.message}</p>}
-          </div>
-          <div>
-            <label className={labelClass}>Monatspauschale (€/Monat)</label>
-            <div className="relative">
-              <input
-                {...register("defaultMonthlyFee")}
-                type="number"
-                min="0"
-                step="1"
-                placeholder="z.B. 30"
-                className={inputClass + " pr-8"}
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">€</span>
-            </div>
-            {errors.defaultMonthlyFee && <p className={errorClass}>{errors.defaultMonthlyFee.message}</p>}
-          </div>
-        </div>
-      </div>
-
       {/* Preisplan */}
       {allPlans && allPlans.length > 0 && (
         <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
@@ -209,20 +171,54 @@ export default function TenantEditForm({ tenantId, defaultValues, onSubmit, onDe
                 <p className="text-xs text-white/40 mb-0.5">Aktiver Plan</p>
                 <p className="font-medium text-white">{activePlan.name}</p>
               </div>
-              <div className="text-right text-sm text-white/60">
-                <p>{activePlan.monthlyFee} €/Monat</p>
-                <p>{activePlan.matchFee} €/Match</p>
+              <div className="flex items-center gap-4">
+                <div className="text-right text-sm text-white/60">
+                  <p>{activePlan.monthlyFee} €/Monat</p>
+                  <p>{activePlan.matchFee} €/Match</p>
+                </div>
+                {onCancelPendingPlan && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      startPlanTransition(async () => {
+                        await onCancelPendingPlan(activePlan.id, tenantId);
+                        router.refresh();
+                      });
+                    }}
+                    disabled={isPlanPending}
+                    className="text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2.5 py-1 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    Entfernen
+                  </button>
+                )}
               </div>
             </div>
           ) : (
-            <p className="text-sm text-white/40">Kein Plan zugewiesen — manuelle Gebühren gelten.</p>
+            <p className="text-sm text-white/40">Kein Plan zugewiesen — Fallback-Gebühren gelten.</p>
           )}
 
           {/* Ausstehender Planwechsel */}
           {pendingPlan && (
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 text-sm text-amber-300">
-              Wechsel zu <span className="font-semibold">{pendingPlan.name}</span> ab{" "}
-              {new Date(pendingPlan.effectiveFrom).toLocaleDateString("de-AT")}
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+              <p className="text-sm text-amber-300">
+                Wechsel zu <span className="font-semibold">{pendingPlan.name}</span> ab{" "}
+                {new Date(pendingPlan.effectiveFrom).toLocaleDateString("de-AT")}
+              </p>
+              {onCancelPendingPlan && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    startPlanTransition(async () => {
+                      await onCancelPendingPlan(pendingPlan.id, tenantId);
+                      router.refresh();
+                    });
+                  }}
+                  disabled={isPlanPending}
+                  className="shrink-0 text-xs text-amber-400 hover:text-amber-200 hover:bg-amber-500/20 px-2.5 py-1 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Stornieren
+                </button>
+              )}
             </div>
           )}
 
@@ -270,6 +266,46 @@ export default function TenantEditForm({ tenantId, defaultValues, onSubmit, onDe
           </button>
         </div>
       )}
+
+      {/* Fallback-Gebühren */}
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+        <div>
+          <h3 className="font-semibold text-white">Fallback-Gebühren</h3>
+          <p className="text-xs text-white/40 mt-0.5">Gelten nur wenn kein Preisplan zugewiesen ist — werden beim Vertragsabschluss fix übernommen.</p>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>Monatspauschale (€/Monat)</label>
+            <div className="relative">
+              <input
+                {...register("defaultMonthlyFee")}
+                type="number"
+                min="0"
+                step="1"
+                placeholder="z.B. 30"
+                className={inputClass + " pr-8"}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">€</span>
+            </div>
+            {errors.defaultMonthlyFee && <p className={errorClass}>{errors.defaultMonthlyFee.message}</p>}
+          </div>
+          <div>
+            <label className={labelClass}>Matchgebühr (€/Match)</label>
+            <div className="relative">
+              <input
+                {...register("defaultMatchFee")}
+                type="number"
+                min="0"
+                step="1"
+                placeholder="z.B. 200"
+                className={inputClass + " pr-8"}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">€</span>
+            </div>
+            {errors.defaultMatchFee && <p className={errorClass}>{errors.defaultMatchFee.message}</p>}
+          </div>
+        </div>
+      </div>
 
       <div className="flex items-center justify-between">
         <button

@@ -4,11 +4,12 @@ import { useState, useTransition } from "react";
 import { createContract } from "@/app/(dashboard)/vermittler/vertraege/actions";
 
 interface ContractFormProps {
-  matchId:          string;
-  caregiverName:    string;
-  clientName:       string;
-  defaultMatchFee:  number | null;
+  matchId:           string;
+  caregiverName:     string;
+  clientName:        string;
+  defaultMatchFee:   number | null;
   defaultMonthlyFee: number | null;
+  planName:          string | null;
 }
 
 export default function ContractForm({
@@ -17,6 +18,7 @@ export default function ContractForm({
   clientName,
   defaultMatchFee,
   defaultMonthlyFee,
+  planName,
 }: ContractFormProps) {
   const today = new Date().toISOString().split("T")[0];
 
@@ -28,8 +30,6 @@ export default function ContractForm({
   const [endDate,          setEndDate]          = useState("");
   const [noticePeriodDays, setNoticePeriodDays] = useState(14);
   const [notes,            setNotes]            = useState("");
-  const [matchFee,         setMatchFee]         = useState(defaultMatchFee ?? "");
-  const [monthlyFee,       setMonthlyFee]       = useState(defaultMonthlyFee ?? "");
   const [error,            setError]            = useState<string | null>(null);
   const [isPending,        startTransition]     = useTransition();
 
@@ -45,8 +45,8 @@ export default function ContractForm({
         endDate:          unbefristet ? undefined : endDate || undefined,
         noticePeriodDays,
         notes:            notes || undefined,
-        matchFeeAmount:   matchFee !== "" ? Number(matchFee) : undefined,
-        monthlyFeeAmount: monthlyFee !== "" ? Number(monthlyFee) : undefined,
+        matchFeeAmount:   defaultMatchFee   ?? undefined,
+        monthlyFeeAmount: defaultMonthlyFee ?? undefined,
       });
       if (result?.error) setError(result.error);
     });
@@ -138,42 +138,26 @@ export default function ContractForm({
         </div>
       </div>
 
-      {/* Gebühren */}
-      <div className="bg-white rounded-2xl border border-[#EAD9C8] px-5 py-5 space-y-4">
+      {/* Gebühren (read-only) */}
+      <div className="bg-[#FAF6F1] rounded-2xl border border-[#EAD9C8] px-5 py-5 space-y-3">
         <p className="text-xs font-semibold text-[#2D2D2D]/50 uppercase tracking-wide">Plattform-Gebühren</p>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs text-[#2D2D2D]/60">Matchgebühr (€, einmalig)</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#2D2D2D]/40">€</span>
-              <input
-                type="number"
-                min={0}
-                step="0.01"
-                placeholder="0.00"
-                value={matchFee}
-                onChange={(e) => setMatchFee(e.target.value)}
-                className="w-full pl-7 text-sm border border-[#EAD9C8] rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-[#C06B4A]"
-              />
-            </div>
+            <p className="text-xs text-[#2D2D2D]/60">Matchgebühr (€/Match)</p>
+            <p className="text-sm font-semibold text-[#2D2D2D]">
+              {defaultMatchFee != null ? `€ ${defaultMatchFee}` : "–"}
+            </p>
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[#2D2D2D]/60">Monatspauschale (€/Monat)</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#2D2D2D]/40">€</span>
-              <input
-                type="number"
-                min={0}
-                step="0.01"
-                placeholder="0.00"
-                value={monthlyFee}
-                onChange={(e) => setMonthlyFee(e.target.value)}
-                className="w-full pl-7 text-sm border border-[#EAD9C8] rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-[#C06B4A]"
-              />
-            </div>
+            <p className="text-xs text-[#2D2D2D]/60">Monatspauschale (€/Monat)</p>
+            <p className="text-sm font-semibold text-[#2D2D2D]">
+              {defaultMonthlyFee != null ? `€ ${defaultMonthlyFee}` : "–"}
+            </p>
           </div>
         </div>
-        <p className="text-xs text-[#2D2D2D]/40">Vorausgefüllt mit den Standardgebühren des Tenants. Du kannst die Werte für diesen Vertrag anpassen.</p>
+        <p className="text-xs text-[#2D2D2D]/40">
+          Vom Plattformbetreiber festgelegt{planName ? ` · Paket ${planName}` : ""}.
+        </p>
       </div>
 
       {/* Notizen */}

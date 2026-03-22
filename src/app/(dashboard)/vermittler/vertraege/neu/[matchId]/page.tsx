@@ -62,6 +62,7 @@ export default async function NeuerVertragPage({
         clientName={clientName}
         defaultMatchFee={defaultMatchFee}
         defaultMonthlyFee={defaultMonthlyFee}
+        planName={activePlan?.plan.name ?? null}
       />
     </div>
   );

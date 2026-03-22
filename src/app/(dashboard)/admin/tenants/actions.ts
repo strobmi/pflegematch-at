@@ -145,6 +145,16 @@ export async function assignPricingPlan(tenantId: string, data: { planId: string
   return { success: true };
 }
 
+export async function cancelPendingPlan(assignmentId: string, tenantId: string) {
+  const session = await requireSession();
+  if (session.role !== "SUPERADMIN") return { error: "Keine Berechtigung." };
+
+  await prisma.tenantPlanAssignment.delete({ where: { id: assignmentId } });
+
+  revalidatePath(`/admin/tenants/${tenantId}/bearbeiten`);
+  return { success: true };
+}
+
 // ─────────────────────────────────────────────
 // PFLEGER-ZUORDNUNG
 // ─────────────────────────────────────────────
@@ -175,6 +185,7 @@ export async function assignPflegerToTenant(
   });
 
   revalidatePath(`/admin/tenants/${targetTenantId}/pfleger`);
+  revalidatePath("/admin/pflegekraefte");
   return {};
 }
 
