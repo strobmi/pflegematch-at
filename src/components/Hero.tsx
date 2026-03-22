@@ -181,11 +181,6 @@ export default function Hero() {
                 </div>
               </div>
 
-              {/* Video CTA */}
-              <button className="w-full bg-[#C06B4A] hover:bg-[#A05438] text-white py-3 rounded-2xl font-semibold text-sm transition-colors flex items-center justify-center gap-2">
-                <span className="text-base">🎥</span>
-                Kennenlerngespräch starten
-              </button>
             </div>
 
             {/* Background card decoration */}
